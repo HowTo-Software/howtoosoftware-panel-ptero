@@ -1,0 +1,189 @@
+@*
+    The server overview.
+
+    Answers, without the operator opening anything: what is running, what is not, what needs
+    looking at, and how much of the account's allocation is committed.
+
+    Two rules this screen exists to hold:
+
+      * Allocated is not used. The header says "allocated" because that is what it sums - what
+        the servers were promised, not what they are consuming. Conflating the two tells an
+        operator a node is full when it may be half idle.
+      * A server that is not reporting says so. It does not render as zero. "The daemon has not
+        answered" and "the server is using nothing" look identical in a naive mapping and are
+        completely different situations.
+*@
+
+@page "/"
+@inject IServerDirectory Directory
+
+<PageTitle>Servers · HowToo Software</PageTitle>
+
+<header class="head">
+    <div>
+        <h1 class="head-title">Your servers</h1>
+        <p class="head-sub">Everything on your HowToo Software account</p>
+    </div>
+
+    <button type="button" class="action action--primary" disabled>
+        <span class="action-mark" aria-hidden="true"></span>
+        Create server
+    </button>
+</header>
+
+@if (_error is { } error)
+{
+    <div class="notice notice--error" role="alert">
+        <p class="notice-title">@error.UserMessage</p>
+        <p class="notice-detail">Reference <code>@error.CorrelationId</code></p>
+    </div>
+}
+else if (_overview is null)
+{
+    <p class="loading" role="status">Loading…</p>
+}
+else
+{
+    <ul class="metrics">
+        <li class="metric">
+            <p class="metric-key">Servers online</p>
+            <p class="metric-value">@_overview.OnlineServers<span class="metric-of">/ @_overview.TotalServers</span></p>
+            <MeasureBar Value="new Measure(_overview.OnlineServers, _overview.TotalServers)" Tone="MeasureBar.BarTone.Brand" />
+        </li>
+
+        <li class="metric">
+            <p class="metric-key">Players connected</p>
+            @if (_overview.ConnectedPlayers is { } players)
+            {
+                <p class="metric-value">@players</p>
+                <p class="metric-note">Across every server that reports one</p>
+            }
+            else
+            {
+                @* Not zero. Pterodactyl does not know player counts - they come from the game,
+                   and not every game answers. *@
+                <p class="metric-value metric-value--absent">—</p>
+                <p class="metric-note">No server is reporting a player count</p>
+            }
+        </li>
+
+        <li class="metric">
+            <p class="metric-key">Memory allocated</p>
+            <p class="metric-value">@Format.Bytes(_overview.Memory.Used)<span class="metric-of">/ @Format.Bytes(_overview.Memory.Limit)</span></p>
+            <MeasureBar Value="_overview.Memory" Tone="MeasureBar.BarTone.Info" />
+        </li>
+
+        <li class="metric">
+            <p class="metric-key">Storage allocated</p>
+            <p class="metric-value">@Format.Bytes(_overview.Disk.Used)<span class="metric-of">/ @Format.Bytes(_overview.Disk.Limit)</span></p>
+            <MeasureBar Value="_overview.Disk" Tone="MeasureBar.BarTone.Info" />
+        </li>
+    </ul>
+
+    @if (_overview.NeedsAttention.Count > 0)
+    {
+        @* Surfaced above the grid rather than left to be found by scanning it. A failed install
+           in position nineteen of a list of forty is a failed install nobody notices. *@
+        <section class="attention" aria-labelledby="attention-heading">
+            <h2 id="attention-heading" class="attention-title">
+                @_overview.NeedsAttention.Count
+                @(_overview.NeedsAttention.Count == 1 ? "server needs" : "servers need") attention
+            </h2>
+            <ul class="attention-list">
+                @foreach (var server in _overview.NeedsAttention)
+                {
+                    <li>
+                        <a href="@($"/server/{server.Identifier}")">
+                            <StateDot State="server.State" ShowLabel />
+                            <span class="attention-name">@server.Name</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    <ul class="servers">
+        @foreach (var (server, index) in _servers!.Select((s, i) => (s, i)))
+        {
+            <li class="card" style="--card-index: @index">
+                <a class="card-link" href="@($"/server/{server.Identifier}")">
+                    <header class="card-head">
+                        <div class="card-identity">
+                            <h2 class="card-name">@server.Name</h2>
+                            @if (server.Game is { } game)
+                            {
+                                <p class="card-game">@game</p>
+                            }
+                        </div>
+                        <StateDot State="server.State" ShowLabel />
+                    </header>
+
+                    @if (server.Address is { } address)
+                    {
+                        <p class="card-address">@address</p>
+                    }
+
+                    <dl class="card-metrics">
+                        <ServerMeasure Label="CPU" Value="server.Resources?.CpuPercent" Kind="ServerMeasure.MeasureKind.Percent" />
+                        <ServerMeasure Label="RAM" Value="server.Resources?.MemoryBytes" Kind="ServerMeasure.MeasureKind.Bytes" />
+                        <ServerMeasure Label="Disk" Value="server.Resources?.DiskBytes" Kind="ServerMeasure.MeasureKind.Bytes" />
+                    </dl>
+
+                    <footer class="card-foot">
+                        <span class="card-players">
+                            @if (server.Players is { } count)
+                            {
+                                @($"{count.Connected} / {count.Maximum?.ToString() ?? "—"} players")
+                            }
+                            else
+                            {
+                                <span class="absent">No player count</span>
+                            }
+                        </span>
+
+                        <span class="card-place">
+                            @if (server.HasServerBot)
+                            {
+                                <span class="card-bot" title="HowToo server bot available">BOT</span>
+                            }
+                            @server.LocationCode
+                        </span>
+                    </footer>
+                </a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private AccountOverview? _overview;
+    private IReadOnlyList<ServerSummary>? _servers;
+    private PanelError? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var servers = await Directory.ListServersAsync();
+
+        if (!servers.IsSuccess)
+        {
+            _error = servers.Error;
+            return;
+        }
+
+        var overview = await Directory.GetOverviewAsync();
+
+        if (!overview.IsSuccess)
+        {
+            _error = overview.Error;
+            return;
+        }
+
+        _servers = servers.Value;
+        _overview = overview.Value;
+    }
+}
+
+@*
+    © 2026 HowToo Software. All rights reserved.
+*@

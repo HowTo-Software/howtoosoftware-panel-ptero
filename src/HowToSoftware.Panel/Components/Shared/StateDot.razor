@@ -1,0 +1,54 @@
+@*
+    A server's state as a dot plus a word.
+
+    Never colour alone. The dot carries the state at a glance for people who can use it; the
+    title and the screen-reader text carry it for everyone else. A dashboard that encodes
+    "suspended" purely as a different shade of orange is a dashboard some operators cannot read.
+*@
+
+<span class="dot @Modifier" title="@Label">
+    <span class="dot-mark" aria-hidden="true"></span>
+    @if (ShowLabel)
+    {
+        <span class="dot-label">@Label</span>
+    }
+    else
+    {
+        <span class="visually-hidden">@Label</span>
+    }
+</span>
+
+@code {
+    /// <summary>The state to show.</summary>
+    [Parameter, EditorRequired]
+    public ServerState State { get; set; }
+
+    /// <summary>Whether the word is drawn as well as the dot.</summary>
+    [Parameter]
+    public bool ShowLabel { get; set; }
+
+    private string Label => State switch
+    {
+        ServerState.Running => "Online",
+        ServerState.Starting => "Starting",
+        ServerState.Stopping => "Stopping",
+        ServerState.Offline => "Offline",
+        ServerState.Suspended => "Suspended",
+        ServerState.Installing => "Installing",
+        ServerState.Transferring => "Transferring",
+        ServerState.Restoring => "Restoring",
+        ServerState.Failed => "Failed",
+        _ => "Unknown",
+    };
+
+    private string Modifier => State switch
+    {
+        ServerState.Running => "is-running",
+        ServerState.Starting or ServerState.Stopping or ServerState.Installing
+            or ServerState.Transferring or ServerState.Restoring => "is-busy",
+        ServerState.Suspended => "is-suspended",
+        ServerState.Failed => "is-failed",
+        ServerState.Offline => "is-offline",
+        _ => "is-unknown",
+    };
+}

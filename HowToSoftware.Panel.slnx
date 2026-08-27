@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HowToSoftware.Panel/HowToSoftware.Panel.csproj" />
+    <Project Path="src/HowToSoftware.Pterodactyl/HowToSoftware.Pterodactyl.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HowToSoftware.Panel.Tests/HowToSoftware.Panel.Tests.csproj" />
+  </Folder>
+</Solution>

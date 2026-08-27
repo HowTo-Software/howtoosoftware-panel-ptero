@@ -1,0 +1,123 @@
+@*
+    The panel shell: a fixed sidebar, a command bar across the top, and the page.
+
+    Density is the point. This is infrastructure software, and an operator with forty servers
+    needs to see state without scrolling - so the chrome is deliberately thin, the type is small
+    and the spacing is tight compared to the marketing site, even though both use the same
+    tokens. The identity is shared; the information density is not.
+*@
+
+@inherits LayoutComponentBase
+@inject IServerDirectory Directory
+
+<div class="shell @(_navOpen ? "is-nav-open" : null)">
+    <aside class="sidebar" aria-label="Panel navigation">
+        <a class="sidebar-brand" href="/">
+            <BrandMark Name="HowToo" Tagline="SOFTWARE" ShowWordmark="true" />
+        </a>
+
+        <nav class="sidebar-nav">
+            <p class="nav-group">Panel</p>
+            <ul>
+                <li>
+                    <NavLink class="nav-item" href="/" Match="NavLinkMatch.All">
+                        <span class="nav-mark" aria-hidden="true"></span>
+                        <span>Servers</span>
+                    </NavLink>
+                </li>
+            </ul>
+
+            @if (_servers is { Count: > 0 })
+            {
+                <p class="nav-group">Your servers</p>
+                <ul>
+                    @foreach (var server in _servers)
+                    {
+                        <li>
+                            <NavLink class="nav-item nav-item--server" href="@($"/server/{server.Identifier}")">
+                                @* State is carried by a dot AND by the title, never by colour
+                                   alone - the dot is a shape a screen reader cannot read. *@
+                                <StateDot State="server.State" />
+                                <span class="nav-server-name">@server.Name</span>
+                            </NavLink>
+                        </li>
+                    }
+                </ul>
+            }
+
+            <p class="nav-group">Account</p>
+            <ul>
+                <li>
+                    <NavLink class="nav-item" href="/account">
+                        <span class="nav-mark" aria-hidden="true"></span>
+                        <span>Profile</span>
+                    </NavLink>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <button type="button"
+                    class="nav-toggle"
+                    aria-expanded="@_navOpen.ToString().ToLowerInvariant()"
+                    aria-controls="panel-nav"
+                    @onclick="() => _navOpen = !_navOpen">
+                <span class="toggle-bar" aria-hidden="true"></span>
+                <span class="visually-hidden">Toggle navigation</span>
+            </button>
+
+            <div class="search" role="search">
+                <span class="search-mark" aria-hidden="true"></span>
+                <input type="search"
+                       class="search-input"
+                       placeholder="Search servers, files, commands…"
+                       aria-label="Search" />
+                <kbd class="search-key">Ctrl K</kbd>
+            </div>
+
+            @if (!Directory.IsLive)
+            {
+                @*
+                    The one thing this banner must never do is be subtle. A demonstration source
+                    that looked like a working one would have somebody making a decision from
+                    invented numbers.
+                *@
+                <p class="sample-flag" role="status">
+                    <span class="flag-dot" aria-hidden="true"></span>
+                    SAMPLE DATA — no panel connected
+                </p>
+            }
+        </header>
+
+        <main class="content" id="main">
+            @Body
+        </main>
+    </div>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Something went wrong.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">Dismiss</span>
+</div>
+
+@code {
+    private IReadOnlyList<ServerSummary>? _servers;
+    private bool _navOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Directory.ListServersAsync();
+
+        // The sidebar is navigation, not a status board. If the panel is unreachable the rest
+        // of the interface still has to render and say so; a failed list here just means the
+        // shortcut list is absent.
+        _servers = result.IsSuccess ? result.Value : null;
+    }
+}
+
+@*
+    © 2026 HowToo Software. All rights reserved.
+*@

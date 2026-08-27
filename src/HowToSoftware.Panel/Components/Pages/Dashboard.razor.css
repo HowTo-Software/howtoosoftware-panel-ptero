@@ -1,0 +1,323 @@
+.head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--hts-space-5);
+    flex-wrap: wrap;
+    margin-bottom: var(--hts-space-6);
+}
+
+.head-title {
+    font-size: clamp(1.4rem, 1.1rem + 0.9vw, 1.9rem);
+    font-weight: 660;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+}
+
+.head-sub {
+    margin-top: 0.25rem;
+    color: var(--hts-ink-muted);
+    font-size: var(--hts-text-sm);
+}
+
+.action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: var(--hts-radius-sm);
+    font-size: var(--hts-text-sm);
+    font-weight: 560;
+    cursor: pointer;
+    transition:
+        background-color var(--hts-duration-fast) var(--hts-ease),
+        opacity var(--hts-duration-fast) var(--hts-ease);
+}
+
+.action--primary {
+    background: var(--hts-purple-600);
+    color: var(--hts-white);
+}
+
+.action--primary:hover:not(:disabled) {
+    background: var(--hts-purple-500);
+}
+
+.action:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* A plus drawn from two rules. */
+.action-mark {
+    position: relative;
+    width: 0.6rem;
+    height: 0.6rem;
+    flex: none;
+}
+
+.action-mark::before,
+.action-mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: currentColor;
+}
+
+.action-mark::before {
+    width: 100%;
+    height: 1.5px;
+}
+
+.action-mark::after {
+    width: 1.5px;
+    height: 100%;
+}
+
+/* ── Account metrics ───────────────────────────────────────────────────── */
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: var(--hts-space-4);
+    margin-bottom: var(--hts-space-6);
+    list-style: none;
+    padding: 0;
+}
+
+.metric {
+    padding: var(--hts-space-4);
+    border: 1px solid var(--hts-border);
+    border-radius: var(--hts-radius-md);
+    background: var(--hts-surface);
+}
+
+.metric-key {
+    color: var(--hts-ink-muted);
+    font-family: var(--hts-font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.metric-value {
+    margin-top: 0.35rem;
+    color: var(--hts-ink);
+    font-size: 1.5rem;
+    font-weight: 660;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.metric-of {
+    margin-left: 0.35rem;
+    color: var(--hts-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* An absent figure is dimmed and dashed, never a zero. */
+.metric-value--absent {
+    color: var(--hts-ink-muted);
+}
+
+.metric-note {
+    margin-top: 0.35rem;
+    color: var(--hts-ink-muted);
+    font-size: 0.625rem;
+    line-height: 1.5;
+}
+
+/* ── Attention ─────────────────────────────────────────────────────────── */
+
+.attention {
+    margin-bottom: var(--hts-space-6);
+    padding: var(--hts-space-4);
+    border: 1px solid var(--hts-danger-border);
+    border-radius: var(--hts-radius-md);
+    background: color-mix(in srgb, var(--hts-danger) 8%, transparent);
+}
+
+.attention-title {
+    color: var(--hts-ink);
+    font-size: var(--hts-text-sm);
+    font-weight: 620;
+}
+
+.attention-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-top: 0.6rem;
+    list-style: none;
+    padding: 0;
+}
+
+.attention-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--hts-ink-soft);
+    font-size: var(--hts-text-sm);
+    text-decoration: none;
+}
+
+.attention-list a:hover {
+    color: var(--hts-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+/* ── Server cards ──────────────────────────────────────────────────────── */
+
+.servers {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: var(--hts-space-4);
+    list-style: none;
+    padding: 0;
+}
+
+.card {
+    border: 1px solid var(--hts-border);
+    border-radius: var(--hts-radius-md);
+    background: var(--hts-surface);
+    transition:
+        border-color var(--hts-duration-fast) var(--hts-ease),
+        background-color var(--hts-duration-fast) var(--hts-ease);
+}
+
+/* The whole card is the link, so the pointer never lands in a dead gap between rows. */
+.card-link {
+    display: grid;
+    gap: var(--hts-space-3);
+    padding: var(--hts-space-4);
+    color: inherit;
+    text-decoration: none;
+}
+
+.card:hover {
+    border-color: var(--hts-border-strong);
+    background: var(--hts-surface-raised, var(--hts-surface));
+}
+
+.card:focus-within {
+    border-color: var(--hts-border-blue);
+}
+
+.card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--hts-space-3);
+}
+
+.card-name {
+    color: var(--hts-ink);
+    font-size: var(--hts-text-md);
+    font-weight: 620;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+}
+
+.card-game {
+    margin-top: 0.15rem;
+    color: var(--hts-ink-muted);
+    font-size: 0.6875rem;
+}
+
+.card-address {
+    color: var(--hts-blue-300);
+    font-family: var(--hts-font-mono);
+    font-size: 0.625rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin: 0;
+}
+
+.card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hts-space-3);
+    padding-top: var(--hts-space-3);
+    border-top: 1px solid var(--hts-border);
+    color: var(--hts-ink-muted);
+    font-family: var(--hts-font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+}
+
+.card-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* The one thing on a card that is our own software rather than an allocation. */
+.card-bot {
+    padding: 0.08rem 0.32rem;
+    border: 1px solid var(--hts-border-brand, rgba(176, 105, 255, 0.5));
+    border-radius: var(--hts-radius-xs);
+    color: var(--hts-purple-300);
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.absent {
+    color: var(--hts-ink-muted);
+    opacity: 0.7;
+}
+
+/* ── States ────────────────────────────────────────────────────────────── */
+
+.loading {
+    padding: var(--hts-space-6) 0;
+    color: var(--hts-ink-muted);
+    font-family: var(--hts-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+}
+
+.notice {
+    padding: var(--hts-space-5);
+    border: 1px solid var(--hts-danger-border);
+    border-radius: var(--hts-radius-md);
+    background: color-mix(in srgb, var(--hts-danger) 8%, transparent);
+}
+
+.notice-title {
+    color: var(--hts-ink);
+    font-size: var(--hts-text-md);
+    font-weight: 560;
+}
+
+/*
+    The correlation id, and nothing else. The technical message went to the log; a customer
+    reading a stack frame learns nothing and may learn something they should not.
+*/
+.notice-detail {
+    margin-top: 0.4rem;
+    color: var(--hts-ink-muted);
+    font-size: var(--hts-text-sm);
+}
+
+.notice-detail code {
+    padding: 0.1rem 0.35rem;
+    border-radius: var(--hts-radius-xs);
+    background: var(--hts-surface-inset);
+    color: var(--hts-blue-300);
+    font-family: var(--hts-font-mono);
+    font-size: 0.6875rem;
+}
