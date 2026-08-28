@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'permissions' => [
+        'websocket_*' => 'Permite acesso ao websocket deste servidor.',
+        'control_console' => 'Permite enviar comandos para o console do servidor.',
+        'control_start' => 'Permite iniciar a instância do servidor.',
+        'control_stop' => 'Permite parar a instância do servidor.',
+        'control_restart' => 'Permite reiniciar a instância do servidor.',
+        'control_kill' => 'Permite forçar o encerramento da instância do servidor.',
+        'user_create' => 'Permite criar novos usuários para o servidor.',
+        'user_read' => 'Permite visualizar os usuários associados a este servidor.',
+        'user_update' => 'Permite modificar outros usuários associados a este servidor.',
+        'user_delete' => 'Permite excluir outros usuários associados a este servidor.',
+        'file_create' => 'Permite criar novos arquivos e diretórios.',
+        'file_read' => 'Permite visualizar arquivos e pastas deste servidor, incluindo seus conteúdos.',
+        'file_update' => 'Permite atualizar arquivos e pastas do servidor.',
+        'file_delete' => 'Permite excluir arquivos e diretórios.',
+        'file_archive' => 'Permite criar arquivos compactados e descompactar arquivos existentes.',
+        'file_sftp' => 'Permite executar as ações de arquivo usando um cliente SFTP.',
+        'allocation_read' => 'Permite acessar as páginas de gerenciamento de alocações do servidor.',
+        'allocation_update' => 'Permite modificar as alocações do servidor.',
+        'database_create' => 'Permite criar um novo banco de dados para o servidor.',
+        'database_read' => 'Permite visualizar os bancos de dados do servidor.',
+        'database_update' => 'Permite modificar um banco de dados. Sem a permissão "Ver senha", o usuário não poderá alterar a senha.',
+        'database_delete' => 'Permite excluir uma instância de banco de dados.',
+        'database_view_password' => 'Permite visualizar a senha de um banco de dados.',
+        'schedule_create' => 'Permite criar um novo agendamento para o servidor.',
+        'schedule_read' => 'Permite visualizar os agendamentos do servidor.',
+        'schedule_update' => 'Permite modificar um agendamento existente.',
+        'schedule_delete' => 'Permite excluir um agendamento do servidor.',
+    ],
+];
