@@ -3,12 +3,15 @@
 return [
     'assistant' => [
         'total_timeout_seconds' => (int) env('AI_TOTAL_TIMEOUT_SECONDS', 90),
+        'input_character_budget' => (int) env('AI_INPUT_CHARACTER_BUDGET', 20000),
+        'system_character_budget' => (int) env('AI_SYSTEM_CHARACTER_BUDGET', 12000),
+        'max_output_tokens' => (int) env('AI_MAX_OUTPUT_TOKENS', 1000),
     ],
     'providers' => [
         'gemini' => [
             'enabled' => env('FEATURE_AI_SUPPORT', false),
             'priority' => 10,
-            'timeout_seconds' => (int) env('GEMINI_TIMEOUT_SECONDS', 25),
+            'timeout_seconds' => (int) env('GEMINI_TIMEOUT_SECONDS', 40),
             'secret' => env('GEMINI_API_KEY'),
             'model' => env('GEMINI_MODEL') ?: 'gemini-2.5-flash',
             'base_url' => 'https://generativelanguage.googleapis.com',
@@ -16,7 +19,7 @@ return [
         'groq' => [
             'enabled' => env('FEATURE_AI_HELPER', false),
             'priority' => 20,
-            'timeout_seconds' => (int) env('GROQ_TIMEOUT_SECONDS', 20),
+            'timeout_seconds' => (int) env('GROQ_TIMEOUT_SECONDS', 35),
             'secret' => env('GROQ_API_KEY'),
             'model' => env('GROQ_MODEL') ?: 'llama-3.3-70b-versatile',
             'base_url' => 'https://api.groq.com/openai/v1',

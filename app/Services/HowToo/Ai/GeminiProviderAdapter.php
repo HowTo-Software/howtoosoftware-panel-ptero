@@ -108,7 +108,7 @@ final class GeminiProviderAdapter implements StreamingAiProviderAdapter
             ], $prompt->messages),
             'generationConfig' => [
                 'temperature' => 0.2,
-                'maxOutputTokens' => 900,
+                'maxOutputTokens' => max(256, min((int) config('howtoo.assistant.max_output_tokens', 1000), 2048)),
             ],
         ];
     }

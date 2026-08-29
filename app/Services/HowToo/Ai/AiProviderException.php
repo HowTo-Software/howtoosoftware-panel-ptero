@@ -27,16 +27,18 @@ final class AiProviderException extends \RuntimeException
         $body = mb_strtolower($response->body());
 
         if ($status === 429) {
-            $retryAfter = filter_var($response->header('Retry-After'), FILTER_VALIDATE_INT);
-
-            return new self(self::RATE_LIMIT, $status, $retryAfter === false ? null : (int) $retryAfter);
+            return new self(self::RATE_LIMIT, $status, self::retryAfterSeconds($response));
         }
 
         if (in_array($status, [401, 403], true) || str_contains($body, 'api_key_invalid') || str_contains($body, 'api key not valid')) {
             return new self(self::INVALID_CREDENTIAL, $status);
         }
 
-        if ($status >= 500) {
+        if ($status === 408) {
+            return new self(self::TIMEOUT, $status);
+        }
+
+        if ($status >= 500 || $status === 498) {
             return new self(self::UNAVAILABLE, $status);
         }
 
@@ -64,5 +66,37 @@ final class AiProviderException extends \RuntimeException
             self::TIMEOUT, self::INVALID_RESPONSE => 60,
             default => 120,
         };
+    }
+
+    private static function retryAfterSeconds(Response $response): ?int
+    {
+        foreach (['Retry-After', 'X-RateLimit-Reset-Tokens'] as $header) {
+            $seconds = self::durationSeconds($response->header($header));
+            if ($seconds !== null) {
+                return $seconds;
+            }
+        }
+
+        if (preg_match('/"retrydelay"\s*:\s*"([0-9.]+)s"/i', $response->body(), $matches) === 1) {
+            return (int) ceil((float) $matches[1]);
+        }
+
+        return null;
+    }
+
+    private static function durationSeconds(?string $value): ?int
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^([0-9]+(?:\.[0-9]+)?)s?$/i', $value, $matches) === 1) {
+            return (int) ceil((float) $matches[1]);
+        }
+
+        $timestamp = strtotime($value);
+
+        return $timestamp === false ? null : max(0, $timestamp - time());
     }
 }

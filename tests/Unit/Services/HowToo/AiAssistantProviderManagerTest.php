@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use Pterodactyl\Exceptions\DisplayException;
 use Illuminate\Http\Client\Response as HttpResponse;
+use Pterodactyl\Services\HowToo\Ai\AiPromptBudgeter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderPrompt;
 use Pterodactyl\Services\HowToo\Ai\AiProviderAdapter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderException;
@@ -192,15 +193,82 @@ class AiAssistantProviderManagerTest extends TestCase
     public function testItClassifiesProviderFailuresAndAppliesBoundedCooldowns(): void
     {
         $rateLimit = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(429, ['Retry-After' => '45'])));
+        $geminiRateLimit = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(
+            429,
+            [],
+            '{"error":{"details":[{"retryDelay":"1.4s"}]}}',
+        )));
         $invalid = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(401)));
         $unavailable = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(503)));
 
         $this->assertSame(AiProviderException::RATE_LIMIT, $rateLimit->reason);
         $this->assertSame(45, $rateLimit->cooldownSeconds());
+        $this->assertSame(2, $geminiRateLimit->retryAfter);
         $this->assertSame(AiProviderException::INVALID_CREDENTIAL, $invalid->reason);
         $this->assertSame(1800, $invalid->cooldownSeconds());
         $this->assertSame(AiProviderException::UNAVAILABLE, $unavailable->reason);
         $this->assertSame(120, $unavailable->cooldownSeconds());
+    }
+
+    public function testShortProviderRateLimitIsRetriedOnceBeforeFallback(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [['name' => 'gemini', 'model' => 'gemini-test']],
+            ['gemini' => [new AiProviderCredential('gemini', 'gemini-test', 'limited', 1, false, 25)]],
+        );
+        $adapter = new SequentialFakeAiProviderAdapter('gemini', [
+            'limited' => [
+                new AiProviderException(AiProviderException::RATE_LIMIT, 429, 1),
+                'Answer after the short backoff',
+            ],
+        ]);
+        $delays = [];
+        $manager = new AiAssistantProviderManager(
+            $repository,
+            [$adapter],
+            new MemoryLogger(),
+            90,
+            new AiPromptBudgeter(),
+            static function (int $milliseconds) use (&$delays): void {
+                $delays[] = $milliseconds;
+            },
+        );
+
+        $result = $manager->generate($this->prompt());
+
+        $this->assertSame('Answer after the short backoff', $result->answer);
+        $this->assertSame(['limited', 'limited'], $adapter->attempts);
+        $this->assertCount(1, $delays);
+        $this->assertGreaterThanOrEqual(1050, $delays[0]);
+        $this->assertLessThanOrEqual(1250, $delays[0]);
+        $this->assertSame([], $repository->cooldowns);
+    }
+
+    public function testComplexPromptGetsMoreTimeWithoutStarvingFallbackAttempts(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [
+                ['name' => 'gemini', 'model' => 'gemini-test'],
+                ['name' => 'groq', 'model' => 'groq-test'],
+            ],
+            [
+                'gemini' => [
+                    new AiProviderCredential('gemini', 'gemini-test', 'first', 1, false, 20),
+                    new AiProviderCredential('gemini', 'gemini-test', 'second', 2, false, 20),
+                ],
+                'groq' => [new AiProviderCredential('groq', 'groq-test', 'fallback', 3, false, 20)],
+            ],
+        );
+        $adapter = new FakeAiProviderAdapter('gemini', ['first' => 'Answer']);
+        $groq = new FakeAiProviderAdapter('groq', ['fallback' => 'Fallback']);
+        $prompt = new AiProviderPrompt(str_repeat('system ', 1800), [['role' => 'user', 'content' => str_repeat('question ', 300)]]);
+
+        (new AiAssistantProviderManager($repository, [$adapter, $groq], new MemoryLogger(), 90))->generate($prompt);
+
+        $this->assertCount(1, $adapter->timeouts);
+        $this->assertGreaterThanOrEqual(29, $adapter->timeouts[0]);
+        $this->assertLessThanOrEqual(30, $adapter->timeouts[0]);
+        $this->assertLessThanOrEqual(20000, $adapter->promptLengths[0]);
     }
 
     private function prompt(): AiProviderPrompt
@@ -247,6 +315,8 @@ final class FakeAiCredentialRepository implements AiCredentialRepository
 final class FakeAiProviderAdapter implements AiProviderAdapter
 {
     public array $attempts = [];
+    public array $timeouts = [];
+    public array $promptLengths = [];
 
     public function __construct(
         private string $provider,
@@ -262,7 +332,37 @@ final class FakeAiProviderAdapter implements AiProviderAdapter
     public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
     {
         $this->attempts[] = $credential->secret;
+        $this->timeouts[] = $credential->timeoutSeconds;
+        $this->promptLengths[] = mb_strlen($prompt->system)
+            + collect($prompt->messages)->sum(fn (array $message): int => mb_strlen($message['content']));
         $response = $this->responses[$credential->secret];
+        if ($response instanceof \Throwable) {
+            throw $response;
+        }
+
+        return $response;
+    }
+}
+
+final class SequentialFakeAiProviderAdapter implements AiProviderAdapter
+{
+    public array $attempts = [];
+
+    public function __construct(
+        private string $provider,
+        private array $responses,
+    ) {
+    }
+
+    public function name(): string
+    {
+        return $this->provider;
+    }
+
+    public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
+    {
+        $this->attempts[] = $credential->secret;
+        $response = array_shift($this->responses[$credential->secret]);
         if ($response instanceof \Throwable) {
             throw $response;
         }

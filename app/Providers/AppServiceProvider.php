@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Pterodactyl\Extensions\Themes\Theme;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Pterodactyl\Services\HowToo\Ai\AiPromptBudgeter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderAdapter;
 use Pterodactyl\Services\HowToo\Ai\GroqProviderAdapter;
 use Pterodactyl\Contracts\HowToo\AiCredentialRepository;
@@ -84,6 +85,10 @@ class AppServiceProvider extends ServiceProvider
                 $app->tagged(AiProviderAdapter::class),
                 $app->make(LoggerInterface::class),
                 (int) config('howtoo.assistant.total_timeout_seconds', 90),
+                new AiPromptBudgeter(
+                    (int) config('howtoo.assistant.input_character_budget', 20000),
+                    (int) config('howtoo.assistant.system_character_budget', 12000),
+                ),
             );
         });
     }

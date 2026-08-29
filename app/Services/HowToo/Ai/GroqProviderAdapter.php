@@ -92,7 +92,7 @@ final class GroqProviderAdapter implements StreamingAiProviderAdapter
             'model' => $credential->model,
             'messages' => array_merge([['role' => 'system', 'content' => $prompt->system]], $prompt->messages),
             'temperature' => 0.15,
-            'max_completion_tokens' => 700,
+            'max_completion_tokens' => max(256, min((int) config('howtoo.assistant.max_output_tokens', 1000), 2048)),
             'tool_choice' => 'none',
         ];
     }
