@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/themes/howtoo/images/hts-logo.svg" width="72" height="72" alt="HowToo Software">
+</p>
+
 # HowToo Software Panel
 
 Customizacao operacional do [Pterodactyl Panel](https://github.com/pterodactyl/panel), baseada na versao `1.15.1`.
@@ -10,6 +14,14 @@ Este repositorio nao e um prototipo HTML e nao cria servidores de demonstracao. 
 | Portugues automatico | English automatic |
 | --- | --- |
 | ![Login em portugues](docs/screenshots/login-pt.png) | ![Login in English](docs/screenshots/login-en.png) |
+
+| Administracao | Integracoes externas |
+| --- | --- |
+| ![Visao geral administrativa](docs/screenshots/admin-overview.png) | ![Configuracao segura de integracoes](docs/screenshots/admin-integrations.png) |
+
+![Dashboard sem servidores simulados](docs/screenshots/dashboard.png)
+
+O dashboard acima usa o estado vazio real do Pterodactyl. Nenhum servidor foi criado apenas para as capturas; cards e dados aparecem somente depois que servidores reais forem associados ao usuario.
 
 O idioma e detectado pelo `Accept-Language` do navegador. Navegadores em portugues usam `pt`; os demais recebem `en`, que tambem e o fallback.
 

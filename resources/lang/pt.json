@@ -27,5 +27,15 @@
     "Model": "Modelo",
     "Save integrations": "Salvar integrações",
     "Integration settings were updated securely.": "As configurações de integração foram atualizadas com segurança.",
-    "Keys are encrypted with APP_KEY and are never returned to this page.": "As chaves são cifradas com APP_KEY e nunca são devolvidas para esta página."
+    "Keys are encrypted with APP_KEY and are never returned to this page.": "As chaves são cifradas com APP_KEY e nunca são devolvidas para esta página.",
+    "Administration": "Administração",
+    "Administrative Overview": "Visão geral administrativa",
+    "A quick glance at your system.": "Um resumo do estado do seu sistema.",
+    "Admin": "Administração",
+    "System Information": "Informações do sistema",
+    "You are running Pterodactyl Panel version :version. Your panel is up-to-date!": "O painel usa a versão :version do Pterodactyl e está atualizado!",
+    "Get Help": "Obter ajuda",
+    "(via Discord)": "(via Discord)",
+    "Documentation": "Documentação",
+    "Support the Project": "Apoiar o projeto"
 }

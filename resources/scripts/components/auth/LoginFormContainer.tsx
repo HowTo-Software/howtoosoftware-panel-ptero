@@ -24,16 +24,16 @@ const Brand = styled.div`
     margin-bottom: 1.5rem;
     text-align: center;
 
-    span {
-        display: inline-grid;
-        width: 2.5rem;
-        height: 2.5rem;
-        place-items: center;
+    img {
+        display: block;
+        width: 3.25rem;
+        height: 3.25rem;
+        margin: 0 auto;
+        padding: 0.25rem;
         border: 1px solid var(--hts-border-blue);
         border-radius: 0.5rem;
-        background: rgba(176, 105, 255, 0.12);
-        color: var(--hts-secondary);
-        font-weight: 700;
+        background: rgba(176, 105, 255, 0.08);
+        filter: drop-shadow(0 0 10px rgba(176, 105, 255, 0.4));
     }
 
     strong {
@@ -66,7 +66,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
     return (
         <Container>
             <Brand>
-                <span aria-hidden={'true'}>H</span>
+                <img src={'/themes/howtoo/images/hts-logo.svg'} alt={''} aria-hidden={'true'} />
                 <strong>{name}</strong>
                 {title && <h2>{title}</h2>}
             </Brand>

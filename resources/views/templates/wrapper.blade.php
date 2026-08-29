@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>{{ config('app.name', 'Pterodactyl') }}</title>
+        <link rel="icon" type="image/svg+xml" href="/themes/howtoo/images/hts-logo.svg">
 
         @section('meta')
             <meta charset="utf-8">

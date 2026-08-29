@@ -13,6 +13,7 @@
         <link rel="manifest" href="/favicons/manifest.json">
         <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#bc6e3c">
         <link rel="shortcut icon" href="/favicons/favicon.ico">
+        <link rel="icon" type="image/svg+xml" href="/themes/howtoo/images/hts-logo.svg">
         <meta name="msapplication-config" content="/favicons/browserconfig.xml">
         <meta name="theme-color" content="#0e4688">
 
@@ -40,6 +41,7 @@
         <div class="wrapper">
             <header class="main-header">
                 <a href="{{ route('index') }}" class="logo">
+                    <img src="/themes/howtoo/images/hts-logo.svg" alt="" aria-hidden="true">
                     <span>{{ config('app.name', 'HowToo Software') }}</span>
                 </a>
                 <nav class="navbar navbar-static-top">
