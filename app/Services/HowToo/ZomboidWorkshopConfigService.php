@@ -3,7 +3,7 @@
 namespace Pterodactyl\Services\HowToo;
 
 use Pterodactyl\Models\Server;
-use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Repositories\Wings\DaemonFileRepository;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -34,7 +34,7 @@ final class ZomboidWorkshopConfigService
         [$path, $current] = $this->locate($server, $context['zomboid_server_name']);
 
         if (!hash_equals(hash('sha256', $current), $revision)) {
-            throw new ConflictHttpException('servertest.ini changed after this page was opened. Reload before saving.');
+            throw new ConflictHttpException('The Project Zomboid configuration changed after this page was opened. Reload before saving.');
         }
 
         $workshopItems = $this->normalizeWorkshopItems($workshopItems);
@@ -111,9 +111,10 @@ final class ZomboidWorkshopConfigService
     private function locate(Server $server, string $serverName): array
     {
         $candidates = array_values(array_unique([
+            "/.cache/Server/$serverName.ini",
             "/Zomboid/Server/$serverName.ini",
-            '/Zomboid/Server/servertest.ini',
-            '/servertest.ini',
+            "/.cache/Zomboid/Server/$serverName.ini",
+            "/$serverName.ini",
         ]));
         $repository = $this->files->setServer($server);
 
@@ -121,7 +122,7 @@ final class ZomboidWorkshopConfigService
             try {
                 return [$path, $repository->getContent($path, 2 * 1024 * 1024)];
             } catch (DaemonConnectionException $exception) {
-                if (!$this->isNotFound($exception)) {
+                if (!$this->isMissingPath($exception)) {
                     throw new DisplayException('Could not read the Project Zomboid configuration from Wings.');
                 }
 
@@ -173,10 +174,31 @@ final class ZomboidWorkshopConfigService
             ->all();
     }
 
-    private function isNotFound(DaemonConnectionException $exception): bool
+    private function isMissingPath(DaemonConnectionException $exception): bool
     {
         $previous = $exception->getPrevious();
+        if (!$previous instanceof RequestException || !$previous->hasResponse()) {
+            return false;
+        }
 
-        return $previous instanceof ClientException && $previous->getResponse()->getStatusCode() === 404;
+        $response = $previous->getResponse();
+        if ($response->getStatusCode() === 404) {
+            return true;
+        }
+
+        if ($response->getStatusCode() !== 500) {
+            return false;
+        }
+
+        $body = mb_strtolower($response->getBody()->__toString());
+        $decoded = json_decode($body, true);
+        $message = is_array($decoded) && is_string($decoded['error'] ?? null)
+            ? $decoded['error']
+            : $body;
+
+        return str_contains($message, 'no such file or directory')
+            || str_contains($message, 'file does not exist')
+            || str_contains($message, 'path does not exist')
+            || str_contains($message, 'not found');
     }
 }
