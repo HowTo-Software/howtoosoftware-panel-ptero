@@ -22,6 +22,7 @@ final class IntegrationCapabilities
         return [
             'ai_assistant' => [
                 'supported' => true,
+                'available' => $available($providers['gemini']) || $available($providers['groq']),
                 'providers' => [
                     'gemini' => $available($providers['gemini']),
                     'groq' => $available($providers['groq']),

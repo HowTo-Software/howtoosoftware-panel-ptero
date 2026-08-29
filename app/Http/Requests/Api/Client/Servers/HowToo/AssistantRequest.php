@@ -16,7 +16,6 @@ class AssistantRequest extends ClientApiRequest implements ClientPermissionsRequ
     public function rules(): array
     {
         return [
-            'provider' => 'required|string|in:gemini,groq',
             'message' => 'required|string|max:3000',
             'history' => 'array|max:10',
             'history.*.role' => 'required_with:history|string|in:user,assistant',

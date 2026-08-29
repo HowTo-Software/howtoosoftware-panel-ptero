@@ -1,10 +1,10 @@
-import React, { FormEvent, useMemo, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import styled from 'styled-components/macro';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import Button from '@/components/elements/Button';
 import { Textarea } from '@/components/elements/Input';
 import { httpErrorToHuman } from '@/api/http';
-import { askAssistant, AssistantMessage, AssistantProvider } from '@/api/server/howtoo';
+import { askAssistant, AssistantMessage } from '@/api/server/howtoo';
 import { ServerContext } from '@/state/server';
 import { Muted, Panel, Toolbar } from './IntegrationStyles';
 
@@ -40,12 +40,7 @@ const ErrorText = styled.p`
 
 export default () => {
     const server = ServerContext.useStoreState((state) => state.server.data!);
-    const available = server.howtoo.aiAssistant.providers;
-    const providers = useMemo(
-        () => (['gemini', 'groq'] as AssistantProvider[]).filter((provider) => available[provider]),
-        [available.gemini, available.groq]
-    );
-    const [provider, setProvider] = useState<AssistantProvider>(available.gemini ? 'gemini' : 'groq');
+    const available = server.howtoo.aiAssistant.available;
     const [messages, setMessages] = useState<AssistantMessage[]>([]);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -54,7 +49,7 @@ export default () => {
     const submit = async (event: FormEvent) => {
         event.preventDefault();
         const content = message.trim();
-        if (!content || loading || !providers.length) return;
+        if (!content || loading || !available) return;
 
         const history = messages.slice(-10);
         setMessages((current) => [...current, { role: 'user', content }]);
@@ -63,7 +58,7 @@ export default () => {
         setLoading(true);
 
         try {
-            const answer = await askAssistant(server.uuid, provider, content, history);
+            const answer = await askAssistant(server.uuid, content, history);
             setMessages((current) => [...current, answer]);
         } catch (error) {
             setError(httpErrorToHuman(error));
@@ -77,17 +72,6 @@ export default () => {
             <Panel>
                 <Toolbar>
                     <strong>Server help</strong>
-                    {providers.map((item) => (
-                        <Button
-                            key={item}
-                            size={'xsmall'}
-                            isSecondary={provider !== item}
-                            onClick={() => setProvider(item)}
-                            type={'button'}
-                        >
-                            {item === 'gemini' ? 'Gemini' : 'Groq'}
-                        </Button>
-                    ))}
                     {!!messages.length && (
                         <Button
                             size={'xsmall'}
@@ -103,7 +87,7 @@ export default () => {
                 <Muted style={{ marginTop: '0.75rem' }}>
                     Explanations only. The assistant cannot execute commands, edit files or restart this server.
                 </Muted>
-                {!providers.length ? (
+                {!available ? (
                     <ErrorText>No assistant provider is currently enabled by the administrator.</ErrorText>
                 ) : (
                     <>

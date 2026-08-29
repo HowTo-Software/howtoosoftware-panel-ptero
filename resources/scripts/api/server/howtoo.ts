@@ -1,6 +1,5 @@
 import http from '@/api/http';
 
-export type AssistantProvider = 'gemini' | 'groq';
 export interface AssistantMessage {
     role: 'user' | 'assistant';
     content: string;
@@ -79,12 +78,10 @@ const curseForgeFile = (data: any): CurseForgeFile => ({
 
 export const askAssistant = async (
     uuid: string,
-    provider: AssistantProvider,
     message: string,
     history: AssistantMessage[]
 ): Promise<AssistantMessage> => {
     const { data } = await http.post(`/api/client/servers/${uuid}/howtoo/assistant`, {
-        provider,
         message,
         history,
         section: window.location.pathname.split('/').pop(),

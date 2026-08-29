@@ -4,6 +4,7 @@ namespace Pterodactyl\Providers;
 
 use Pterodactyl\Models;
 use Illuminate\Support\Str;
+use Psr\Log\LoggerInterface;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
@@ -12,6 +13,12 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Pterodactyl\Extensions\Themes\Theme;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Pterodactyl\Services\HowToo\Ai\AiProviderAdapter;
+use Pterodactyl\Services\HowToo\Ai\GroqProviderAdapter;
+use Pterodactyl\Contracts\HowToo\AiCredentialRepository;
+use Pterodactyl\Services\HowToo\Ai\GeminiProviderAdapter;
+use Pterodactyl\Services\HowToo\IntegrationCredentialStore;
+use Pterodactyl\Services\HowToo\Ai\AiAssistantProviderManager;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -64,6 +71,19 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton('extensions.themes', function () {
             return new Theme();
+        });
+
+        $this->app->bind(AiCredentialRepository::class, IntegrationCredentialStore::class);
+        $this->app->tag([
+            GeminiProviderAdapter::class,
+            GroqProviderAdapter::class,
+        ], AiProviderAdapter::class);
+        $this->app->singleton(AiAssistantProviderManager::class, function ($app) {
+            return new AiAssistantProviderManager(
+                $app->make(AiCredentialRepository::class),
+                $app->tagged(AiProviderAdapter::class),
+                $app->make(LoggerInterface::class),
+            );
         });
     }
 

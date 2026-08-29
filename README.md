@@ -34,8 +34,9 @@ O idioma e detectado pelo `Accept-Language` do navegador. Navegadores em portugu
 - Cadastro administrativo de credenciais para Gemini, Groq, Steam e CurseForge.
 - Segredos criptografados com `APP_KEY`, nunca preenchidos novamente no HTML e acessiveis apenas pelo backend.
 - URLs externas fixadas no servidor para reduzir risco de SSRF por configuracao administrativa.
+- Gerenciador do assistente com multiplas chaves, prioridade por provider, fallback automatico e cooldown por falha.
 
-As credenciais cadastradas formam a base segura das integracoes. Clientes de IA, busca e instalacao devem ser implementados como servicos Laravel server-side; chaves de API nunca devem ser enviadas ao React ou as Wings.
+Todas as chamadas externas sao executadas por servicos Laravel server-side; chaves de API nunca sao enviadas ao React ou as Wings.
 
 ## Arquitetura
 

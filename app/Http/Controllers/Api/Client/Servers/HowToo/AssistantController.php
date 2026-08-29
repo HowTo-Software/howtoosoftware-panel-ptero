@@ -19,7 +19,6 @@ class AssistantController extends ClientApiController
     {
         return new JsonResponse($this->assistant->ask(
             $server,
-            $request->string('provider')->toString(),
             $request->string('message')->toString(),
             $request->input('history', []),
             $request->input('section'),

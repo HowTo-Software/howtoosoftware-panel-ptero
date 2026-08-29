@@ -64,6 +64,7 @@ export interface Server {
     howtoo: {
         aiAssistant: {
             supported: boolean;
+            available: boolean;
             providers: { gemini: boolean; groq: boolean };
         };
         workshop: { supported: boolean; available: boolean };
@@ -108,6 +109,7 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     howtoo: {
         aiAssistant: {
             supported: data.howtoo?.ai_assistant?.supported ?? true,
+            available: data.howtoo?.ai_assistant?.available ?? false,
             providers: {
                 gemini: data.howtoo?.ai_assistant?.providers?.gemini ?? false,
                 groq: data.howtoo?.ai_assistant?.providers?.groq ?? false,
