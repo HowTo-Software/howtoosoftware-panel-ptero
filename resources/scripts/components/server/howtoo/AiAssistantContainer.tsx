@@ -1,15 +1,13 @@
 import React, { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import styled, { keyframes } from 'styled-components/macro';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import copy from 'copy-to-clipboard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCopy, faPaperPlane, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faStop, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import Button from '@/components/elements/Button';
 import { Textarea } from '@/components/elements/Input';
 import { streamAssistant, AssistantMessage } from '@/api/server/howtoo';
 import { ServerContext } from '@/state/server';
+import SafeMarkdown from './SafeMarkdown';
 
 const Chat = styled.section`
     display: flex;
@@ -125,47 +123,6 @@ const MessageBody = styled.div<{ customer: boolean }>`
     }
 `;
 
-const InlineCode = styled.code`
-    border: 1px solid var(--hts-border);
-    border-radius: 0.25rem;
-    background: var(--hts-surface-soft);
-    padding: 0.08rem 0.3rem;
-    color: var(--hts-secondary);
-    font-size: 0.8em;
-`;
-
-const CodeFrame = styled.div`
-    position: relative;
-    margin: 0.75rem 0;
-    overflow: auto;
-    border: 1px solid var(--hts-border);
-    border-radius: 0.4rem;
-    background: #080b14;
-    padding: 2.25rem 0.9rem 0.9rem;
-
-    code {
-        color: #dbeafe;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.78rem;
-        white-space: pre;
-    }
-`;
-
-const CopyCode = styled.button`
-    position: absolute;
-    top: 0.45rem;
-    right: 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--hts-ink-muted);
-    font-size: 0.68rem;
-
-    &:hover {
-        color: var(--hts-ink);
-    }
-`;
-
 const pulse = keyframes`
     0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
     40% { opacity: 1; transform: translateY(-0.18rem); }
@@ -240,53 +197,13 @@ const safeStoredMessages = (serverId: string): AssistantMessage[] => {
     }
 };
 
-const MarkdownCode = ({ inline, children, ...props }: any) =>
-    inline ? <InlineCode {...props}>{children}</InlineCode> : <code {...props}>{children}</code>;
-
-const CodeBlock = ({ children }: any) => {
-    const [copied, setCopied] = useState(false);
-    const content = String(children?.props?.children || '').replace(/\n$/, '');
-
-    const copyCode = () => {
-        copy(content);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1500);
-    };
-
-    return (
-        <CodeFrame>
-            <CopyCode type={'button'} onClick={copyCode} aria-label={'Copy code'}>
-                <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
-                {copied ? 'Copied' : 'Copy'}
-            </CopyCode>
-            {children}
-        </CodeFrame>
-    );
-};
-
-const MarkdownMessage = ({ content }: { content: string }) => (
-    <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-            code: MarkdownCode,
-            pre: CodeBlock,
-            a: ({ children, ...props }) => (
-                <a {...props} target={'_blank'} rel={'noreferrer noopener'}>
-                    {children}
-                </a>
-            ),
-        }}
-    >
-        {content}
-    </ReactMarkdown>
-);
-
 export default () => {
     const server = ServerContext.useStoreState((state) => state.server.data!);
     const serverStatus = ServerContext.useStoreState((state) => state.status.value);
     const available = server.howtoo.aiAssistant.available;
     const [messages, setMessages] = useState<AssistantMessage[]>(() => safeStoredMessages(server.uuid));
     const [message, setMessage] = useState('');
+    const [draft, setDraft] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const conversation = useRef<HTMLDivElement>(null);
@@ -304,7 +221,7 @@ export default () => {
         });
 
         return () => cancelAnimationFrame(frame);
-    }, [messages, loading]);
+    }, [messages, draft, loading]);
 
     useEffect(() => () => controller.current?.abort(), []);
 
@@ -318,6 +235,7 @@ export default () => {
         keepAtBottom.current = true;
         setMessages((current) => [...current, { role: 'user', content }]);
         setMessage('');
+        setDraft('');
         setError('');
         setLoading(true);
 
@@ -328,9 +246,11 @@ export default () => {
                 history,
                 serverStatus,
                 abortController.signal,
-                () => undefined
+                () => undefined,
+                setDraft
             );
             setMessages((current) => [...current, answer]);
+            setDraft('');
         } catch (error) {
             if (!abortController.signal.aborted) {
                 setError(error instanceof Error ? error.message : 'The assistant could not answer right now.');
@@ -356,12 +276,14 @@ export default () => {
     const cancel = () => {
         controller.current?.abort();
         controller.current = undefined;
+        setDraft('');
         setLoading(false);
     };
 
     const clear = () => {
         cancel();
         setMessages([]);
+        setDraft('');
         setError('');
         sessionStorage.removeItem(`howtoo:assistant:${server.uuid}`);
     };
@@ -406,7 +328,7 @@ export default () => {
                             <Author>{item.role === 'user' ? 'You' : 'Assistant'}</Author>
                             <MessageBody customer={item.role === 'user'}>
                                 {item.role === 'assistant' ? (
-                                    <MarkdownMessage content={item.content} />
+                                    <SafeMarkdown content={item.content} />
                                 ) : (
                                     <p>{item.content}</p>
                                 )}
@@ -416,9 +338,15 @@ export default () => {
                     {loading && (
                         <MessageRow customer={false}>
                             <Author>Assistant</Author>
-                            <Thinking aria-label={'Assistant is thinking'}>
-                                Thinking <i /> <i /> <i />
-                            </Thinking>
+                            {draft ? (
+                                <MessageBody customer={false}>
+                                    <SafeMarkdown content={draft} />
+                                </MessageBody>
+                            ) : (
+                                <Thinking aria-label={'Assistant is thinking'}>
+                                    Thinking <i /> <i /> <i />
+                                </Thinking>
+                            )}
                         </MessageRow>
                     )}
                 </Conversation>
@@ -444,7 +372,7 @@ export default () => {
                         {loading ? (
                             <Button type={'button'} color={'red'} isSecondary size={'small'} onClick={cancel}>
                                 <FontAwesomeIcon icon={faStop} className={'mr-2'} />
-                                Cancel
+                                Stop
                             </Button>
                         ) : (
                             <Button type={'submit'} size={'small'} disabled={!message.trim() || !available}>

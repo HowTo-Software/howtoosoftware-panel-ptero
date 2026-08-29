@@ -2,7 +2,9 @@
 
 namespace Pterodactyl\Services\HowToo;
 
+use Pterodactyl\Models\User;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\Permission;
 use Pterodactyl\Models\ActivityLog;
 
 final class AiServerContextBuilder
@@ -16,10 +18,11 @@ final class AiServerContextBuilder
 
     public function build(
         Server $server,
+        User $user,
         ?string $liveStatus,
         ?string $section,
         ?string $reportedError,
-        bool $includeRecentEvents = false,
+        array $panelContext,
     ): array {
         $relations = collect(['egg', 'nest', 'node', 'variables'])
             ->reject(fn (string $relation): bool => $server->relationLoaded($relation))
@@ -28,10 +31,13 @@ final class AiServerContextBuilder
             $server->loadMissing($relations);
         }
         $game = $this->gameContext->for($server);
+        $canReadStartup = $user->can(Permission::ACTION_STARTUP_READ, $server);
+        $canReadActivity = $user->can(Permission::ACTION_ACTIVITY_READ, $server);
 
         return [
             'server_name' => $this->sanitize($server->name, 100),
             'game' => $game['game'],
+            'version' => $game['minecraft_version'],
             'status' => in_array($liveStatus, self::ALLOWED_STATES, true)
                 ? $liveStatus
                 : ($server->status ?: 'unknown'),
@@ -43,10 +49,18 @@ final class AiServerContextBuilder
                 'disk_mb' => $server->disk,
                 'cpu_percent' => $server->cpu,
             ],
-            'startup_template' => $this->redact($server->startup, 800),
-            'visible_variables' => $this->visibleVariables($server),
+            'startup_command_template' => $canReadStartup ? $this->redact($server->startup, 800) : null,
+            'visible_variables' => $canReadStartup ? $this->visibleVariables($server) : [],
             'reported_error' => $this->redact((string) $reportedError, 2500),
-            'recent_events' => $includeRecentEvents ? $this->recentEvents($server) : [],
+            'recent_events' => $canReadActivity ? $this->recentEvents($server) : [],
+            'available_capabilities' => collect($panelContext['capabilities'] ?? [])
+                ->map(fn (array $capability): array => [
+                    'id' => $capability['id'],
+                    'available' => $capability['available'],
+                ])
+                ->values()
+                ->all(),
+            'granted_permissions' => $panelContext['granted_permissions'] ?? [],
         ];
     }
 
@@ -102,6 +116,11 @@ final class AiServerContextBuilder
         ) ?? '';
         $value = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=:-]{8,}/i', 'Bearer [redacted]', $value) ?? '';
         $value = preg_replace('#(https?://)[^\s/@:]+:[^\s/@]+@#i', '$1[redacted]@', $value) ?? '';
+        $value = preg_replace(
+            '/\b(?:AIza[\w-]{20,}|sk-[\w-]{20,}|ghp_[\w-]{20,}|github_pat_[\w-]{20,}|glpat-[\w-]{20,}|eyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,})\b/i',
+            '[redacted]',
+            $value,
+        ) ?? '';
 
         return $this->sanitize($value, $limit);
     }

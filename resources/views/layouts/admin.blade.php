@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>{{ config('app.name', 'HowToo Software') }} - @yield('title')</title>
+        <title>{{ config('app.name', 'HowTo.Software') }} - @yield('title')</title>
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta name="_token" content="{{ csrf_token() }}">
 
@@ -42,7 +42,7 @@
             <header class="main-header">
                 <a href="{{ route('index') }}" class="logo">
                     <img src="/themes/howtoo/images/hts-logo.svg" alt="" aria-hidden="true">
-                    <span>{{ config('app.name', 'HowToo Software') }}</span>
+                    <span>{{ config('app.name', 'HowTo.Software') }}</span>
                 </a>
                 <nav class="navbar navbar-static-top">
                     <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
@@ -167,7 +167,7 @@
                     <strong><i class="fa fa-fw {{ $appIsGit ? 'fa-git-square' : 'fa-code-fork' }}"></i></strong> {{ $appVersion }}<br />
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
-                Copyright &copy; 2026 - {{ date('Y') }} <a href="{{ route('index') }}">HowToo Software</a>.
+                Copyright &copy; 2026 - {{ date('Y') }} <a href="{{ route('index') }}">HowTo.Software</a>.
             </footer>
         </div>
         @section('footer-scripts')

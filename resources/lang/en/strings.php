@@ -114,5 +114,5 @@ return [
         'curseforge_mods' => 'CurseForge Mods',
         'admin' => 'Open in administration',
     ],
-    'copyright' => '&copy; 2026 - :year HowToo Software',
+    'copyright' => '&copy; 2026 - :year HowTo.Software',
 ];

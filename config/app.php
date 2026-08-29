@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'HowToo Software'),
+    'name' => env('APP_NAME', 'HowTo.Software'),
 
     /*
     |--------------------------------------------------------------------------

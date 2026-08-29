@@ -43,6 +43,17 @@ final class AiProviderException extends \RuntimeException
         return new self(self::REQUEST_REJECTED, $status);
     }
 
+    public static function fromTransport(\Throwable $exception): self
+    {
+        $message = mb_strtolower($exception->getMessage());
+
+        return new self(
+            str_contains($message, 'timed out') || str_contains($message, 'timeout')
+                ? self::TIMEOUT
+                : self::UNAVAILABLE,
+        );
+    }
+
     public function cooldownSeconds(): int
     {
         return match ($this->reason) {

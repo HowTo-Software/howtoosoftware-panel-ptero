@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="public/themes/howtoo/images/hts-logo.svg" width="72" height="72" alt="HowToo Software">
+  <img src="public/themes/howtoo/images/hts-logo.svg" width="72" height="72" alt="HowTo.Software">
 </p>
 
-# HowToo Software Panel
+# HowTo.Software Panel
 
 Customizacao operacional do [Pterodactyl Panel](https://github.com/pterodactyl/panel), baseada na versao `1.15.1`.
-O projeto preserva o backend, a autenticacao, as permissoes, os websockets e as rotas oficiais do Pterodactyl e aplica a identidade e as extensoes HowToo diretamente sobre essa base.
+O projeto preserva o backend, a autenticacao, as permissoes, os websockets e as rotas oficiais do Pterodactyl e aplica a identidade e as extensoes HowTo.Software diretamente sobre essa base.
 
 Este repositorio nao e um prototipo HTML e nao cria servidores de demonstracao. A lista de servidores exibida ao usuario vem exclusivamente do banco do Pterodactyl e das Wings conectadas.
 
@@ -28,8 +28,8 @@ O idioma e detectado pelo `Accept-Language` do navegador. Navegadores em portugu
 ## Implementado
 
 - Base completa do Pterodactyl, incluindo login, 2FA, perfil, API, SSH, atividade, administracao, servidores, arquivos, bancos, agendamentos, usuarios, backups, rede, inicializacao e console.
-- Navegacao lateral HowToo dentro de cada servidor, usando os componentes e as permissoes reais do Pterodactyl.
-- Tema HowToo responsivo em React e no painel administrativo Blade.
+- Navegacao lateral HowTo.Software dentro de cada servidor, usando os componentes e as permissoes reais do Pterodactyl.
+- Tema HowTo.Software responsivo em React e no painel administrativo Blade.
 - Localizacao automatica em portugues e ingles, inclusive no carregamento agrupado do i18next.
 - Cadastro administrativo de credenciais para Gemini, Groq, Steam e CurseForge.
 - Segredos criptografados com `APP_KEY`, nunca preenchidos novamente no HTML e acessiveis apenas pelo backend.
@@ -41,8 +41,8 @@ Todas as chamadas externas sao executadas por servicos Laravel server-side; chav
 ## Arquitetura
 
 - `app/`, `routes/`, `database/`: backend Laravel e regras oficiais do Pterodactyl.
-- `resources/scripts/`: cliente React oficial com tema e navegacao HowToo.
-- `resources/views/admin/`: painel administrativo Blade com tema HowToo.
+- `resources/scripts/`: cliente React oficial com tema e navegacao HowTo.Software.
+- `resources/views/admin/`: painel administrativo Blade com tema HowTo.Software.
 - `app/Services/HowToo/`: servicos exclusivos da plataforma.
 - `config/howtoo.php`: configuracao server-side das integracoes.
 - `resources/lang/en` e `resources/lang/pt`: traducoes suportadas.
@@ -84,4 +84,4 @@ Atualizacoes do upstream devem ser integradas e revisadas, nao substituidas por 
 
 ## Licenca
 
-O Pterodactyl e distribuido sob a [licenca MIT](LICENSE.md). As customizacoes HowToo neste fork seguem os mesmos termos, mantendo os avisos de copyright do projeto original.
+O Pterodactyl e distribuido sob a [licenca MIT](LICENSE.md). As customizacoes HowTo.Software neste fork seguem os mesmos termos, mantendo os avisos de copyright do projeto original.

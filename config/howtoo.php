@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'assistant' => [
+        'total_timeout_seconds' => (int) env('AI_TOTAL_TIMEOUT_SECONDS', 90),
+    ],
     'providers' => [
         'gemini' => [
             'enabled' => env('FEATURE_AI_SUPPORT', false),

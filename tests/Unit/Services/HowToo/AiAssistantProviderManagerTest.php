@@ -13,9 +13,115 @@ use Pterodactyl\Services\HowToo\Ai\AiProviderException;
 use Pterodactyl\Contracts\HowToo\AiCredentialRepository;
 use Pterodactyl\Services\HowToo\Ai\AiProviderCredential;
 use Pterodactyl\Services\HowToo\Ai\AiAssistantProviderManager;
+use Pterodactyl\Services\HowToo\Ai\StreamingAiProviderAdapter;
 
 class AiAssistantProviderManagerTest extends TestCase
 {
+    public function testGeminiTimeoutFallsBackToGroqWithoutReturningTheIntermediateError(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [
+                ['name' => 'gemini', 'model' => 'gemini-test'],
+                ['name' => 'groq', 'model' => 'groq-test'],
+            ],
+            [
+                'gemini' => [new AiProviderCredential('gemini', 'gemini-test', 'gemini-key', 1, false)],
+                'groq' => [new AiProviderCredential('groq', 'groq-test', 'groq-key', 2, false)],
+            ],
+        );
+        $gemini = new FakeAiProviderAdapter('gemini', [
+            'gemini-key' => new AiProviderException(AiProviderException::TIMEOUT),
+        ]);
+        $groq = new FakeAiProviderAdapter('groq', ['groq-key' => 'Groq answered']);
+
+        $result = (new AiAssistantProviderManager($repository, [$gemini, $groq], new MemoryLogger()))
+            ->generate($this->prompt());
+
+        $this->assertSame('groq', $result->provider);
+        $this->assertSame('Groq answered', $result->answer);
+        $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::TIMEOUT]], $repository->cooldowns);
+    }
+
+    public function testFirstGeminiKeyFailureFallsBackToTheSecondGeminiKey(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [['name' => 'gemini', 'model' => 'gemini-test']],
+            ['gemini' => [
+                new AiProviderCredential('gemini', 'gemini-test', 'first', 1, false),
+                new AiProviderCredential('gemini', 'gemini-test', 'second', 2, false),
+            ]],
+        );
+        $adapter = new FakeAiProviderAdapter('gemini', [
+            'first' => new AiProviderException(AiProviderException::UNAVAILABLE, 503),
+            'second' => 'Second key answered',
+        ]);
+
+        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
+            ->generate($this->prompt());
+
+        $this->assertSame('Second key answered', $result->answer);
+        $this->assertSame(['first', 'second'], $adapter->attempts);
+        $this->assertSame([2], $repository->healthy);
+    }
+
+    public function testRateLimitFallsBackToTheNextCredential(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [['name' => 'gemini', 'model' => 'gemini-test']],
+            ['gemini' => [
+                new AiProviderCredential('gemini', 'gemini-test', 'limited', 1, false),
+                new AiProviderCredential('gemini', 'gemini-test', 'healthy', 2, false),
+            ]],
+        );
+        $adapter = new FakeAiProviderAdapter('gemini', [
+            'limited' => new AiProviderException(AiProviderException::RATE_LIMIT, 429, 45),
+            'healthy' => 'Available response',
+        ]);
+
+        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
+            ->generate($this->prompt());
+
+        $this->assertSame('Available response', $result->answer);
+        $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::RATE_LIMIT]], $repository->cooldowns);
+    }
+
+    public function testStreamingResetsPartialOutputBeforeFallingBack(): void
+    {
+        $repository = new FakeAiCredentialRepository(
+            [['name' => 'gemini', 'model' => 'gemini-test']],
+            ['gemini' => [
+                new AiProviderCredential('gemini', 'gemini-test', 'partial', 1, false),
+                new AiProviderCredential('gemini', 'gemini-test', 'complete', 2, false),
+            ]],
+        );
+        $adapter = new FakeStreamingAiProviderAdapter('gemini', [
+            'partial' => [
+                'deltas' => ['This answer'],
+                'error' => new AiProviderException(AiProviderException::TIMEOUT),
+            ],
+            'complete' => ['deltas' => ['Final ', 'answer']],
+        ]);
+        $rendered = '';
+        $resets = 0;
+
+        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
+            ->stream(
+                $this->prompt(),
+                static function (string $delta) use (&$rendered): void {
+                    $rendered .= $delta;
+                },
+                null,
+                static function () use (&$rendered, &$resets): void {
+                    $rendered = '';
+                    ++$resets;
+                },
+            );
+
+        $this->assertSame('Final answer', $result->answer);
+        $this->assertSame('Final answer', $rendered);
+        $this->assertSame(1, $resets);
+    }
+
     public function testItFallsBackAcrossKeysAndThenProviders(): void
     {
         $repository = new FakeAiCredentialRepository(
@@ -96,6 +202,11 @@ class AiAssistantProviderManagerTest extends TestCase
         $this->assertSame(AiProviderException::UNAVAILABLE, $unavailable->reason);
         $this->assertSame(120, $unavailable->cooldownSeconds());
     }
+
+    private function prompt(): AiProviderPrompt
+    {
+        return new AiProviderPrompt('System', [['role' => 'user', 'content' => 'Help']]);
+    }
 }
 
 final class FakeAiCredentialRepository implements AiCredentialRepository
@@ -157,6 +268,43 @@ final class FakeAiProviderAdapter implements AiProviderAdapter
         }
 
         return $response;
+    }
+}
+
+final class FakeStreamingAiProviderAdapter implements StreamingAiProviderAdapter
+{
+    public array $attempts = [];
+
+    public function __construct(
+        private string $provider,
+        private array $responses,
+    ) {
+    }
+
+    public function name(): string
+    {
+        return $this->provider;
+    }
+
+    public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
+    {
+        return $this->stream($credential, $prompt, static fn (): null => null);
+    }
+
+    public function stream(AiProviderCredential $credential, AiProviderPrompt $prompt, callable $onDelta): string
+    {
+        $this->attempts[] = $credential->secret;
+        $response = $this->responses[$credential->secret];
+        $answer = '';
+        foreach ($response['deltas'] as $delta) {
+            $answer .= $delta;
+            $onDelta($delta);
+        }
+        if (($response['error'] ?? null) instanceof \Throwable) {
+            throw $response['error'];
+        }
+
+        return $answer;
     }
 }
 

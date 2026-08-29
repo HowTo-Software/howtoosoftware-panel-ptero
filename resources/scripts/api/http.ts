@@ -3,7 +3,7 @@ import { store } from '@/state';
 
 const http: AxiosInstance = axios.create({
     withCredentials: true,
-    timeout: 20000,
+    timeout: 30000,
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
         Accept: 'application/json',

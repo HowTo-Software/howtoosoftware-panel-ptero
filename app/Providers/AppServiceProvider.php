@@ -83,6 +83,7 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(AiCredentialRepository::class),
                 $app->tagged(AiProviderAdapter::class),
                 $app->make(LoggerInterface::class),
+                (int) config('howtoo.assistant.total_timeout_seconds', 90),
             );
         });
     }

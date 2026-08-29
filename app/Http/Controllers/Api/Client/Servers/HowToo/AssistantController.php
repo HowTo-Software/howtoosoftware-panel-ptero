@@ -4,11 +4,11 @@ namespace Pterodactyl\Http\Controllers\Api\Client\Servers\HowToo;
 
 use Pterodactyl\Models\Server;
 use Illuminate\Http\JsonResponse;
-use Pterodactyl\Models\Permission;
 use Illuminate\Support\Facades\Log;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Services\HowToo\AiAssistantService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Pterodactyl\Services\HowToo\Ai\AiStreamCancelledException;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
 use Pterodactyl\Http\Requests\Api\Client\Servers\HowToo\AssistantRequest;
 
@@ -23,18 +23,19 @@ class AssistantController extends ClientApiController
     {
         return new JsonResponse($this->assistant->ask(
             $server,
+            $request->user(),
             $request->string('message')->toString(),
             $request->input('history', []),
             $request->input('section'),
             $request->input('error'),
             $request->input('server_status'),
-            $request->user()->can(Permission::ACTION_ACTIVITY_READ, $server),
         ));
     }
 
     public function stream(AssistantRequest $request, Server $server): StreamedResponse
     {
         return response()->stream(function () use ($request, $server): void {
+            @set_time_limit(max(60, min((int) config('howtoo.assistant.total_timeout_seconds', 90), 120)) + 15);
             $this->sendEvent('status', ['state' => 'thinking']);
 
             if (connection_aborted()) {
@@ -42,34 +43,51 @@ class AssistantController extends ClientApiController
             }
 
             try {
-                $result = $this->assistant->ask(
+                $this->assistant->stream(
                     $server,
+                    $request->user(),
                     $request->string('message')->toString(),
                     $request->input('history', []),
                     $request->input('section'),
                     $request->input('error'),
                     $request->input('server_status'),
-                    $request->user()->can(Permission::ACTION_ACTIVITY_READ, $server),
-                    fn () => $this->sendEvent('status', ['state' => 'thinking']),
+                    fn (string $delta) => $this->sendConnectedEvent('delta', ['content' => $delta]),
+                    fn () => $this->sendConnectedEvent('status', ['state' => 'thinking']),
+                    fn () => $this->sendConnectedEvent('reset', ['reason' => 'provider_fallback']),
                 );
 
                 if (!connection_aborted()) {
-                    $this->sendEvent('message', ['answer' => $result['answer']]);
                     $this->sendEvent('done', ['completed' => true]);
                 }
+            } catch (AiStreamCancelledException) {
+                return;
             } catch (DisplayException $exception) {
-                $this->sendEvent('error', ['message' => $exception->getMessage()]);
+                if (!connection_aborted()) {
+                    $this->sendEvent('error', ['message' => $exception->getMessage()]);
+                }
             } catch (\Throwable) {
                 Log::warning('AI assistant streaming request failed.', [
                     'server_id' => $server->id,
                 ]);
-                $this->sendEvent('error', ['message' => 'The assistant could not answer right now. Please try again shortly.']);
+                if (!connection_aborted()) {
+                    $this->sendEvent('error', ['message' => 'The assistant could not answer right now. Please try again shortly.']);
+                }
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Connection' => 'keep-alive',
             'X-Accel-Buffering' => 'no',
         ]);
+    }
+
+    private function sendConnectedEvent(string $event, array $payload): void
+    {
+        if (connection_aborted()) {
+            throw new AiStreamCancelledException();
+        }
+
+        $this->sendEvent($event, $payload);
     }
 
     private function sendEvent(string $event, array $payload): void

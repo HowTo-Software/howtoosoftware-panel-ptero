@@ -84,7 +84,8 @@ export const streamAssistant = async (
     history: AssistantMessage[],
     serverStatus: string | null,
     signal: AbortSignal,
-    onStatus: (status: 'thinking') => void
+    onStatus: (status: 'thinking') => void,
+    onDelta: (answer: string) => void
 ): Promise<AssistantMessage> => {
     const response = await fetch(`/api/client/servers/${uuid}/howtoo/assistant/stream`, {
         method: 'POST',
@@ -136,22 +137,38 @@ export const streamAssistant = async (
 
         const data = JSON.parse(payload);
         if (event === 'status' && data.state === 'thinking') onStatus('thinking');
-        if (event === 'message') answer = String(data.answer || '');
-        if (event === 'delta') answer += String(data.content || '');
+        if (event === 'message') {
+            answer = String(data.answer || '');
+            onDelta(answer);
+        }
+        if (event === 'delta') {
+            answer += String(data.content || '');
+            onDelta(answer);
+        }
+        if (event === 'reset') {
+            answer = '';
+            onDelta('');
+        }
         if (event === 'error') throw new Error(String(data.message || 'The assistant is temporarily unavailable.'));
     };
 
     let streamComplete = false;
-    while (!streamComplete) {
-        const result = await reader.read();
-        streamComplete = result.done;
-        buffer += decoder.decode(result.value, { stream: !streamComplete });
-        const blocks = buffer.split(/\r?\n\r?\n/);
-        buffer = blocks.pop() || '';
-        blocks.forEach(processEvent);
+    try {
+        while (!streamComplete) {
+            const result = await reader.read();
+            streamComplete = result.done;
+            buffer += decoder.decode(result.value, { stream: !streamComplete });
+            const blocks = buffer.split(/\r?\n\r?\n/);
+            buffer = blocks.pop() || '';
+            blocks.forEach(processEvent);
+        }
+
+        if (buffer.trim()) processEvent(buffer);
+    } finally {
+        if (!streamComplete) await reader.cancel().catch(() => undefined);
+        reader.releaseLock();
     }
 
-    if (buffer.trim()) processEvent(buffer);
     if (!answer.trim()) throw new Error('The assistant returned an empty response.');
 
     return { role: 'assistant', content: answer.trim() };

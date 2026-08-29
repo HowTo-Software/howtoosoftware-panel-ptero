@@ -13,4 +13,16 @@ final readonly class AiProviderCredential
         public int $timeoutSeconds = 25,
     ) {
     }
+
+    public function withTimeout(int $timeoutSeconds): self
+    {
+        return new self(
+            $this->provider,
+            $this->model,
+            $this->secret,
+            $this->keyId,
+            $this->environment,
+            $timeoutSeconds,
+        );
+    }
 }
