@@ -11,6 +11,7 @@ export interface WorkshopItem {
     image: string | null;
     description: string;
     modIds: string[];
+    modIdSource: 'mod_info' | 'remote_mod_info' | 'steam_metadata' | 'workshop_description' | null;
     updatedAt: number | null;
 }
 
@@ -51,6 +52,7 @@ const workshopItem = (data: any): WorkshopItem => ({
     image: data.image,
     description: data.description,
     modIds: data.mod_ids || [],
+    modIdSource: data.mod_id_source || null,
     updatedAt: data.updated_at,
 });
 
@@ -76,18 +78,83 @@ const curseForgeFile = (data: any): CurseForgeFile => ({
     downloadUrl: data.download_url,
 });
 
-export const askAssistant = async (
+export const streamAssistant = async (
     uuid: string,
     message: string,
-    history: AssistantMessage[]
+    history: AssistantMessage[],
+    serverStatus: string | null,
+    signal: AbortSignal,
+    onStatus: (status: 'thinking') => void
 ): Promise<AssistantMessage> => {
-    const { data } = await http.post(`/api/client/servers/${uuid}/howtoo/assistant`, {
-        message,
-        history,
-        section: window.location.pathname.split('/').pop(),
+    const response = await fetch(`/api/client/servers/${uuid}/howtoo/assistant/stream`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        signal,
+        headers: {
+            Accept: 'text/event-stream',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+            message,
+            history,
+            section: window.location.pathname.split('/').pop(),
+            server_status: serverStatus,
+        }),
     });
 
-    return { role: 'assistant', content: data.answer };
+    if (!response.ok) {
+        const body = await response.text();
+        try {
+            const data = JSON.parse(body);
+            throw new Error(data.errors?.[0]?.detail || data.error || `Request failed (${response.status}).`);
+        } catch (error) {
+            if (error instanceof SyntaxError) throw new Error(`Request failed (${response.status}).`);
+            throw error;
+        }
+    }
+
+    if (!response.body) throw new Error('Streaming is not supported by this browser.');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let answer = '';
+
+    const processEvent = (block: string) => {
+        const lines = block.split(/\r?\n/);
+        const event =
+            lines
+                .find((line) => line.startsWith('event:'))
+                ?.slice(6)
+                .trim() || 'message';
+        const payload = lines
+            .filter((line) => line.startsWith('data:'))
+            .map((line) => line.slice(5).trimStart())
+            .join('\n');
+        if (!payload) return;
+
+        const data = JSON.parse(payload);
+        if (event === 'status' && data.state === 'thinking') onStatus('thinking');
+        if (event === 'message') answer = String(data.answer || '');
+        if (event === 'delta') answer += String(data.content || '');
+        if (event === 'error') throw new Error(String(data.message || 'The assistant is temporarily unavailable.'));
+    };
+
+    let streamComplete = false;
+    while (!streamComplete) {
+        const result = await reader.read();
+        streamComplete = result.done;
+        buffer += decoder.decode(result.value, { stream: !streamComplete });
+        const blocks = buffer.split(/\r?\n\r?\n/);
+        buffer = blocks.pop() || '';
+        blocks.forEach(processEvent);
+    }
+
+    if (buffer.trim()) processEvent(buffer);
+    if (!answer.trim()) throw new Error('The assistant returned an empty response.');
+
+    return { role: 'assistant', content: answer.trim() };
 };
 
 export const getWorkshopConfiguration = async (uuid: string): Promise<WorkshopConfiguration> => {
@@ -108,14 +175,22 @@ export const searchWorkshop = async (uuid: string, query: string): Promise<Works
     return (data.items || []).map(workshopItem);
 };
 
+export const resolveWorkshopItem = async (uuid: string, workshopId: string): Promise<WorkshopItem> => {
+    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/workshop/${workshopId}/resolve`);
+    return workshopItem(data);
+};
+
 export const saveWorkshop = async (
     uuid: string,
-    configuration: Pick<WorkshopConfiguration, 'workshopItems' | 'mods' | 'revision'>,
+    configuration: Pick<WorkshopConfiguration, 'workshopItems' | 'mods' | 'revision'> & {
+        workshopMods: Record<string, string[]>;
+    },
     restart: boolean
 ): Promise<WorkshopConfiguration & { restarted: boolean; restartError: string | null }> => {
     const { data } = await http.put(`/api/client/servers/${uuid}/howtoo/workshop`, {
         workshop_items: configuration.workshopItems,
         mods: configuration.mods,
+        workshop_mods: configuration.workshopMods,
         revision: configuration.revision,
         action: restart ? 'restart' : 'save',
     });

@@ -30,7 +30,7 @@ final class GeminiProviderAdapter implements AiProviderAdapter
                 ->asJson()
                 ->withHeaders(['x-goog-api-key' => $credential->secret])
                 ->connectTimeout(5)
-                ->timeout(25)
+                ->timeout($credential->timeoutSeconds)
                 ->post("/v1beta/models/{$model}:generateContent", [
                     'systemInstruction' => ['parts' => [['text' => $prompt->system]]],
                     'contents' => $contents,

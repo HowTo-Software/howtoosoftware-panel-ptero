@@ -153,9 +153,13 @@ Route::group([
 
     Route::prefix('/howtoo')->middleware('throttle:30,1')->group(function () {
         Route::post('/assistant', Client\Servers\HowToo\AssistantController::class)->middleware('throttle:10,1');
+        Route::post('/assistant/stream', [Client\Servers\HowToo\AssistantController::class, 'stream'])
+            ->middleware('throttle:10,1');
 
         Route::get('/workshop', [Client\Servers\HowToo\WorkshopController::class, 'index']);
         Route::get('/workshop/search', [Client\Servers\HowToo\WorkshopController::class, 'search']);
+        Route::get('/workshop/{workshopId}/resolve', [Client\Servers\HowToo\WorkshopController::class, 'resolve'])
+            ->whereNumber('workshopId');
         Route::put('/workshop', [Client\Servers\HowToo\WorkshopController::class, 'update']);
 
         Route::get('/curseforge/installed', [Client\Servers\HowToo\CurseForgeController::class, 'installed']);

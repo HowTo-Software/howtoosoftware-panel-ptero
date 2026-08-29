@@ -33,6 +33,9 @@ class WorkshopUpdateRequest extends ClientApiRequest implements ClientPermission
             'workshop_items.*' => ['required', 'string', 'regex:/^\d{1,20}$/'],
             'mods' => 'present|array|max:500',
             'mods.*' => ['required', 'string', 'regex:/^[A-Za-z0-9_.-]{1,128}$/'],
+            'workshop_mods' => 'present|array|max:500',
+            'workshop_mods.*' => 'present|array|max:100',
+            'workshop_mods.*.*' => ['required', 'string', 'regex:/^[A-Za-z0-9_.-]{1,128}$/'],
             'revision' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
             'action' => 'required|string|in:save,restart',
         ];

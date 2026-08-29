@@ -18,7 +18,12 @@ final class ServerGameContext
 
     public function for(Server $server): array
     {
-        $server->loadMissing(['egg', 'nest', 'variables']);
+        $relations = collect(['egg', 'nest', 'variables'])
+            ->reject(fn (string $relation): bool => $server->relationLoaded($relation))
+            ->all();
+        if ($relations !== []) {
+            $server->loadMissing($relations);
+        }
 
         $identity = mb_strtolower(implode(' ', array_filter([
             $server->egg?->name,

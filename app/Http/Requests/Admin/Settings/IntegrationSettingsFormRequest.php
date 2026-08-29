@@ -16,6 +16,7 @@ class IntegrationSettingsFormRequest extends AdminFormRequest
             $rules["providers.$provider"] = ['required', 'array'];
             $rules["providers.$provider.enabled"] = ['nullable', Rule::in(['0', '1'])];
             $rules["providers.$provider.priority"] = ['required', 'integer', 'min:1', 'max:1000'];
+            $rules["providers.$provider.timeout_seconds"] = ['required', 'integer', 'min:5', 'max:55'];
             $rules["providers.$provider.environment_key_enabled"] = ['nullable', Rule::in(['0', '1'])];
             $rules["providers.$provider.secret"] = ['nullable', 'string', 'max:512'];
             $rules["providers.$provider.model"] = ['nullable', 'string', 'max:120', 'regex:/^[a-zA-Z0-9._:\/-]+$/'];

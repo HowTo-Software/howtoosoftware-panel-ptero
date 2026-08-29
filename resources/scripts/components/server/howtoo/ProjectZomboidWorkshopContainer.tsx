@@ -8,6 +8,7 @@ import Can from '@/components/elements/Can';
 import { httpErrorToHuman } from '@/api/http';
 import {
     getWorkshopConfiguration,
+    resolveWorkshopItem,
     saveWorkshop,
     searchWorkshop,
     WorkshopConfiguration,
@@ -52,9 +53,12 @@ export default () => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<WorkshopItem[]>([]);
     const [manualIds, setManualIds] = useState<Record<string, string>>({});
+    const [manualFallback, setManualFallback] = useState<Record<string, boolean>>({});
     const [manualMod, setManualMod] = useState('');
+    const [showManualEditor, setShowManualEditor] = useState(false);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
+    const [resolving, setResolving] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
@@ -103,22 +107,50 @@ export default () => {
         }
     };
 
-    const add = (item: WorkshopItem) => {
-        const ids = item.modIds.length ? item.modIds : manualModIds(manualIds[item.workshopId] || '');
+    const add = async (item: WorkshopItem) => {
+        let resolved = item;
+        if (!resolved.modIds.length) {
+            setResolving(item.workshopId);
+            setError('');
+            try {
+                resolved = await resolveWorkshopItem(server.uuid, item.workshopId);
+                setResults((current) =>
+                    current.map((entry) => (entry.workshopId === resolved.workshopId ? resolved : entry))
+                );
+            } catch (error) {
+                setError(httpErrorToHuman(error));
+                setResolving(null);
+                return;
+            }
+            setResolving(null);
+        }
+
+        const ids = resolved.modIds.length ? resolved.modIds : manualModIds(manualIds[item.workshopId] || '');
         if (!ids.length) {
-            setError('Enter the PZ Mod ID for this Workshop item before adding it.');
+            setManualFallback((current) => ({ ...current, [item.workshopId]: true }));
+            setError(
+                'No Mod ID was found in the installed mod.info or Steam metadata. Use the advanced fallback below.'
+            );
             return;
         }
         setError('');
-        setWorkshopItems((current) => unique([...current, item.workshopId]));
+        if (!resolved.modIds.length) {
+            resolved = { ...resolved, modIds: ids };
+            setResults((current) =>
+                current.map((entry) => (entry.workshopId === resolved.workshopId ? resolved : entry))
+            );
+        }
+        setWorkshopItems((current) => unique([...current, resolved.workshopId]));
         setMods((current) => unique([...current, ...ids]));
     };
 
     const remove = (workshopId: string) => {
         const item = details.get(workshopId);
-        setWorkshopItems((current) => current.filter((id) => id !== workshopId));
+        const remainingItems = workshopItems.filter((id) => id !== workshopId);
+        setWorkshopItems(remainingItems);
         if (item?.modIds.length) {
-            setMods((current) => current.filter((id) => !item.modIds.includes(id)));
+            const stillUsed = new Set(remainingItems.flatMap((id) => details.get(id)?.modIds || []));
+            setMods((current) => current.filter((id) => !item.modIds.includes(id) || stillUsed.has(id)));
         }
     };
 
@@ -137,7 +169,14 @@ export default () => {
         try {
             const result = await saveWorkshop(
                 server.uuid,
-                { workshopItems, mods, revision: configuration.revision },
+                {
+                    workshopItems,
+                    mods,
+                    revision: configuration.revision,
+                    workshopMods: Object.fromEntries(
+                        workshopItems.map((workshopId) => [workshopId, details.get(workshopId)?.modIds || []])
+                    ),
+                },
                 restart
             );
             setConfiguration({ ...result, details: Array.from(details.values()), detailsError: null });
@@ -183,6 +222,7 @@ export default () => {
                                         {item?.image && <img src={item.image} alt={''} loading={'lazy'} />}
                                         <h3>{item?.name || `Workshop item ${id}`}</h3>
                                         <Badge>Workshop ID {id}</Badge>
+                                        {!!item?.modIds.length && <Muted>Mod IDs: {item.modIds.join('; ')}</Muted>}
                                         {item?.description && <p>{item.description}</p>}
                                         <Can action={'integration.workshop-update'}>
                                             <Button
@@ -220,17 +260,30 @@ export default () => {
                         ))}
                     </Toolbar>
                     <Can action={'integration.workshop-update'}>
-                        <Toolbar style={{ marginTop: '0.75rem' }}>
-                            <Input
-                                style={{ maxWidth: '24rem' }}
-                                value={manualMod}
-                                onChange={(event) => setManualMod(event.currentTarget.value)}
-                                placeholder={'Manual Mod ID'}
-                            />
-                            <Button size={'small'} isSecondary type={'button'} onClick={addManualMod}>
-                                Add Mod ID
+                        <div style={{ marginTop: '0.75rem' }}>
+                            <Button
+                                size={'xsmall'}
+                                color={'grey'}
+                                isSecondary
+                                type={'button'}
+                                onClick={() => setShowManualEditor((value) => !value)}
+                            >
+                                Advanced Mod ID editor
                             </Button>
-                        </Toolbar>
+                            {showManualEditor && (
+                                <Toolbar style={{ marginTop: '0.75rem' }}>
+                                    <Input
+                                        style={{ maxWidth: '24rem' }}
+                                        value={manualMod}
+                                        onChange={(event) => setManualMod(event.currentTarget.value)}
+                                        placeholder={'Manual Mod ID'}
+                                    />
+                                    <Button size={'small'} isSecondary type={'button'} onClick={addManualMod}>
+                                        Add Mod ID
+                                    </Button>
+                                </Toolbar>
+                            )}
+                        </div>
                     </Can>
                 </Section>
 
@@ -257,24 +310,35 @@ export default () => {
                                     <Badge>Workshop ID {item.workshopId}</Badge>
                                     <p>{item.description}</p>
                                     {item.modIds.length ? (
-                                        <Muted>Mod ID: {item.modIds.join('; ')}</Muted>
+                                        <Muted>
+                                            Mod IDs: {item.modIds.join('; ')}
+                                            {['mod_info', 'remote_mod_info'].includes(item.modIdSource || '')
+                                                ? ' / verified from mod.info'
+                                                : ''}
+                                        </Muted>
+                                    ) : manualFallback[item.workshopId] ? (
+                                        <div>
+                                            <Muted>Advanced fallback: enter the exact ID from mod.info.</Muted>
+                                            <Input
+                                                value={manualIds[item.workshopId] || ''}
+                                                onChange={(event) =>
+                                                    setManualIds((current) => ({
+                                                        ...current,
+                                                        [item.workshopId]: event.currentTarget.value,
+                                                    }))
+                                                }
+                                                placeholder={'Manual PZ Mod ID (advanced)'}
+                                            />
+                                        </div>
                                     ) : (
-                                        <Input
-                                            value={manualIds[item.workshopId] || ''}
-                                            onChange={(event) =>
-                                                setManualIds((current) => ({
-                                                    ...current,
-                                                    [item.workshopId]: event.currentTarget.value,
-                                                }))
-                                            }
-                                            placeholder={'Required manual PZ Mod ID'}
-                                        />
+                                        <Muted>Mod IDs will be resolved automatically when added.</Muted>
                                     )}
                                     <Can action={'integration.workshop-update'}>
                                         <Button
                                             size={'xsmall'}
                                             onClick={() => add(item)}
-                                            disabled={workshopItems.includes(item.workshopId)}
+                                            isLoading={resolving === item.workshopId}
+                                            disabled={workshopItems.includes(item.workshopId) || resolving !== null}
                                         >
                                             {workshopItems.includes(item.workshopId) ? 'Added' : 'Add'}
                                         </Button>

@@ -22,6 +22,7 @@ class AssistantRequest extends ClientApiRequest implements ClientPermissionsRequ
             'history.*.content' => 'required_with:history|string|max:3000',
             'section' => 'nullable|string|max:80',
             'error' => 'nullable|string|max:2500',
+            'server_status' => 'nullable|string|in:offline,starting,stopping,running',
         ];
     }
 }

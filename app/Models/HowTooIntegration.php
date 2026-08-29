@@ -9,7 +9,15 @@ class HowTooIntegration extends Model
 {
     protected $table = 'howtoo_integrations';
 
-    protected $fillable = ['provider', 'enabled', 'priority', 'environment_key_enabled', 'secret', 'model'];
+    protected $fillable = [
+        'provider',
+        'enabled',
+        'priority',
+        'environment_key_enabled',
+        'timeout_seconds',
+        'secret',
+        'model',
+    ];
 
     protected $hidden = ['secret'];
 
@@ -24,6 +32,7 @@ class HowTooIntegration extends Model
             'enabled' => 'boolean',
             'priority' => 'integer',
             'environment_key_enabled' => 'boolean',
+            'timeout_seconds' => 'integer',
             // Encryption uses APP_KEY and occurs before the value reaches the database.
             'secret' => 'encrypted',
         ];

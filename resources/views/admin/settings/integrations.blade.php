@@ -29,7 +29,7 @@
                         </div>
                         <div class="box-body">
                             <div class="row">
-                                <div class="col-sm-6">
+                                <div class="{{ in_array($provider, ['gemini', 'groq'], true) ? 'col-sm-4' : 'col-sm-6' }}">
                                     <div class="form-group">
                                         <label>
                                             <input type="hidden" name="providers[{{ $provider }}][enabled]" value="0">
@@ -38,7 +38,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="{{ in_array($provider, ['gemini', 'groq'], true) ? 'col-sm-4' : 'col-sm-6' }}">
                                     <div class="form-group">
                                         <label for="{{ $provider }}-priority">{{ __('Provider priority') }}</label>
                                         <input id="{{ $provider }}-priority" class="form-control" type="number" min="1" max="1000"
@@ -46,6 +46,21 @@
                                                value="{{ old("providers.$provider.priority", $status['priority']) }}" required>
                                     </div>
                                 </div>
+                                @if (in_array($provider, ['gemini', 'groq'], true))
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <label for="{{ $provider }}-timeout">{{ __('Attempt timeout') }}</label>
+                                            <div class="input-group">
+                                                <input id="{{ $provider }}-timeout" class="form-control" type="number" min="5" max="55"
+                                                       name="providers[{{ $provider }}][timeout_seconds]"
+                                                       value="{{ old("providers.$provider.timeout_seconds", $status['timeout_seconds']) }}" required>
+                                                <span class="input-group-addon">{{ __('seconds') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <input type="hidden" name="providers[{{ $provider }}][timeout_seconds]" value="{{ $status['timeout_seconds'] }}">
+                                @endif
                             </div>
 
                             @if (in_array($provider, ['gemini', 'groq'], true))

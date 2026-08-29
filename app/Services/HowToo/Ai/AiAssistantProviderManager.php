@@ -22,7 +22,7 @@ final class AiAssistantProviderManager
         }
     }
 
-    public function generate(AiProviderPrompt $prompt): AiProviderResult
+    public function generate(AiProviderPrompt $prompt, ?callable $onAttempt = null): AiProviderResult
     {
         $attempts = 0;
 
@@ -33,8 +33,15 @@ final class AiAssistantProviderManager
                 continue;
             }
 
-            foreach ($this->credentials->availableAiCredentials($name, $provider['model']) as $credential) {
+            foreach ($this->credentials->availableAiCredentials(
+                $name,
+                $provider['model'],
+                (int) ($provider['timeout_seconds'] ?? 25),
+            ) as $credential) {
                 ++$attempts;
+                if ($onAttempt) {
+                    $onAttempt();
+                }
 
                 try {
                     $answer = $adapter->generate($credential, $prompt);

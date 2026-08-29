@@ -20,7 +20,7 @@ class AiAssistantProviderManagerTest extends TestCase
     {
         $repository = new FakeAiCredentialRepository(
             [
-                ['name' => 'gemini', 'model' => 'gemini-test', 'priority' => 10],
+                ['name' => 'gemini', 'model' => 'gemini-test', 'priority' => 10, 'timeout_seconds' => 17],
                 ['name' => 'groq', 'model' => 'groq-test', 'priority' => 20],
             ],
             [
@@ -47,6 +47,8 @@ class AiAssistantProviderManagerTest extends TestCase
         $this->assertSame('Fallback answer', $result->answer);
         $this->assertSame(['gemini-one', 'gemini-two'], $gemini->attempts);
         $this->assertSame(['groq-one'], $groq->attempts);
+        $this->assertSame([17], $repository->timeouts['gemini']);
+        $this->assertSame([25], $repository->timeouts['groq']);
         $this->assertSame([
             ['key_id' => 1, 'reason' => AiProviderException::RATE_LIMIT],
             ['key_id' => 2, 'reason' => AiProviderException::INVALID_CREDENTIAL],
@@ -100,6 +102,7 @@ final class FakeAiCredentialRepository implements AiCredentialRepository
 {
     public array $cooldowns = [];
     public array $healthy = [];
+    public array $timeouts = [];
 
     public function __construct(
         private array $providers,
@@ -112,8 +115,10 @@ final class FakeAiCredentialRepository implements AiCredentialRepository
         return $this->providers;
     }
 
-    public function availableAiCredentials(string $provider, string $model): array
+    public function availableAiCredentials(string $provider, string $model, int $timeoutSeconds): array
     {
+        $this->timeouts[$provider][] = $timeoutSeconds;
+
         return $this->credentials[$provider] ?? [];
     }
 

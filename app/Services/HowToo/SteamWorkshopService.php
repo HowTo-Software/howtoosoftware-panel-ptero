@@ -9,8 +9,10 @@ final class SteamWorkshopService
 {
     private const PROJECT_ZOMBOID_APP_ID = 108600;
 
-    public function __construct(private IntegrationCredentialStore $credentials)
-    {
+    public function __construct(
+        private IntegrationCredentialStore $credentials,
+        private ProjectZomboidModIdResolver $modIds,
+    ) {
     }
 
     public function search(string $query, int $page = 1): array
@@ -32,6 +34,7 @@ final class SteamWorkshopService
                     'search_text' => $query,
                     'return_details' => true,
                     'return_metadata' => true,
+                    'return_kv_tags' => true,
                 ])
                 ->throw()
                 ->json();
@@ -101,22 +104,35 @@ final class SteamWorkshopService
             'name' => mb_substr(trim((string) ($item['title'] ?? 'Untitled mod')), 0, 180),
             'image' => filter_var($item['preview_url'] ?? null, FILTER_VALIDATE_URL) ?: null,
             'description' => mb_substr($description, 0, 1000),
-            'mod_ids' => $this->resolveModIds((string) ($item['description'] ?? '')),
+            'mod_ids' => $this->resolveModIds($item),
+            'mod_id_source' => $this->modIdSource($item),
+            'metadata' => $item['metadata'] ?? null,
+            'kv_tags' => $item['kv_tags'] ?? [],
+            'raw_description' => (string) ($item['description'] ?? ''),
+            'content_url' => filter_var($item['file_url'] ?? null, FILTER_VALIDATE_URL) ?: null,
+            'content_size' => isset($item['file_size']) ? (int) $item['file_size'] : null,
             'updated_at' => isset($item['time_updated']) ? (int) $item['time_updated'] : null,
         ];
     }
 
-    private function resolveModIds(string $description): array
+    private function resolveModIds(array $item): array
     {
-        preg_match_all('/\bMod\s*IDs?\s*[:=]\s*([^\r\n]+)/iu', $description, $matches);
+        $metadata = $this->modIds->fromSteamMetadata($item);
 
-        return collect($matches[1])
-            ->flatMap(fn (string $value): array => preg_split('/\s*[;,]\s*/', trim($value)) ?: [])
-            ->map(fn (string $value): string => trim($value))
-            ->filter(fn (string $value): bool => preg_match('/^[A-Za-z0-9_.-]{1,128}$/', $value) === 1)
-            ->unique()
-            ->values()
-            ->all();
+        return $metadata !== []
+            ? $metadata
+            : $this->modIds->fromDescription((string) ($item['description'] ?? ''));
+    }
+
+    private function modIdSource(array $item): ?string
+    {
+        if ($this->modIds->fromSteamMetadata($item) !== []) {
+            return 'steam_metadata';
+        }
+
+        return $this->modIds->fromDescription((string) ($item['description'] ?? '')) !== []
+            ? 'workshop_description'
+            : null;
     }
 
     private function plainText(string $value): string

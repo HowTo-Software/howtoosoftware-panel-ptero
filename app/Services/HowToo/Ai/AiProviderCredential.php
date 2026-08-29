@@ -10,6 +10,7 @@ final readonly class AiProviderCredential
         public string $secret,
         public ?int $keyId,
         public bool $environment,
+        public int $timeoutSeconds = 25,
     ) {
     }
 }

@@ -45,6 +45,9 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                     || ($hasRecord && filled($record->getRawOriginal('secret'))),
                 'model' => $hasRecord && filled($record->model) ? $record->model : config("howtoo.providers.$provider.model"),
                 'priority' => $hasRecord ? $record->priority : (int) config("howtoo.providers.$provider.priority", 100),
+                'timeout_seconds' => $hasRecord
+                    ? $record->timeout_seconds
+                    : (int) config("howtoo.providers.$provider.timeout_seconds", 25),
                 'environment_configured' => $environmentConfigured,
                 'environment_key_enabled' => $environmentEnabled,
                 'keys' => $keys->map(fn (HowTooIntegrationKey $key): array => [
@@ -140,6 +143,10 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                     'name' => $provider,
                     'model' => $model,
                     'priority' => (int) ($record->priority ?? config("howtoo.providers.$provider.priority", 100)),
+                    'timeout_seconds' => max(5, min(
+                        (int) ($record->timeout_seconds ?? config("howtoo.providers.$provider.timeout_seconds", 25)),
+                        55,
+                    )),
                 ];
             })
             ->filter()
@@ -148,7 +155,7 @@ final class IntegrationCredentialStore implements AiCredentialRepository
             ->all();
     }
 
-    public function availableAiCredentials(string $provider, string $model): array
+    public function availableAiCredentials(string $provider, string $model, int $timeoutSeconds): array
     {
         $this->assertAiProvider($provider);
         $record = HowTooIntegration::query()->where('provider', $provider)->first();
@@ -172,7 +179,14 @@ final class IntegrationCredentialStore implements AiCredentialRepository
             }
 
             if (filled($secret)) {
-                $credentials->push(new AiProviderCredential($provider, $model, $secret, $key->id, false));
+                $credentials->push(new AiProviderCredential(
+                    $provider,
+                    $model,
+                    $secret,
+                    $key->id,
+                    false,
+                    $timeoutSeconds,
+                ));
             }
         }
 
@@ -181,7 +195,14 @@ final class IntegrationCredentialStore implements AiCredentialRepository
         if ($environmentEnabled
             && filled($environmentSecret)
             && !Cache::has($this->environmentCooldownKey($provider))) {
-            $credentials->push(new AiProviderCredential($provider, $model, $environmentSecret, null, true));
+            $credentials->push(new AiProviderCredential(
+                $provider,
+                $model,
+                $environmentSecret,
+                null,
+                true,
+                $timeoutSeconds,
+            ));
         }
 
         return $credentials->all();
@@ -236,6 +257,7 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                 $record->enabled = (bool) ($input['enabled'] ?? false);
                 $record->priority = (int) ($input['priority'] ?? config("howtoo.providers.$provider.priority", 100));
                 $record->environment_key_enabled = (bool) ($input['environment_key_enabled'] ?? false);
+                $record->timeout_seconds = max(5, min((int) ($input['timeout_seconds'] ?? 25), 55));
                 $record->model = filled($input['model'] ?? null) ? trim($input['model']) : null;
                 $record->save();
 

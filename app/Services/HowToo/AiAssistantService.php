@@ -13,22 +13,29 @@ final class AiAssistantService
 
     public function __construct(
         private AiAssistantProviderManager $providers,
-        private ServerGameContext $gameContext,
+        private AiServerContextBuilder $context,
     ) {
     }
 
-    public function ask(Server $server, string $message, array $history, ?string $section, ?string $error): array
-    {
+    public function ask(
+        Server $server,
+        string $message,
+        array $history,
+        ?string $section,
+        ?string $error,
+        ?string $liveStatus,
+        bool $includeRecentEvents = false,
+        ?callable $onAttempt = null,
+    ): array {
         $messages = $this->sanitizeHistory($history);
         $messages[] = ['role' => 'user', 'content' => $this->sanitize($message, self::MAX_MESSAGE_LENGTH)];
 
         $result = $this->providers->generate(new AiProviderPrompt(
-            $this->systemPrompt($server, $section, $error),
+            $this->systemPrompt($server, $liveStatus, $section, $error, $includeRecentEvents),
             $messages,
-        ));
+        ), $onAttempt);
 
         return [
-            'provider' => $result->provider,
             'answer' => mb_substr($result->answer, 0, 12000),
         ];
     }
@@ -46,20 +53,14 @@ final class AiAssistantService
             ->all();
     }
 
-    private function systemPrompt(Server $server, ?string $section, ?string $error): string
-    {
-        $context = $this->gameContext->for($server);
-        $safeContext = [
-            'server_name' => $this->sanitize($server->name, 100),
-            'game' => $context['game'],
-            'panel_section' => $this->sanitize((string) $section, 80),
-            'resource_limits' => [
-                'memory_mb' => $server->memory,
-                'disk_mb' => $server->disk,
-                'cpu_percent' => $server->cpu,
-            ],
-            'reported_error' => $this->sanitize((string) $error, 2500),
-        ];
+    private function systemPrompt(
+        Server $server,
+        ?string $liveStatus,
+        ?string $section,
+        ?string $error,
+        bool $includeRecentEvents,
+    ): string {
+        $safeContext = $this->context->build($server, $liveStatus, $section, $error, $includeRecentEvents);
 
         return implode("\n", [
             'You are the HowToo Software server-panel assistant.',

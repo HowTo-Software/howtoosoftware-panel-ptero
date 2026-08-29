@@ -9,6 +9,7 @@ use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Services\HowToo\ServerGameContext;
 use Pterodactyl\Services\HowToo\SteamWorkshopService;
 use Pterodactyl\Repositories\Wings\DaemonPowerRepository;
+use Pterodactyl\Services\HowToo\ProjectZomboidModIdResolver;
 use Pterodactyl\Services\HowToo\ZomboidWorkshopConfigService;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
@@ -21,6 +22,7 @@ class WorkshopController extends ClientApiController
     public function __construct(
         private ZomboidWorkshopConfigService $config,
         private SteamWorkshopService $steam,
+        private ProjectZomboidModIdResolver $modIds,
         private ServerGameContext $gameContext,
         private DaemonPowerRepository $power,
     ) {
@@ -35,6 +37,25 @@ class WorkshopController extends ClientApiController
 
         try {
             $configuration['details'] = $this->steam->details($configuration['workshop_items']);
+            $installed = $this->modIds->resolveInstalled($server, $configuration['workshop_items']);
+            $configuration['details'] = collect($configuration['details'])
+                ->map(function (array $item) use ($installed): array {
+                    $workshopId = $item['workshop_id'];
+                    if (($installed[$workshopId] ?? []) !== []) {
+                        $item['mod_ids'] = $installed[$workshopId];
+                        $item['mod_id_source'] = 'mod_info';
+                    } else {
+                        $resolved = $this->modIds->resolveSteamItem($item);
+                        if ($resolved['mod_ids'] !== []) {
+                            $item['mod_ids'] = $resolved['mod_ids'];
+                            $item['mod_id_source'] = $resolved['source'];
+                        }
+                    }
+
+                    return $this->publicItem($item);
+                })
+                ->values()
+                ->all();
         } catch (DisplayException $exception) {
             $configuration['details_error'] = $exception->getMessage();
         }
@@ -48,18 +69,48 @@ class WorkshopController extends ClientApiController
             throw new DisplayException('Workshop Manager is only available for Project Zomboid servers.');
         }
 
-        return new JsonResponse($this->steam->search(
+        $results = $this->steam->search(
             $request->string('query')->toString(),
             $request->integer('page', 1),
-        ));
+        );
+        $results['items'] = collect($results['items'])->map(fn (array $item): array => $this->publicItem($item))->all();
+
+        return new JsonResponse($results);
+    }
+
+    public function resolve(WorkshopReadRequest $request, Server $server, string $workshopId): JsonResponse
+    {
+        if (!$this->gameContext->for($server)['project_zomboid']) {
+            throw new DisplayException('Workshop Manager is only available for Project Zomboid servers.');
+        }
+
+        $item = $this->steam->details([$workshopId])[0] ?? null;
+        if (!$item || $item['workshop_id'] !== $workshopId) {
+            throw new DisplayException('The selected Steam Workshop item could not be found.');
+        }
+
+        $resolved = $this->modIds->resolve($server, $workshopId, $item);
+        $item['mod_ids'] = $resolved['mod_ids'];
+        $item['mod_id_source'] = $resolved['source'];
+
+        return new JsonResponse($this->publicItem($item));
     }
 
     public function update(WorkshopUpdateRequest $request, Server $server): JsonResponse
     {
+        $current = $this->config->read($server);
+        $workshopItems = $request->input('workshop_items');
+        $mods = $this->resolvedMods(
+            $server,
+            $workshopItems,
+            $request->input('mods'),
+            $request->input('workshop_mods'),
+            $current,
+        );
         $configuration = $this->config->save(
             $server,
-            $request->input('workshop_items'),
-            $request->input('mods'),
+            $workshopItems,
+            $mods,
             $request->string('revision')->toString(),
         );
 
@@ -84,5 +135,67 @@ class WorkshopController extends ClientApiController
             'restarted' => $restarted,
             'restart_error' => $restartError,
         ]));
+    }
+
+    private function publicItem(array $item): array
+    {
+        return collect($item)->only([
+            'workshop_id',
+            'name',
+            'image',
+            'description',
+            'mod_ids',
+            'mod_id_source',
+            'updated_at',
+        ])->all();
+    }
+
+    private function resolvedMods(
+        Server $server,
+        array $workshopItems,
+        array $submittedMods,
+        array $workshopMods,
+        array $current,
+    ): array {
+        if ($workshopItems === []) {
+            return $submittedMods;
+        }
+
+        $details = collect();
+        try {
+            $details = collect($this->steam->details($workshopItems))->keyBy('workshop_id');
+        } catch (DisplayException) {
+            // Installed mod.info files and the explicit advanced fallback remain available.
+        }
+        $installed = $this->modIds->resolveInstalled($server, $workshopItems);
+        $required = [];
+        $unresolvedAdded = [];
+        $added = array_diff($workshopItems, $current['workshop_items']);
+
+        foreach ($workshopItems as $workshopId) {
+            $modIds = $installed[$workshopId] ?? [];
+            if ($modIds === [] && $details->has($workshopId)) {
+                $modIds = $this->modIds->resolveSteamItem($details->get($workshopId))['mod_ids'];
+            }
+            if ($modIds === []) {
+                $modIds = $workshopMods[$workshopId] ?? [];
+            }
+
+            if ($modIds === [] && in_array($workshopId, $added, true)) {
+                $unresolvedAdded[] = $workshopId;
+            }
+            $required = array_merge($required, $modIds);
+        }
+
+        if ($unresolvedAdded !== []) {
+            throw new DisplayException('A selected Workshop item has no resolvable Mod ID. Use the advanced Mod ID fallback before saving.');
+        }
+
+        return collect(array_merge($submittedMods, $required))
+            ->map(fn ($id): string => trim((string) $id))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

@@ -24,7 +24,7 @@ final class GroqProviderAdapter implements AiProviderAdapter
                 ->asJson()
                 ->withToken($credential->secret)
                 ->connectTimeout(5)
-                ->timeout(20)
+                ->timeout($credential->timeoutSeconds)
                 ->post('/chat/completions', [
                     'model' => $credential->model,
                     'messages' => array_merge([['role' => 'system', 'content' => $prompt->system]], $prompt->messages),
