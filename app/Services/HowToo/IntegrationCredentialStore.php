@@ -18,9 +18,9 @@ final class IntegrationCredentialStore
             $record = $records->get($provider);
 
             return [$provider => [
-                'enabled' => $record?->enabled ?? (bool) config("howtoo.providers.$provider.enabled", false),
+                'enabled' => $record->enabled ?? (bool) config("howtoo.providers.$provider.enabled", false),
                 'configured' => $this->hasSecret($provider, $record),
-                'model' => $record?->model ?? config("howtoo.providers.$provider.model"),
+                'model' => $record->model ?? config("howtoo.providers.$provider.model"),
             ]];
         })->all();
     }
@@ -39,7 +39,16 @@ final class IntegrationCredentialStore
         $this->assertProvider($provider);
         $record = HowTooIntegration::query()->where('provider', $provider)->first();
 
-        return (bool) ($record?->enabled ?? config("howtoo.providers.$provider.enabled", false));
+        return (bool) ($record->enabled ?? config("howtoo.providers.$provider.enabled", false));
+    }
+
+    public function model(string $provider): ?string
+    {
+        $this->assertProvider($provider);
+        $record = HowTooIntegration::query()->where('provider', $provider)->first();
+        $model = $record?->model ?: config("howtoo.providers.$provider.model");
+
+        return is_string($model) && $model !== '' ? $model : null;
     }
 
     public function update(array $providers): void

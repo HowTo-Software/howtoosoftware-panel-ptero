@@ -13,6 +13,7 @@ use Pterodactyl\Models\EggVariable;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\NullResource;
 use Pterodactyl\Services\Servers\StartupCommandService;
+use Pterodactyl\Services\HowToo\IntegrationCapabilities;
 
 class ServerTransformer extends BaseClientTransformer
 {
@@ -33,6 +34,8 @@ class ServerTransformer extends BaseClientTransformer
     {
         /** @var StartupCommandService $service */
         $service = Container::getInstance()->make(StartupCommandService::class);
+        /** @var IntegrationCapabilities $capabilities */
+        $capabilities = Container::getInstance()->make(IntegrationCapabilities::class);
 
         $user = $this->request->user();
 
@@ -80,6 +83,7 @@ class ServerTransformer extends BaseClientTransformer
             'is_installing' => !$server->isInstalled(),
             'is_transferring' => !is_null($server->transfer),
             'skip_scripts' => $server->skip_scripts,
+            'howtoo' => $capabilities->for($server),
         ];
     }
 

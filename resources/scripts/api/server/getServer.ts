@@ -61,6 +61,20 @@ export interface Server {
     skipScripts: boolean;
     variables: ServerEggVariable[];
     allocations: Allocation[];
+    howtoo: {
+        aiAssistant: {
+            supported: boolean;
+            providers: { gemini: boolean; groq: boolean };
+        };
+        workshop: { supported: boolean; available: boolean };
+        curseForge: {
+            supported: boolean;
+            available: boolean;
+            gameVersion: string | null;
+            modLoader: string | null;
+            modLoaderType: number | null;
+        };
+    };
 }
 
 export const rawDataToServerObject = ({ attributes: data }: FractalResponseData): Server => ({
@@ -91,6 +105,26 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     allocations: ((data.relationships?.allocations as FractalResponseList | undefined)?.data || []).map(
         rawDataToServerAllocation
     ),
+    howtoo: {
+        aiAssistant: {
+            supported: data.howtoo?.ai_assistant?.supported ?? true,
+            providers: {
+                gemini: data.howtoo?.ai_assistant?.providers?.gemini ?? false,
+                groq: data.howtoo?.ai_assistant?.providers?.groq ?? false,
+            },
+        },
+        workshop: {
+            supported: data.howtoo?.workshop?.supported ?? false,
+            available: data.howtoo?.workshop?.available ?? false,
+        },
+        curseForge: {
+            supported: data.howtoo?.curseforge?.supported ?? false,
+            available: data.howtoo?.curseforge?.available ?? false,
+            gameVersion: data.howtoo?.curseforge?.game_version ?? null,
+            modLoader: data.howtoo?.curseforge?.mod_loader ?? null,
+            modLoaderType: data.howtoo?.curseforge?.mod_loader_type ?? null,
+        },
+    },
 });
 
 export default (uuid: string): Promise<[Server, string[]]> => {

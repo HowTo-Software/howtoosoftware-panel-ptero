@@ -5,13 +5,13 @@ return [
         'gemini' => [
             'enabled' => env('FEATURE_AI_SUPPORT', false),
             'secret' => env('GEMINI_API_KEY'),
-            'model' => env('GEMINI_MODEL'),
+            'model' => env('GEMINI_MODEL') ?: 'gemini-2.5-flash',
             'base_url' => 'https://generativelanguage.googleapis.com',
         ],
         'groq' => [
             'enabled' => env('FEATURE_AI_HELPER', false),
             'secret' => env('GROQ_API_KEY'),
-            'model' => env('GROQ_MODEL'),
+            'model' => env('GROQ_MODEL') ?: 'llama-3.3-70b-versatile',
             'base_url' => 'https://api.groq.com/openai/v1',
         ],
         'steam' => [

@@ -150,4 +150,21 @@ Route::group([
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
         Route::put('/docker-image', [Client\Servers\SettingsController::class, 'dockerImage']);
     });
+
+    Route::prefix('/howtoo')->middleware('throttle:30,1')->group(function () {
+        Route::post('/assistant', Client\Servers\HowToo\AssistantController::class)->middleware('throttle:10,1');
+
+        Route::get('/workshop', [Client\Servers\HowToo\WorkshopController::class, 'index']);
+        Route::get('/workshop/search', [Client\Servers\HowToo\WorkshopController::class, 'search']);
+        Route::put('/workshop', [Client\Servers\HowToo\WorkshopController::class, 'update']);
+
+        Route::get('/curseforge/installed', [Client\Servers\HowToo\CurseForgeController::class, 'installed']);
+        Route::get('/curseforge/search', [Client\Servers\HowToo\CurseForgeController::class, 'search']);
+        Route::get('/curseforge/mods/{modId}', [Client\Servers\HowToo\CurseForgeController::class, 'show'])
+            ->whereNumber('modId');
+        Route::get('/curseforge/mods/{modId}/files', [Client\Servers\HowToo\CurseForgeController::class, 'files'])
+            ->whereNumber('modId');
+        Route::post('/curseforge/install', [Client\Servers\HowToo\CurseForgeController::class, 'install'])
+            ->middleware('throttle:5,1');
+    });
 });

@@ -21,6 +21,11 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
+const AiAssistantContainer = lazy(() => import('@/components/server/howtoo/AiAssistantContainer'));
+const ProjectZomboidWorkshopContainer = lazy(
+    () => import('@/components/server/howtoo/ProjectZomboidWorkshopContainer')
+);
+const CurseForgeModsContainer = lazy(() => import('@/components/server/howtoo/CurseForgeModsContainer'));
 
 interface RouteDefinition {
     path: string;
@@ -33,6 +38,7 @@ interface RouteDefinition {
 
 interface ServerRouteDefinition extends RouteDefinition {
     permission: string | string[] | null;
+    feature?: 'aiAssistant' | 'workshop' | 'curseForge';
 }
 
 interface Routes {
@@ -139,6 +145,27 @@ export default {
             permission: 'activity.*',
             name: 'Activity',
             component: ServerActivityLogContainer,
+        },
+        {
+            path: '/assistant',
+            permission: 'integration.ai',
+            feature: 'aiAssistant',
+            name: 'AI Assistant',
+            component: AiAssistantContainer,
+        },
+        {
+            path: '/workshop-mods',
+            permission: 'integration.workshop',
+            feature: 'workshop',
+            name: 'Workshop Mods',
+            component: ProjectZomboidWorkshopContainer,
+        },
+        {
+            path: '/curseforge-mods',
+            permission: 'integration.curseforge',
+            feature: 'curseForge',
+            name: 'CurseForge Mods',
+            component: CurseForgeModsContainer,
         },
     ],
 } as Routes;

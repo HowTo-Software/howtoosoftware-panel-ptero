@@ -11,6 +11,8 @@ import {
     faFolderOpen,
     faNetworkWired,
     faRocket,
+    faRobot,
+    faPuzzlePiece,
     faTerminal,
     faUsers,
 } from '@fortawesome/free-solid-svg-icons';
@@ -137,6 +139,9 @@ const routeIcons: Record<string, IconDefinition> = {
     '/startup': faRocket,
     '/settings': faCog,
     '/activity': faChartLine,
+    '/assistant': faRobot,
+    '/workshop-mods': faPuzzlePiece,
+    '/curseforge-mods': faPuzzlePiece,
 };
 
 const translationKeys: Record<string, string> = {
@@ -150,6 +155,9 @@ const translationKeys: Record<string, string> = {
     '/startup': 'server_navigation.startup',
     '/settings': 'server_navigation.settings',
     '/activity': 'server_navigation.activity',
+    '/assistant': 'server_navigation.ai_assistant',
+    '/workshop-mods': 'server_navigation.workshop_mods',
+    '/curseforge-mods': 'server_navigation.curseforge_mods',
 };
 
 interface Props {
@@ -175,7 +183,12 @@ export default ({ adminUrl }: Props) => {
             </ServerIdentity>
             <Navigation>
                 {routes.server
-                    .filter((route) => !!route.name)
+                    .filter((route) => {
+                        if (!route.name) return false;
+                        if (route.feature === 'workshop') return server.howtoo.workshop.supported;
+                        if (route.feature === 'curseForge') return server.howtoo.curseForge.supported;
+                        return true;
+                    })
                     .map((route) => {
                         const link = (
                             <NavLink key={route.path} to={to(route.path)} exact={route.exact}>

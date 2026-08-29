@@ -65,6 +65,12 @@ class Permission extends Model
 
     public const ACTION_ACTIVITY_READ = 'activity.read';
 
+    public const ACTION_INTEGRATION_AI = 'integration.ai';
+    public const ACTION_INTEGRATION_WORKSHOP_READ = 'integration.workshop';
+    public const ACTION_INTEGRATION_WORKSHOP_UPDATE = 'integration.workshop-update';
+    public const ACTION_INTEGRATION_CURSEFORGE_READ = 'integration.curseforge';
+    public const ACTION_INTEGRATION_CURSEFORGE_INSTALL = 'integration.curseforge-install';
+
     /**
      * Should timestamps be used on this model.
      */
@@ -204,6 +210,17 @@ class Permission extends Model
             'description' => 'Permissions that control a user\'s access to the server activity logs.',
             'keys' => [
                 'read' => 'Allows a user to view the activity logs for the server.',
+            ],
+        ],
+
+        'integration' => [
+            'description' => 'Permissions for customer-facing AI and mod integrations on this server.',
+            'keys' => [
+                'ai' => 'Allows a user to ask the server assistant for contextual help.',
+                'workshop' => 'Allows a user to view Project Zomboid Workshop configuration and search Steam Workshop.',
+                'workshop-update' => 'Allows a user to change the Project Zomboid Workshop configuration.',
+                'curseforge' => 'Allows a user to browse compatible CurseForge mods and view installed mods.',
+                'curseforge-install' => 'Allows a user to install compatible CurseForge mod files on the server.',
             ],
         ],
     ];
