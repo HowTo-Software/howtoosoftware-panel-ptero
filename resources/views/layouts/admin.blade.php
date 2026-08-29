@@ -27,7 +27,7 @@
             {!! Theme::css('vendor/sweetalert/sweetalert.min.css?t={cache-version}') !!}
             {!! Theme::css('vendor/animate/animate.min.css?t={cache-version}') !!}
             {!! Theme::css('css/pterodactyl.css?t={cache-version}') !!}
-            <link rel="stylesheet" href="/themes/howtoo/css/admin.css?v=1">
+            <link rel="stylesheet" href="/themes/howtoo/css/admin.css?v=2">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
 
@@ -167,7 +167,7 @@
                     <strong><i class="fa fa-fw {{ $appIsGit ? 'fa-git-square' : 'fa-code-fork' }}"></i></strong> {{ $appVersion }}<br />
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
-                Copyright &copy; 2026 - {{ date('Y') }} <a href="{{ route('index') }}">HowTo.Software</a>.
+                Copyright &copy; 2024 - 2026 <a href="{{ route('index') }}">HowTo.Software</a>.
             </footer>
         </div>
         @section('footer-scripts')

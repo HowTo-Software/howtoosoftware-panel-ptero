@@ -1,4 +1,5 @@
 import http from '@/api/http';
+import { authenticatedStreamingFetch } from '@/api/authenticatedStreamingFetch';
 
 export interface AssistantMessage {
     role: 'user' | 'assistant';
@@ -87,9 +88,8 @@ export const streamAssistant = async (
     onStatus: (status: 'thinking') => void,
     onDelta: (answer: string) => void
 ): Promise<AssistantMessage> => {
-    const response = await fetch(`/api/client/servers/${uuid}/howtoo/assistant/stream`, {
+    const response = await authenticatedStreamingFetch(`/api/client/servers/${uuid}/howtoo/assistant/stream`, {
         method: 'POST',
-        credentials: 'same-origin',
         signal,
         headers: {
             Accept: 'text/event-stream',
@@ -121,6 +121,7 @@ export const streamAssistant = async (
     const decoder = new TextDecoder();
     let buffer = '';
     let answer = '';
+    let receivedDone = false;
 
     const processEvent = (block: string) => {
         const lines = block.split(/\r?\n/);
@@ -149,6 +150,7 @@ export const streamAssistant = async (
             answer = '';
             onDelta('');
         }
+        if (event === 'done') receivedDone = true;
         if (event === 'error') throw new Error(String(data.message || 'The assistant is temporarily unavailable.'));
     };
 
@@ -169,6 +171,7 @@ export const streamAssistant = async (
         reader.releaseLock();
     }
 
+    if (!receivedDone) throw new Error('The assistant stream ended unexpectedly.');
     if (!answer.trim()) throw new Error('The assistant returned an empty response.');
 
     return { role: 'assistant', content: answer.trim() };

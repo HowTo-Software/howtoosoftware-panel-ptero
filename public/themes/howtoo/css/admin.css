@@ -181,6 +181,114 @@ select,
     color: var(--hts-text) !important;
 }
 
+/* Select2 uses a small inline search input for multi-selects. Keep the theme's
+ * generic input background from turning that element into a black block. */
+.allocation-multiselect .select2-container {
+    display: block;
+    width: 100% !important;
+}
+
+.allocation-multiselect .select2-container--default .select2-selection--multiple {
+    width: 100%;
+    min-height: 36px !important;
+    height: auto;
+    overflow: hidden;
+    border: 1px solid var(--hts-border-strong) !important;
+    border-radius: 4px;
+    background: var(--hts-surface-soft) !important;
+    color: var(--hts-text) !important;
+}
+
+.allocation-multiselect .select2-container--default.select2-container--focus .select2-selection--multiple,
+.allocation-multiselect .select2-container--default.select2-container--open .select2-selection--multiple {
+    border-color: var(--hts-blue) !important;
+    box-shadow: 0 0 0 2px rgba(131, 168, 243, 0.14);
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-selection__rendered {
+    display: block;
+    width: 100%;
+    min-height: 34px;
+    margin: 0;
+    padding: 0 5px !important;
+    color: var(--hts-text) !important;
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-search--inline {
+    margin: 5px 0 0;
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-search__field,
+.allocation-multiselect .select2-selection--multiple .select2-search__field:focus {
+    width: auto;
+    min-width: 10rem;
+    height: 24px;
+    min-height: 24px;
+    margin: 0 !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    color: var(--hts-text) !important;
+    box-shadow: none !important;
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-search__field::placeholder {
+    color: var(--hts-text-muted);
+    opacity: 1;
+}
+
+.allocation-multiselect .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin: 5px 5px 0 0;
+    padding: 2px 8px 2px 6px;
+    border: 1px solid rgba(131, 168, 243, 0.28);
+    border-radius: 3px;
+    background: var(--hts-surface-raised);
+    color: var(--hts-text-soft);
+    line-height: 20px;
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-selection__choice__remove {
+    margin-right: 5px;
+    color: var(--hts-text-muted) !important;
+}
+
+.allocation-multiselect .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: var(--hts-danger) !important;
+}
+
+.hts-allocation-dropdown.select2-dropdown {
+    overflow: hidden;
+    border: 1px solid var(--hts-border-strong) !important;
+    border-radius: 4px;
+    background: var(--hts-surface-soft) !important;
+    color: var(--hts-text-soft) !important;
+}
+
+.hts-allocation-dropdown .select2-search__field,
+.hts-allocation-dropdown .select2-search__field:focus {
+    border: 1px solid var(--hts-border-strong) !important;
+    border-radius: 3px;
+    background: var(--hts-surface) !important;
+    color: var(--hts-text) !important;
+    box-shadow: none !important;
+}
+
+.hts-allocation-dropdown .select2-results__option {
+    background: var(--hts-surface-soft) !important;
+    color: var(--hts-text-soft) !important;
+}
+
+.hts-allocation-dropdown .select2-results__option[aria-selected='true'] {
+    background: var(--hts-surface-raised) !important;
+    color: var(--hts-text-muted) !important;
+}
+
+.hts-allocation-dropdown .select2-results__option--highlighted[aria-selected] {
+    background: rgba(176, 105, 255, 0.18) !important;
+    color: var(--hts-text) !important;
+}
+
 .btn-primary,
 .btn-success {
     border-color: transparent !important;

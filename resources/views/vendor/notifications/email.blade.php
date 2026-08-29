@@ -175,7 +175,7 @@ $style = [
                                 <tr>
                                     <td style="{{ $fontFamily }} {{ $style['email-footer_cell'] }}">
                                         <p style="{{ $style['paragraph-sub'] }}">
-                                            &copy; {{ date('Y') }}
+                                            Copyright &copy; 2024 - 2026 HowTo.Software.
                                             <a style="{{ $style['anchor'] }}" href="{{ url('/') }}" target="_blank">{{ config('app.name') }}</a>.
                                             All rights reserved.
                                         </p>

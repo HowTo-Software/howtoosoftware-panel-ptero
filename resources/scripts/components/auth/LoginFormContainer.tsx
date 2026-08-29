@@ -74,7 +74,7 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
             <Form {...props} ref={ref}>
                 <FormSurface>{props.children}</FormSurface>
             </Form>
-            <p css={tw`text-center text-neutral-500 text-xs mt-4`}>&copy; {new Date().getFullYear()} HowTo.Software</p>
+            <p css={tw`text-center text-neutral-500 text-xs mt-4`}>Copyright &copy; 2024 - 2026 HowTo.Software.</p>
         </Container>
     );
 });

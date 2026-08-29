@@ -142,7 +142,7 @@
                                 </select>
                                 <p class="text-muted small">The default connection address that will be used for this game server.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group allocation-multiselect">
                                 <label for="pAddAllocations" class="control-label">Assign Additional Ports</label>
                                 <div>
                                     <select name="add_allocations[]" class="form-control" multiple id="pAddAllocations">
@@ -153,7 +153,7 @@
                                 </div>
                                 <p class="text-muted small">Please note that due to software limitations you cannot assign identical ports on different IPs to the same server.</p>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group allocation-multiselect">
                                 <label for="pRemoveAllocations" class="control-label">Remove Additional Ports</label>
                                 <div>
                                     <select name="remove_allocations[]" class="form-control" multiple id="pRemoveAllocations">
@@ -180,8 +180,18 @@
 @section('footer-scripts')
     @parent
     <script>
-    $('#pAddAllocations').select2();
-    $('#pRemoveAllocations').select2();
-    $('#pAllocation').select2();
+    $('#pAddAllocations').select2({
+        width: '100%',
+        placeholder: 'Select ports to assign',
+        closeOnSelect: false,
+        dropdownCssClass: 'hts-allocation-dropdown'
+    });
+    $('#pRemoveAllocations').select2({
+        width: '100%',
+        placeholder: 'Select ports to remove',
+        closeOnSelect: false,
+        dropdownCssClass: 'hts-allocation-dropdown'
+    });
+    $('#pAllocation').select2({ width: '100%' });
     </script>
 @endsection
