@@ -27,6 +27,10 @@ class AssetComposer
                 'enabled' => config('recaptcha.enabled', false),
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
+            'sso' => [
+                'enabled' => !empty(config('services.authentik.client_id'))
+                    && !empty(config('services.authentik.base_url')),
+            ],
         ]);
     }
 }

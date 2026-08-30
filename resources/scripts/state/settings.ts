@@ -7,6 +7,9 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    sso: {
+        enabled: boolean;
+    };
 }
 
 export interface SettingsStore {

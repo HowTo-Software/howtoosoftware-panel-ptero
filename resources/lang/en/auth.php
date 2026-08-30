@@ -5,6 +5,12 @@ return [
     'go_to_login' => 'Go to Login',
     'failed' => 'No account matching those credentials could be found.',
 
+    'sso' => [
+        'failed' => 'Single sign-on did not complete. Please try again.',
+        'not_permitted' => 'That account cannot sign in with single sign-on.',
+        'not_configured' => 'Single sign-on is not configured on this panel.',
+    ],
+
     'forgot_password' => [
         'label' => 'Forgot Password?',
         'label_help' => 'Enter your account email address to receive instructions on resetting your password.',

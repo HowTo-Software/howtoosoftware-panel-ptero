@@ -24,6 +24,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const { t } = useTranslation('strings');
     const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
+    const ssoEnabled = useStoreState((state) => state.settings.data!.sso?.enabled ?? false);
 
     useEffect(() => {
         clearFlashes();
@@ -86,6 +87,16 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             {t('login')}
                         </Button>
                     </div>
+                    {ssoEnabled && (
+                        <div css={tw`mt-4`}>
+                            {/* A full page load, not a router link: the flow leaves the SPA. */}
+                            <a href={'/auth/oauth/redirect/authentik'} css={tw`block`}>
+                                <Button type={'button'} size={'xlarge'} isSecondary css={tw`w-full`}>
+                                    {t('auth.sso_login')}
+                                </Button>
+                            </a>
+                        </div>
+                    )}
                     {recaptchaEnabled && (
                         <Reaptcha
                             ref={ref}
