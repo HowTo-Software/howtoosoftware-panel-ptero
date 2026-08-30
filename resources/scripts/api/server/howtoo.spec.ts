@@ -1,7 +1,13 @@
 import { SESSION_EXPIRED_MESSAGE } from '@/api/authenticatedStreamingFetch';
-import { streamAssistant } from './howtoo';
+import http from '@/api/http';
+import { saveWorkshop, searchWorkshop, streamAssistant } from './howtoo';
 import fs from 'fs';
 import path from 'path';
+
+jest.mock('@/api/http', () => ({
+    __esModule: true,
+    default: { get: jest.fn(), put: jest.fn() },
+}));
 
 const encode = (value: string) => new TextEncoder().encode(value);
 
@@ -72,24 +78,24 @@ describe('streamAssistant', () => {
         expect(headers.get('X-XSRF-TOKEN')).toBe('csrf=token');
     });
 
-    it('keeps provider fallback in the same stream and resets partial output', async () => {
+    it('supports a reset event without reloading the page', async () => {
         const onDelta = jest.fn();
         global.fetch = jest
             .fn()
             .mockResolvedValue(
                 streamingResponse(
-                    'event: delta\ndata: {"content":"partial Gemini"}\n\n',
-                    'event: reset\ndata: {"reason":"provider_fallback"}\n\n',
+                    'event: delta\ndata: {"content":"partial local answer"}\n\n',
+                    'event: reset\ndata: {"reason":"stream_reset"}\n\n',
                     'event: status\ndata: {"state":"thinking"}\n\n',
-                    'event: delta\ndata: {"content":"Groq answer"}\n\n',
+                    'event: delta\ndata: {"content":"Ollama answer"}\n\n',
                     'event: done\ndata: {"completed":true}\n\n'
                 )
             );
 
         await expect(
             streamAssistant('server-id', 'help', [], 'running', new AbortController().signal, jest.fn(), onDelta)
-        ).resolves.toEqual({ role: 'assistant', content: 'Groq answer' });
-        expect(onDelta.mock.calls.map(([value]) => value)).toEqual(['partial Gemini', '', 'Groq answer']);
+        ).resolves.toEqual({ role: 'assistant', content: 'Ollama answer' });
+        expect(onDelta.mock.calls.map(([value]) => value)).toEqual(['partial local answer', '', 'Ollama answer']);
         expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
@@ -122,7 +128,7 @@ describe('streamAssistant', () => {
             headers: requestHeaders,
             body: init.body,
         });
-        expect(serializedRequest).not.toMatch(/gemini|groq|api[_-]?key|AIza/i);
+        expect(serializedRequest).not.toMatch(/ollama|api[_-]?key|Bearer/i);
 
         const frontendSources = [
             path.join(__dirname, 'howtoo.ts'),
@@ -130,7 +136,7 @@ describe('streamAssistant', () => {
         ]
             .map((file) => fs.readFileSync(file, 'utf8'))
             .join('\n');
-        expect(frontendSources).not.toMatch(/GEMINI_API_KEY|GROQ_API_KEY|AIza[0-9A-Za-z_-]{20,}/);
+        expect(frontendSources).not.toMatch(/OLLAMA_(?:API_KEY|BASE_URL)|Bearer\s+[A-Za-z0-9_-]{8,}/);
     });
 
     it('does not add a fixed 20 second frontend timeout', async () => {
@@ -147,5 +153,69 @@ describe('streamAssistant', () => {
         await streamAssistant('server-id', 'hello', [], null, new AbortController().signal, jest.fn(), jest.fn());
 
         expect(timeoutSpy.mock.calls.some((call) => call[1] === 20000)).toBe(false);
+    });
+});
+
+describe('searchWorkshop', () => {
+    beforeEach(() => jest.mocked(http.get).mockReset());
+
+    it('passes explicit pagination and maps Load More metadata', async () => {
+        jest.mocked(http.get).mockResolvedValue({
+            data: {
+                items: [{ workshop_id: '2', name: 'Page two', mod_ids: [] }],
+                pagination: { page: 2, per_page: 30, total: 61, total_pages: 3, has_next: true },
+                mode: 'text',
+            },
+        });
+
+        const result = await searchWorkshop('server-id', 'common', 2, 30);
+
+        expect(http.get).toHaveBeenCalledWith('/api/client/servers/server-id/howtoo/workshop/search', {
+            params: { query: 'common', page: 2, per_page: 30 },
+        });
+        expect(result.items[0].workshopId).toBe('2');
+        expect(result.pagination).toEqual({ page: 2, perPage: 30, total: 61, totalPages: 3, hasNext: true });
+    });
+
+    it('keeps Workshop descriptions visually limited to five lines', () => {
+        const source = fs.readFileSync(
+            path.join(__dirname, '..', '..', 'components', 'server', 'howtoo', 'ProjectZomboidWorkshopContainer.tsx'),
+            'utf8'
+        );
+
+        expect(source).toContain('-webkit-line-clamp: 5');
+        expect(source).toContain('Load More');
+    });
+});
+
+describe('saveWorkshop', () => {
+    beforeEach(() => jest.mocked(http.put).mockReset());
+
+    it('submits the complete pending configuration before requesting a restart', async () => {
+        jest.mocked(http.put).mockResolvedValue({
+            data: {
+                path: '/.cache/Server/servertest.ini',
+                revision: 'next',
+                workshop_items: ['1'],
+                mods: ['Alpha'],
+                restarted: true,
+                restart_error: null,
+            },
+        });
+
+        const result = await saveWorkshop(
+            'server-id',
+            { workshopItems: ['1'], mods: ['Alpha'], workshopMods: { '1': ['Alpha'] }, revision: 'current' },
+            true
+        );
+
+        expect(http.put).toHaveBeenCalledWith('/api/client/servers/server-id/howtoo/workshop', {
+            workshop_items: ['1'],
+            mods: ['Alpha'],
+            workshop_mods: { '1': ['Alpha'] },
+            revision: 'current',
+            action: 'restart',
+        });
+        expect(result.restarted).toBe(true);
     });
 });

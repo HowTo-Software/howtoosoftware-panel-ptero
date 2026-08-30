@@ -299,6 +299,11 @@ export default () => {
                             <StatusDot online={serverStatus === 'running'} />
                             {serverStatus || 'unknown'}
                         </p>
+                        <p>
+                            Ollama
+                            <StatusDot online={server.howtoo.aiAssistant.providers.ollama} />
+                            {server.howtoo.aiAssistant.providers.ollama ? 'Available' : 'Unavailable'}
+                        </p>
                     </div>
                     {!!messages.length && (
                         <Button size={'xsmall'} color={'grey'} isSecondary onClick={clear} type={'button'}>

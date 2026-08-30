@@ -13,9 +13,17 @@ import {
     searchWorkshop,
     WorkshopConfiguration,
     WorkshopItem,
+    WorkshopPagination,
 } from '@/api/server/howtoo';
 import { ServerContext } from '@/state/server';
 import { Badge, Card, Grid, Muted, Toolbar } from './IntegrationStyles';
+import {
+    addWorkshopSelection,
+    appendWorkshopResults,
+    hasWorkshopChanges,
+    removeWorkshopSelection,
+    uniqueWorkshopValues,
+} from './workshopSelection';
 
 const Section = styled.div`
     margin-top: 1.25rem;
@@ -42,8 +50,15 @@ const ErrorText = styled.p`
     font-size: 0.8125rem;
 `;
 
-const unique = (values: string[]) => Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-const manualModIds = (value: string) => unique(value.split(/[;,]/)).filter((id) => /^[A-Za-z0-9_.-]{1,128}$/.test(id));
+const Description = styled.p`
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+`;
+
+const manualModIds = (value: string) =>
+    uniqueWorkshopValues(value.split(/[;,]/)).filter((id) => /^[A-Za-z0-9_.-]{1,128}$/.test(id));
 
 export default () => {
     const server = ServerContext.useStoreState((state) => state.server.data!);
@@ -52,12 +67,15 @@ export default () => {
     const [mods, setMods] = useState<string[]>([]);
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<WorkshopItem[]>([]);
+    const [pagination, setPagination] = useState<WorkshopPagination>();
+    const [searched, setSearched] = useState(false);
     const [manualIds, setManualIds] = useState<Record<string, string>>({});
     const [manualFallback, setManualFallback] = useState<Record<string, boolean>>({});
     const [manualMod, setManualMod] = useState('');
     const [showManualEditor, setShowManualEditor] = useState(false);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [resolving, setResolving] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -88,23 +106,31 @@ export default () => {
         return map;
     }, [configuration?.details, results]);
 
-    const changed =
-        !!configuration &&
-        (JSON.stringify(workshopItems) !== JSON.stringify(configuration.workshopItems) ||
-            JSON.stringify(mods) !== JSON.stringify(configuration.mods));
+    const changed = hasWorkshopChanges(configuration, workshopItems, mods);
+
+    const runSearch = async (page: number, append: boolean) => {
+        append ? setLoadingMore(true) : setSearching(true);
+        setError('');
+        try {
+            const result = await searchWorkshop(server.uuid, query.trim(), page, 30);
+            setResults((current) => {
+                return append ? appendWorkshopResults(current, result.items) : result.items;
+            });
+            setPagination(result.pagination);
+            setSearched(true);
+        } catch (error) {
+            setError(httpErrorToHuman(error));
+        } finally {
+            append ? setLoadingMore(false) : setSearching(false);
+        }
+    };
 
     const search = async (event: FormEvent) => {
         event.preventDefault();
         if (query.trim().length < 2) return;
-        setSearching(true);
-        setError('');
-        try {
-            setResults(await searchWorkshop(server.uuid, query.trim()));
-        } catch (error) {
-            setError(httpErrorToHuman(error));
-        } finally {
-            setSearching(false);
-        }
+        setPagination(undefined);
+        setSearched(false);
+        await runSearch(1, false);
     };
 
     const add = async (item: WorkshopItem) => {
@@ -140,24 +166,21 @@ export default () => {
                 current.map((entry) => (entry.workshopId === resolved.workshopId ? resolved : entry))
             );
         }
-        setWorkshopItems((current) => unique([...current, resolved.workshopId]));
-        setMods((current) => unique([...current, ...ids]));
+        const selection = addWorkshopSelection(workshopItems, mods, resolved);
+        setWorkshopItems(selection.workshopItems);
+        setMods(selection.mods);
     };
 
     const remove = (workshopId: string) => {
-        const item = details.get(workshopId);
-        const remainingItems = workshopItems.filter((id) => id !== workshopId);
-        setWorkshopItems(remainingItems);
-        if (item?.modIds.length) {
-            const stillUsed = new Set(remainingItems.flatMap((id) => details.get(id)?.modIds || []));
-            setMods((current) => current.filter((id) => !item.modIds.includes(id) || stillUsed.has(id)));
-        }
+        const selection = removeWorkshopSelection(workshopItems, mods, workshopId, details);
+        setWorkshopItems(selection.workshopItems);
+        setMods(selection.mods);
     };
 
     const addManualMod = () => {
         const values = manualModIds(manualMod);
         if (!values.length) return;
-        setMods((current) => unique([...current, ...values]));
+        setMods((current) => uniqueWorkshopValues([...current, ...values]));
         setManualMod('');
     };
 
@@ -223,7 +246,7 @@ export default () => {
                                         <h3>{item?.name || `Workshop item ${id}`}</h3>
                                         <Badge>Workshop ID {id}</Badge>
                                         {!!item?.modIds.length && <Muted>Mod IDs: {item.modIds.join('; ')}</Muted>}
-                                        {item?.description && <p>{item.description}</p>}
+                                        {item?.description && <Description>{item.description}</Description>}
                                         <Can action={'integration.workshop-update'}>
                                             <Button
                                                 size={'xsmall'}
@@ -308,7 +331,7 @@ export default () => {
                                     {item.image && <img src={item.image} alt={''} loading={'lazy'} />}
                                     <h3>{item.name}</h3>
                                     <Badge>Workshop ID {item.workshopId}</Badge>
-                                    <p>{item.description}</p>
+                                    <Description>{item.description}</Description>
                                     {item.modIds.length ? (
                                         <Muted>
                                             Mod IDs: {item.modIds.join('; ')}
@@ -346,6 +369,27 @@ export default () => {
                                 </Card>
                             ))}
                         </Grid>
+                    )}
+                    {searched && !searching && !results.length && (
+                        <Muted style={{ marginTop: '1rem' }}>No Workshop items matched this search.</Muted>
+                    )}
+                    {pagination && (
+                        <Toolbar style={{ justifyContent: 'center', marginTop: '1rem' }}>
+                            <Muted>
+                                Page {pagination.page} of {pagination.totalPages || 1} / {pagination.total} results
+                            </Muted>
+                            {pagination.hasNext && (
+                                <Button
+                                    type={'button'}
+                                    isSecondary
+                                    isLoading={loadingMore}
+                                    disabled={searching || loadingMore}
+                                    onClick={() => runSearch(pagination.page + 1, true)}
+                                >
+                                    Load More
+                                </Button>
+                            )}
+                        </Toolbar>
                     )}
                 </Section>
 

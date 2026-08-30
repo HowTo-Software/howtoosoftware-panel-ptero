@@ -12,9 +12,6 @@ final class AiAssistantProviderManager
     private array $adapters = [];
     private AiPromptBudgeter $budgeter;
 
-    /** @var \Closure(int): void */
-    private \Closure $sleep;
-
     /** @param iterable<AiProviderAdapter> $adapters */
     public function __construct(
         private AiCredentialRepository $credentials,
@@ -22,16 +19,12 @@ final class AiAssistantProviderManager
         private LoggerInterface $logger,
         private int $totalTimeoutSeconds = 90,
         ?AiPromptBudgeter $budgeter = null,
-        ?\Closure $sleep = null,
     ) {
         foreach ($adapters as $adapter) {
             $this->adapters[$adapter->name()] = $adapter;
         }
 
         $this->budgeter = $budgeter ?? new AiPromptBudgeter();
-        $this->sleep = $sleep ?? static function (int $milliseconds): void {
-            usleep($milliseconds * 1000);
-        };
     }
 
     public function generate(AiProviderPrompt $prompt, ?callable $onAttempt = null): AiProviderResult
@@ -56,12 +49,18 @@ final class AiAssistantProviderManager
         ?callable $onReset,
     ): AiProviderResult {
         $attempts = 0;
-        $failures = [];
         $deadline = microtime(true) + $this->totalTimeoutSeconds();
         $prompt = $this->budgeter->compact($prompt);
         $queue = $this->attemptQueue();
 
-        foreach ($queue as $index => $attempt) {
+        if ($queue === []) {
+            $this->logger->warning('Ollama AI assistant is not configured or is temporarily cooling down.', [
+                'provider' => 'ollama',
+            ]);
+            throw new DisplayException('The local AI assistant is not configured or is temporarily unavailable.');
+        }
+
+        foreach ($queue as $attempt) {
             $remaining = (int) floor($deadline - microtime(true));
             if ($remaining < 5) {
                 break;
@@ -73,99 +72,55 @@ final class AiAssistantProviderManager
                 $attempt['credential'],
                 $prompt,
                 $remaining,
-                count($queue) - $index,
             ));
-            $retry = 0;
 
-            while (true) {
-                ++$attempts;
-                if ($onAttempt) {
-                    $onAttempt();
+            ++$attempts;
+            if ($onAttempt) {
+                $onAttempt();
+            }
+
+            try {
+                if ($stream && $adapter instanceof StreamingAiProviderAdapter) {
+                    $answer = $adapter->stream($credential, $prompt, $onDelta ?? static fn (): null => null);
+                } else {
+                    $answer = $adapter->generate($credential, $prompt);
+                    if ($stream && $onDelta) {
+                        $onDelta($answer);
+                    }
                 }
+                $this->credentials->markHealthy($credential);
+                $this->logger->info('AI assistant response generated.', [
+                    'provider' => $name,
+                    'model' => $credential->model,
+                ]);
 
-                $emitted = false;
-                try {
-                    if ($stream && $adapter instanceof StreamingAiProviderAdapter) {
-                        $answer = $adapter->stream(
-                            $credential,
-                            $prompt,
-                            function (string $delta) use (&$emitted, $onDelta): void {
-                                $emitted = true;
-                                if ($onDelta) {
-                                    $onDelta($delta);
-                                }
-                            },
-                        );
-                    } else {
-                        $answer = $adapter->generate($credential, $prompt);
-                        if ($stream) {
-                            $emitted = true;
-                            if ($onDelta) {
-                                $onDelta($answer);
-                            }
-                        }
-                    }
-                    $this->credentials->markHealthy($credential);
-                    $this->logger->info('AI assistant response generated.', ['provider' => $name]);
+                return new AiProviderResult($name, $answer);
+            } catch (AiStreamCancelledException $exception) {
+                throw $exception;
+            } catch (AiProviderException $exception) {
+                $this->credentials->putOnCooldown($credential, $exception->cooldownSeconds(), $exception->reason);
+                $this->logger->warning('Ollama AI assistant provider request failed.', [
+                    'provider' => $name,
+                    'model' => $credential->model,
+                    'reason' => $exception->reason,
+                    'status' => $exception->status,
+                ]);
 
-                    return new AiProviderResult($name, $answer);
-                } catch (AiStreamCancelledException $exception) {
-                    throw $exception;
-                } catch (AiProviderException $exception) {
-                    if ($emitted) {
-                        $onReset?->__invoke();
-                    }
+                throw new DisplayException($this->providerError($exception));
+            } catch (\Throwable $exception) {
+                $this->logger->error('Ollama AI assistant failed unexpectedly.', [
+                    'provider' => $name,
+                    'model' => $credential->model,
+                    'exception' => $exception::class,
+                    'message' => $this->safeExceptionMessage($exception, $credential),
+                ]);
 
-                    $retryDelay = $retry === 0 && !$emitted ? $this->retryDelayMilliseconds($exception) : null;
-                    $remaining = (int) floor($deadline - microtime(true));
-                    if ($retryDelay !== null && $remaining > (int) ceil($retryDelay / 1000) + 5) {
-                        ++$retry;
-                        $this->logger->info('Retrying a rate-limited AI assistant provider.', [
-                            'provider' => $name,
-                            'reason' => $exception->reason,
-                        ]);
-                        ($this->sleep)($retryDelay);
-                        continue;
-                    }
-
-                    $failures[] = $exception->reason;
-                    $this->credentials->putOnCooldown(
-                        $credential,
-                        $exception->cooldownSeconds(),
-                        $exception->reason,
-                    );
-                    $this->logger->warning('AI assistant provider attempt failed.', [
-                        'provider' => $name,
-                        'reason' => $exception->reason,
-                        'status' => $exception->status,
-                    ]);
-                    break;
-                } catch (\Throwable) {
-                    if ($emitted) {
-                        $onReset?->__invoke();
-                    }
-                    $failures[] = AiProviderException::UNAVAILABLE;
-                    $this->credentials->putOnCooldown($credential, 120, AiProviderException::UNAVAILABLE);
-                    $this->logger->warning('AI assistant provider attempt failed unexpectedly.', [
-                        'provider' => $name,
-                        'reason' => AiProviderException::UNAVAILABLE,
-                    ]);
-                    break;
-                }
+                throw new DisplayException('The local AI assistant encountered an internal error. Please try again shortly.');
             }
         }
 
-        $this->logger->error('All configured AI assistant providers failed.', ['attempts' => $attempts]);
-
-        if ($failures !== [] && count(array_unique($failures)) === 1 && $failures[0] === AiProviderException::RATE_LIMIT) {
-            throw new DisplayException('The assistant is at capacity right now. Please wait a moment and try again.');
-        }
-
-        if ($failures !== [] && count(array_unique($failures)) === 1 && $failures[0] === AiProviderException::TIMEOUT) {
-            throw new DisplayException('The assistant took too long to complete the answer. Please try again with the same question.');
-        }
-
-        throw new DisplayException('The assistant is temporarily unavailable. All configured providers failed or are cooling down.');
+        $this->logger->warning('Ollama AI assistant timed out before an attempt could complete.', ['attempts' => $attempts]);
+        throw new DisplayException('The local AI assistant took too long to answer. Please try again.');
     }
 
     private function attemptQueue(): array
@@ -179,11 +134,12 @@ final class AiAssistantProviderManager
                 continue;
             }
 
-            foreach ($this->credentials->availableAiCredentials(
+            $credentials = $this->credentials->availableAiCredentials(
                 $name,
                 $provider['model'],
                 (int) ($provider['timeout_seconds'] ?? 25),
-            ) as $credential) {
+            );
+            foreach (array_slice($credentials, 0, 1) as $credential) {
                 $queue[] = [
                     'provider' => $name,
                     'adapter' => $adapter,
@@ -199,7 +155,6 @@ final class AiAssistantProviderManager
         AiProviderCredential $credential,
         AiProviderPrompt $prompt,
         int $remainingSeconds,
-        int $remainingAttempts,
     ): int {
         $promptLength = mb_strlen($prompt->system)
             + collect($prompt->messages)->sum(fn (array $message): int => mb_strlen((string) ($message['content'] ?? '')));
@@ -208,25 +163,35 @@ final class AiAssistantProviderManager
             $promptLength >= 9000 => 10,
             default => 0,
         };
-        $desired = min(55, $credential->timeoutSeconds + $complexityBoost);
-        $fairShare = max(8, (int) floor($remainingSeconds / max(1, $remainingAttempts)));
+        $desired = min(150, $credential->timeoutSeconds + $complexityBoost);
 
-        return max(5, min($desired, $fairShare, $remainingSeconds));
+        return max(5, min($desired, $remainingSeconds));
     }
 
-    private function retryDelayMilliseconds(AiProviderException $exception): ?int
+    private function providerError(AiProviderException $exception): string
     {
-        if ($exception->reason !== AiProviderException::RATE_LIMIT
-            || $exception->retryAfter === null
-            || $exception->retryAfter > 2) {
-            return null;
-        }
+        return match ($exception->reason) {
+            AiProviderException::TIMEOUT => 'The local AI assistant took too long to answer. Please try again.',
+            AiProviderException::RATE_LIMIT => 'The local AI assistant is busy. Please wait a moment and try again.',
+            AiProviderException::INVALID_CREDENTIAL => 'The local AI assistant authentication is invalid. Contact an administrator.',
+            AiProviderException::MODEL_NOT_FOUND => 'The configured local AI model is unavailable. Contact an administrator.',
+            default => 'The local AI assistant is temporarily unavailable. Please try again shortly.',
+        };
+    }
 
-        return max(250, $exception->retryAfter * 1000) + random_int(50, 250);
+    private function safeExceptionMessage(\Throwable $exception, AiProviderCredential $credential): string
+    {
+        $message = $exception->getMessage();
+        foreach (array_filter([$credential->secret, $credential->baseUrl]) as $sensitive) {
+            $message = str_replace($sensitive, '[redacted]', $message);
+        }
+        $message = preg_replace('/Authorization:\s*Bearer\s+\S+/i', 'Authorization: Bearer [redacted]', $message) ?? '';
+
+        return mb_substr($message, 0, 500);
     }
 
     private function totalTimeoutSeconds(): int
     {
-        return max(60, min($this->totalTimeoutSeconds, 120));
+        return max(60, min($this->totalTimeoutSeconds, 180));
     }
 }

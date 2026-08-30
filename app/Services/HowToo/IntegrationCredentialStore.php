@@ -9,14 +9,15 @@ use Pterodactyl\Models\HowTooIntegration;
 use Pterodactyl\Models\HowTooIntegrationKey;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Validation\ValidationException;
+use Pterodactyl\Services\HowToo\Ai\OllamaEndpoint;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Pterodactyl\Contracts\HowToo\AiCredentialRepository;
 use Pterodactyl\Services\HowToo\Ai\AiProviderCredential;
 
 final class IntegrationCredentialStore implements AiCredentialRepository
 {
-    public const PROVIDERS = ['gemini', 'groq', 'steam', 'curseforge'];
-    public const AI_PROVIDERS = ['gemini', 'groq'];
+    public const PROVIDERS = ['ollama', 'steam', 'curseforge'];
+    public const AI_PROVIDERS = ['ollama'];
 
     public function __construct(private Encrypter $encrypter)
     {
@@ -38,12 +39,20 @@ final class IntegrationCredentialStore implements AiCredentialRepository
             $keys = $hasRecord ? $record->keys : collect();
             $databaseConfigured = $keys->contains(fn (HowTooIntegrationKey $key): bool => $key->enabled && filled($key->getRawOriginal('secret')));
 
+            $configured = $databaseConfigured
+                || ($environmentEnabled && $environmentConfigured)
+                || ($hasRecord && filled($record->getRawOriginal('secret')));
+            if ($provider === 'ollama') {
+                $configured = $configured
+                    && filled($record?->model ?: config('howtoo.providers.ollama.model'))
+                    && filled($record?->base_url ?: config('howtoo.providers.ollama.base_url'));
+            }
+
             return [$provider => [
                 'enabled' => $hasRecord ? $record->enabled : (bool) config("howtoo.providers.$provider.enabled", false),
-                'configured' => $databaseConfigured
-                    || ($environmentEnabled && $environmentConfigured)
-                    || ($hasRecord && filled($record->getRawOriginal('secret'))),
+                'configured' => $configured,
                 'model' => $hasRecord && filled($record->model) ? $record->model : config("howtoo.providers.$provider.model"),
+                'base_url' => $hasRecord && filled($record->base_url) ? $record->base_url : config("howtoo.providers.$provider.base_url"),
                 'priority' => $hasRecord ? $record->priority : (int) config("howtoo.providers.$provider.priority", 100),
                 'timeout_seconds' => $hasRecord
                     ? $record->timeout_seconds
@@ -125,6 +134,15 @@ final class IntegrationCredentialStore implements AiCredentialRepository
         return is_string($model) && $model !== '' ? $model : null;
     }
 
+    public function baseUrl(string $provider): ?string
+    {
+        $this->assertProvider($provider);
+        $record = HowTooIntegration::query()->where('provider', $provider)->first();
+        $baseUrl = $record?->base_url ?: config("howtoo.providers.$provider.base_url");
+
+        return is_string($baseUrl) && $baseUrl !== '' ? $baseUrl : null;
+    }
+
     public function orderedAiProviders(): array
     {
         $records = HowTooIntegration::query()->whereIn('provider', self::AI_PROVIDERS)->get()->keyBy('provider');
@@ -135,7 +153,8 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                 $record = $records->get($provider);
                 $enabled = (bool) ($record->enabled ?? config("howtoo.providers.$provider.enabled", false));
                 $model = $record?->model ?: config("howtoo.providers.$provider.model");
-                if (!$enabled || !is_string($model) || $model === '') {
+                $baseUrl = $record?->base_url ?: config("howtoo.providers.$provider.base_url");
+                if (!$enabled || !is_string($model) || $model === '' || !is_string($baseUrl) || $baseUrl === '') {
                     return null;
                 }
 
@@ -145,7 +164,7 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                     'priority' => (int) ($record->priority ?? config("howtoo.providers.$provider.priority", 100)),
                     'timeout_seconds' => max(5, min(
                         (int) ($record->timeout_seconds ?? config("howtoo.providers.$provider.timeout_seconds", 25)),
-                        55,
+                        180,
                     )),
                 ];
             })
@@ -186,6 +205,7 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                     $key->id,
                     false,
                     $timeoutSeconds,
+                    $this->baseUrl($provider),
                 ));
             }
         }
@@ -202,6 +222,7 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                 null,
                 true,
                 $timeoutSeconds,
+                $this->baseUrl($provider),
             ));
         }
 
@@ -257,18 +278,39 @@ final class IntegrationCredentialStore implements AiCredentialRepository
                 $record->enabled = (bool) ($input['enabled'] ?? false);
                 $record->priority = (int) ($input['priority'] ?? config("howtoo.providers.$provider.priority", 100));
                 $record->environment_key_enabled = (bool) ($input['environment_key_enabled'] ?? false);
-                $record->timeout_seconds = max(5, min((int) ($input['timeout_seconds'] ?? 25), 55));
+                $record->timeout_seconds = max(5, min((int) ($input['timeout_seconds'] ?? 25), 180));
                 $record->model = filled($input['model'] ?? null) ? trim($input['model']) : null;
+                $record->base_url = filled($input['base_url'] ?? null)
+                    ? OllamaEndpoint::normalize($input['base_url'])
+                    : null;
                 $record->save();
 
                 if (filled($input['secret'] ?? null)) {
-                    HowTooIntegrationKey::query()->create([
-                        'provider' => $provider,
-                        'name' => 'Primary',
-                        'enabled' => true,
-                        'priority' => 10,
-                        'secret' => trim($input['secret']),
-                    ]);
+                    if ($provider === 'ollama') {
+                        $key = HowTooIntegrationKey::query()
+                            ->where('provider', 'ollama')
+                            ->orderBy('priority')
+                            ->orderBy('id')
+                            ->first() ?? new HowTooIntegrationKey(['provider' => 'ollama']);
+                        $key->fill([
+                            'name' => 'Primary',
+                            'enabled' => true,
+                            'priority' => 10,
+                            'secret' => trim($input['secret']),
+                            'failure_count' => 0,
+                            'last_failure_reason' => null,
+                            'last_failed_at' => null,
+                            'cooldown_until' => null,
+                        ])->save();
+                    } else {
+                        HowTooIntegrationKey::query()->create([
+                            'provider' => $provider,
+                            'name' => 'Primary',
+                            'enabled' => true,
+                            'priority' => 10,
+                            'secret' => trim($input['secret']),
+                        ]);
+                    }
                 }
 
                 foreach (($input['keys'] ?? []) as $keyInput) {

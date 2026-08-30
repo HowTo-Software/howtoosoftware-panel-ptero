@@ -35,7 +35,7 @@ class AssistantController extends ClientApiController
     public function stream(AssistantRequest $request, Server $server): StreamedResponse
     {
         return response()->stream(function () use ($request, $server): void {
-            @set_time_limit(max(60, min((int) config('howtoo.assistant.total_timeout_seconds', 90), 120)) + 15);
+            @set_time_limit(max(60, min((int) config('howtoo.assistant.total_timeout_seconds', 90), 180)) + 15);
             $this->sendEvent('status', ['state' => 'thinking']);
 
             if (connection_aborted()) {

@@ -31,10 +31,10 @@ O idioma e detectado pelo `Accept-Language` do navegador. Navegadores em portugu
 - Navegacao lateral HowTo.Software dentro de cada servidor, usando os componentes e as permissoes reais do Pterodactyl.
 - Tema HowTo.Software responsivo em React e no painel administrativo Blade.
 - Localizacao automatica em portugues e ingles, inclusive no carregamento agrupado do i18next.
-- Cadastro administrativo de credenciais para Gemini, Groq, Steam e CurseForge.
+- Configuracao administrativa do Ollama remoto e credenciais para Steam e CurseForge.
 - Segredos criptografados com `APP_KEY`, nunca preenchidos novamente no HTML e acessiveis apenas pelo backend.
-- URLs externas fixadas no servidor para reduzir risco de SSRF por configuracao administrativa.
-- Gerenciador do assistente com multiplas chaves, prioridade por provider, fallback automatico e cooldown por falha.
+- URL do Ollama validada e normalizada no backend, sem exposicao de endereco ou chave ao cliente.
+- Assistente local via Ollama nativo, com streaming NDJSON e contexto real do servidor.
 
 Todas as chamadas externas sao executadas por servicos Laravel server-side; chaves de API nunca sao enviadas ao React ou as Wings.
 

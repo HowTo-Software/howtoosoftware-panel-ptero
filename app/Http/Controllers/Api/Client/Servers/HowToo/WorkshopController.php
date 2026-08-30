@@ -72,6 +72,7 @@ class WorkshopController extends ClientApiController
         $results = $this->steam->search(
             $request->string('query')->toString(),
             $request->integer('page', 1),
+            $request->integer('per_page', 30),
         );
         $results['items'] = collect($results['items'])->map(fn (array $item): array => $this->publicItem($item))->all();
 

@@ -17,6 +17,7 @@ class HowTooIntegration extends Model
         'timeout_seconds',
         'secret',
         'model',
+        'base_url',
     ];
 
     protected $hidden = ['secret'];

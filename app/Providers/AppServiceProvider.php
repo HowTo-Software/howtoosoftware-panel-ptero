@@ -15,9 +15,8 @@ use Pterodactyl\Extensions\Themes\Theme;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Pterodactyl\Services\HowToo\Ai\AiPromptBudgeter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderAdapter;
-use Pterodactyl\Services\HowToo\Ai\GroqProviderAdapter;
 use Pterodactyl\Contracts\HowToo\AiCredentialRepository;
-use Pterodactyl\Services\HowToo\Ai\GeminiProviderAdapter;
+use Pterodactyl\Services\HowToo\Ai\OllamaProviderAdapter;
 use Pterodactyl\Services\HowToo\IntegrationCredentialStore;
 use Pterodactyl\Services\HowToo\Ai\AiAssistantProviderManager;
 
@@ -76,8 +75,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(AiCredentialRepository::class, IntegrationCredentialStore::class);
         $this->app->tag([
-            GeminiProviderAdapter::class,
-            GroqProviderAdapter::class,
+            OllamaProviderAdapter::class,
         ], AiProviderAdapter::class);
         $this->app->singleton(AiAssistantProviderManager::class, function ($app) {
             return new AiAssistantProviderManager(

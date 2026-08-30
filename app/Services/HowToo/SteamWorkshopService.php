@@ -4,15 +4,16 @@ namespace Pterodactyl\Services\HowToo;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Pterodactyl\Exceptions\DisplayException;
+use Illuminate\Http\Client\ConnectionException;
 
 final class SteamWorkshopService
 {
     private const PROJECT_ZOMBOID_APP_ID = 108600;
     private const QUERY_TYPE_TEXT_SEARCH = 12;
-    private const SEARCH_RESULTS_PER_PAGE = 50;
-    private const SEARCH_PAGE_DEPTH = 3;
-    private const SEARCH_RESULT_LIMIT = 60;
+    private const DEFAULT_PER_PAGE = 30;
+    private const MAX_PER_PAGE = 50;
 
     public function __construct(
         private IntegrationCredentialStore $credentials,
@@ -20,56 +21,59 @@ final class SteamWorkshopService
     ) {
     }
 
-    public function search(string $query, int $page = 1): array
+    public function search(string $query, int $page = 1, int $perPage = self::DEFAULT_PER_PAGE): array
     {
         $key = $this->requireCredential();
         $query = trim($query);
-        $page = max(1, min($page, 1000));
-        $items = [];
-        $total = 0;
+        $page = max(1, $page);
+        $perPage = max(10, min($perPage, self::MAX_PER_PAGE));
 
-        try {
-            for ($offset = 0; $offset < self::SEARCH_PAGE_DEPTH && $page + $offset <= 1000; ++$offset) {
-                $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
-                    ->acceptJson()
-                    ->timeout(20)
-                    ->retry(2, 150)
-                    ->get('/IPublishedFileService/QueryFiles/v1/', $this->queryParameters($key, $query, $page + $offset))
-                    ->throw()
-                    ->json();
-
-                $publishedFiles = data_get($response, 'response.publishedfiledetails', []);
-                if (!is_array($publishedFiles)) {
-                    $publishedFiles = [];
-                }
-
-                if ($offset === 0) {
-                    $total = (int) data_get($response, 'response.total', count($publishedFiles));
-                }
-
-                foreach ($publishedFiles as $publishedFile) {
-                    if (!is_array($publishedFile)) {
-                        continue;
-                    }
-
-                    $item = $this->transform($publishedFile);
-                    if ($item['workshop_id'] !== '') {
-                        $items[$item['workshop_id']] = $item;
-                    }
-                }
-
-                if ($this->containsExactTitle($items, $query) || count($publishedFiles) < self::SEARCH_RESULTS_PER_PAGE) {
-                    break;
-                }
+        if ($workshopId = $this->directWorkshopId($query)) {
+            $item = $this->details([$workshopId])[0] ?? null;
+            if (!$item || $item['workshop_id'] !== $workshopId) {
+                throw new DisplayException('The Steam Workshop item was not found or is private/deleted.');
             }
-        } catch (\Throwable) {
-            throw new DisplayException('Steam Workshop search is temporarily unavailable.');
+
+            return $this->result([$item], 1, 1, $perPage, true);
         }
 
-        return [
-            'items' => array_slice($this->rankResults(array_values($items), $query), 0, self::SEARCH_RESULT_LIMIT),
-            'total' => $total,
-        ];
+        if ($this->looksLikeUrl($query)) {
+            throw new DisplayException('The Steam Workshop URL is invalid.');
+        }
+
+        $cacheKey = sprintf('howtoo:steam:search:%s:%d:%d', sha1($query), $page, $perPage);
+        $response = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($key, $query, $page, $perPage): array {
+            try {
+                $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
+                    ->acceptJson()
+                    ->connectTimeout(5)
+                    ->timeout(20)
+                    ->get('/IPublishedFileService/QueryFiles/v1/', $this->queryParameters($key, $query, $page, $perPage));
+            } catch (ConnectionException) {
+                throw new DisplayException('Steam Workshop is temporarily unavailable.');
+            }
+
+            $this->throwForSteamResponse($response->status());
+            $payload = $response->json();
+            if (!is_array($payload)) {
+                throw new DisplayException('Steam Workshop returned an invalid response.');
+            }
+
+            return $payload;
+        });
+
+        $publishedFiles = data_get($response, 'response.publishedfiledetails', []);
+        $publishedFiles = is_array($publishedFiles) ? $publishedFiles : [];
+        $items = collect($publishedFiles)
+            ->filter('is_array')
+            ->map(fn (array $item): array => $this->transform($item))
+            ->filter(fn (array $item): bool => $item['workshop_id'] !== '')
+            ->unique('workshop_id')
+            ->values()
+            ->all();
+        $total = max(0, (int) data_get($response, 'response.total', count($items)));
+
+        return $this->result($this->rankResults($items, $query), $total, $page, $perPage, false);
     }
 
     public function details(array $workshopIds): array
@@ -80,28 +84,38 @@ final class SteamWorkshopService
             return [];
         }
 
-        $payload = ['itemcount' => count($ids)];
-        foreach ($ids as $index => $id) {
-            $payload["publishedfileids[$index]"] = $id;
-        }
+        $cacheKey = 'howtoo:steam:details:' . sha1(implode(',', $ids));
 
-        try {
-            $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
-                ->acceptJson()
-                ->asForm()
-                ->timeout(20)
-                ->retry(2, 150)
-                ->post('/ISteamRemoteStorage/GetPublishedFileDetails/v1/', $payload)
-                ->throw()
-                ->json();
-        } catch (\Throwable) {
-            throw new DisplayException('Steam Workshop details are temporarily unavailable.');
-        }
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($ids): array {
+            $payload = ['itemcount' => count($ids)];
+            foreach ($ids as $index => $id) {
+                $payload["publishedfileids[$index]"] = $id;
+            }
 
-        return collect(data_get($response, 'response.publishedfiledetails', []))
-            ->map(fn (array $item): array => $this->transform($item))
-            ->values()
-            ->all();
+            try {
+                $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
+                    ->acceptJson()
+                    ->asForm()
+                    ->connectTimeout(5)
+                    ->timeout(20)
+                    ->post('/ISteamRemoteStorage/GetPublishedFileDetails/v1/', $payload);
+            } catch (ConnectionException) {
+                throw new DisplayException('Steam Workshop details are temporarily unavailable.');
+            }
+
+            $this->throwForSteamResponse($response->status());
+            $items = data_get($response->json(), 'response.publishedfiledetails', []);
+            if (!is_array($items)) {
+                throw new DisplayException('Steam Workshop returned an invalid details response.');
+            }
+
+            return collect($items)
+                ->filter(fn ($item): bool => is_array($item) && (int) ($item['result'] ?? 1) === 1)
+                ->map(fn (array $item): array => $this->transform($item))
+                ->filter(fn (array $item): bool => $item['workshop_id'] !== '')
+                ->values()
+                ->all();
+        });
     }
 
     private function requireCredential(): string
@@ -122,7 +136,7 @@ final class SteamWorkshopService
             'workshop_id' => (string) ($item['publishedfileid'] ?? ''),
             'name' => mb_substr(trim((string) ($item['title'] ?? 'Untitled mod')), 0, 180),
             'image' => filter_var($item['preview_url'] ?? null, FILTER_VALIDATE_URL) ?: null,
-            'description' => mb_substr($description, 0, 1000),
+            'description' => mb_substr($description, 0, 12000),
             'mod_ids' => $this->resolveModIds($item),
             'mod_id_source' => $this->modIdSource($item),
             'metadata' => $item['metadata'] ?? null,
@@ -138,9 +152,7 @@ final class SteamWorkshopService
     {
         $metadata = $this->modIds->fromSteamMetadata($item);
 
-        return $metadata !== []
-            ? $metadata
-            : $this->modIds->fromDescription((string) ($item['description'] ?? ''));
+        return $metadata !== [] ? $metadata : $this->modIds->fromDescription((string) ($item['description'] ?? ''));
     }
 
     private function modIdSource(array $item): ?string
@@ -174,23 +186,69 @@ final class SteamWorkshopService
             ->all();
     }
 
-    private function queryParameters(string $key, string $query, int $page): array
+    private function queryParameters(string $key, string $query, int $page, int $perPage): array
     {
         return [
             'key' => $key,
             'query_type' => self::QUERY_TYPE_TEXT_SEARCH,
             'page' => $page,
-            'numperpage' => self::SEARCH_RESULTS_PER_PAGE,
+            'numperpage' => $perPage,
             'creator_appid' => self::PROJECT_ZOMBOID_APP_ID,
             'appid' => self::PROJECT_ZOMBOID_APP_ID,
             'search_text' => $query,
-            'cache_max_age_seconds' => 0,
+            'cache_max_age_seconds' => 120,
             'return_details' => true,
             'return_metadata' => true,
             'return_kv_tags' => true,
             'return_tags' => true,
             'return_previews' => true,
         ];
+    }
+
+    private function result(array $items, int $total, int $page, int $perPage, bool $direct): array
+    {
+        $totalPages = $total === 0 ? 0 : (int) ceil($total / $perPage);
+
+        return [
+            'items' => $items,
+            'pagination' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'has_next' => !$direct && $page < $totalPages,
+            ],
+            'mode' => $direct ? 'direct' : 'text',
+        ];
+    }
+
+    private function directWorkshopId(string $query): ?string
+    {
+        if (preg_match('/^\d{1,20}$/', $query) === 1) {
+            return $query;
+        }
+
+        if (!$this->looksLikeUrl($query)) {
+            return null;
+        }
+
+        $parts = parse_url($query);
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = rtrim((string) ($parts['path'] ?? ''), '/');
+        if (!in_array($host, ['steamcommunity.com', 'www.steamcommunity.com'], true)
+            || $path !== '/sharedfiles/filedetails') {
+            return null;
+        }
+
+        parse_str((string) ($parts['query'] ?? ''), $parameters);
+        $id = trim((string) ($parameters['id'] ?? ''));
+
+        return preg_match('/^\d{1,20}$/', $id) === 1 ? $id : null;
+    }
+
+    private function looksLikeUrl(string $query): bool
+    {
+        return preg_match('#^https?://#i', $query) === 1;
     }
 
     private function rankResults(array $items, string $query): array
@@ -204,7 +262,6 @@ final class SteamWorkshopService
                 $title = $this->searchableText((string) ($item['name'] ?? ''));
                 $description = $this->searchableText((string) ($item['description'] ?? ''));
                 $haystack = trim("$title $description");
-
                 $rank = match (true) {
                     $title === $needle => 0,
                     $needle !== '' && str_starts_with($title, $needle) => 100,
@@ -223,23 +280,22 @@ final class SteamWorkshopService
             ->all();
     }
 
-    private function containsExactTitle(array $items, string $query): bool
-    {
-        $needle = $this->searchableText($query);
-        if ($needle === '') {
-            return false;
-        }
-
-        return collect($items)->contains(
-            fn (array $item): bool => $this->searchableText((string) ($item['name'] ?? '')) === $needle,
-        );
-    }
-
     private function searchableText(string $value): string
     {
         $value = mb_strtolower(Str::ascii(trim($value)));
         $value = preg_replace('/[^a-z0-9]+/', ' ', $value) ?? '';
 
         return trim(preg_replace('/\s+/', ' ', $value) ?? '');
+    }
+
+    private function throwForSteamResponse(int $status): void
+    {
+        if ($status >= 200 && $status < 300) {
+            return;
+        }
+
+        throw new DisplayException(match ($status) {
+            401, 403 => 'Steam Workshop authentication failed. Contact an administrator.', 404 => 'The Steam Workshop endpoint or item was not found.', 429 => 'Steam Workshop rate limit reached. Please try again shortly.', default => 'Steam Workshop is temporarily unavailable.',
+        });
     }
 }

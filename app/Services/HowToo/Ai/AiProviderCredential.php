@@ -11,6 +11,7 @@ final readonly class AiProviderCredential
         public ?int $keyId,
         public bool $environment,
         public int $timeoutSeconds = 25,
+        public ?string $baseUrl = null,
     ) {
     }
 
@@ -23,6 +24,7 @@ final readonly class AiProviderCredential
             $this->keyId,
             $this->environment,
             $timeoutSeconds,
+            $this->baseUrl,
         );
     }
 }

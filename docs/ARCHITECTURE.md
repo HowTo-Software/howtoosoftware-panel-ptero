@@ -28,13 +28,13 @@ O middleware Laravel escolhe `pt` ou `en` pelo cabecalho `Accept-Language`. O cl
 
 ## Integracoes
 
-As chaves de Gemini, Groq, Steam e CurseForge seguem estas regras:
+As credenciais de Ollama, Steam e CurseForge seguem estas regras:
 
 1. Apenas administradores raiz acessam o formulario.
 2. O navegador envia uma chave nova por POST protegido por CSRF, mas nunca recebe a chave atual.
 3. O Laravel criptografa o valor com `APP_KEY` antes de persistir.
 4. Somente servicos backend leem a chave descriptografada.
-5. URLs base pertencem ao codigo e nao podem ser alteradas pelo formulario.
+5. A URL configuravel do Ollama e validada e normalizada no backend; as demais URLs base pertencem ao codigo.
 6. Respostas de provedores devem ser validadas e filtradas antes de qualquer operacao em arquivos.
 
 Nenhuma integracao pode receber acesso irrestrito ao filesystem do host. Operacoes futuras em arquivos devem usar os endpoints autorizados do Pterodactyl/Wings e ficar limitadas ao servidor selecionado.

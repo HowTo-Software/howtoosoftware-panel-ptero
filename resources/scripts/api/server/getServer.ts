@@ -65,7 +65,7 @@ export interface Server {
         aiAssistant: {
             supported: boolean;
             available: boolean;
-            providers: { gemini: boolean; groq: boolean };
+            providers: { ollama: boolean };
         };
         workshop: { supported: boolean; available: boolean };
         curseForge: {
@@ -111,8 +111,7 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
             supported: data.howtoo?.ai_assistant?.supported ?? true,
             available: data.howtoo?.ai_assistant?.available ?? false,
             providers: {
-                gemini: data.howtoo?.ai_assistant?.providers?.gemini ?? false,
-                groq: data.howtoo?.ai_assistant?.providers?.groq ?? false,
+                ollama: data.howtoo?.ai_assistant?.providers?.ollama ?? false,
             },
         },
         workshop: {

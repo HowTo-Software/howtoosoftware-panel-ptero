@@ -4,10 +4,7 @@ namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
 use Psr\Log\AbstractLogger;
 use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Psr7\Response as PsrResponse;
 use Pterodactyl\Exceptions\DisplayException;
-use Illuminate\Http\Client\Response as HttpResponse;
-use Pterodactyl\Services\HowToo\Ai\AiPromptBudgeter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderPrompt;
 use Pterodactyl\Services\HowToo\Ai\AiProviderAdapter;
 use Pterodactyl\Services\HowToo\Ai\AiProviderException;
@@ -18,257 +15,119 @@ use Pterodactyl\Services\HowToo\Ai\StreamingAiProviderAdapter;
 
 class AiAssistantProviderManagerTest extends TestCase
 {
-    public function testGeminiTimeoutFallsBackToGroqWithoutReturningTheIntermediateError(): void
+    public function testItUsesOnlyTheConfiguredOllamaProvider(): void
     {
-        $repository = new FakeAiCredentialRepository(
-            [
-                ['name' => 'gemini', 'model' => 'gemini-test'],
-                ['name' => 'groq', 'model' => 'groq-test'],
-            ],
-            [
-                'gemini' => [new AiProviderCredential('gemini', 'gemini-test', 'gemini-key', 1, false)],
-                'groq' => [new AiProviderCredential('groq', 'groq-test', 'groq-key', 2, false)],
-            ],
-        );
-        $gemini = new FakeAiProviderAdapter('gemini', [
-            'gemini-key' => new AiProviderException(AiProviderException::TIMEOUT),
-        ]);
-        $groq = new FakeAiProviderAdapter('groq', ['groq-key' => 'Groq answered']);
-
-        $result = (new AiAssistantProviderManager($repository, [$gemini, $groq], new MemoryLogger()))
-            ->generate($this->prompt());
-
-        $this->assertSame('groq', $result->provider);
-        $this->assertSame('Groq answered', $result->answer);
-        $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::TIMEOUT]], $repository->cooldowns);
-    }
-
-    public function testFirstGeminiKeyFailureFallsBackToTheSecondGeminiKey(): void
-    {
-        $repository = new FakeAiCredentialRepository(
-            [['name' => 'gemini', 'model' => 'gemini-test']],
-            ['gemini' => [
-                new AiProviderCredential('gemini', 'gemini-test', 'first', 1, false),
-                new AiProviderCredential('gemini', 'gemini-test', 'second', 2, false),
-            ]],
-        );
-        $adapter = new FakeAiProviderAdapter('gemini', [
-            'first' => new AiProviderException(AiProviderException::UNAVAILABLE, 503),
-            'second' => 'Second key answered',
-        ]);
+        $repository = $this->repository();
+        $adapter = new FakeOllamaAdapter(['ollama-secret' => 'Local answer']);
 
         $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
             ->generate($this->prompt());
 
-        $this->assertSame('Second key answered', $result->answer);
-        $this->assertSame(['first', 'second'], $adapter->attempts);
-        $this->assertSame([2], $repository->healthy);
+        $this->assertSame('ollama', $result->provider);
+        $this->assertSame('Local answer', $result->answer);
+        $this->assertSame(['ollama-secret'], $adapter->attempts);
+        $this->assertSame([1], $repository->healthy);
     }
 
-    public function testRateLimitFallsBackToTheNextCredential(): void
+    public function testClassifiedProviderFailureAppliesCooldownAndReturnsSafeError(): void
     {
-        $repository = new FakeAiCredentialRepository(
-            [['name' => 'gemini', 'model' => 'gemini-test']],
-            ['gemini' => [
-                new AiProviderCredential('gemini', 'gemini-test', 'limited', 1, false),
-                new AiProviderCredential('gemini', 'gemini-test', 'healthy', 2, false),
-            ]],
-        );
-        $adapter = new FakeAiProviderAdapter('gemini', [
-            'limited' => new AiProviderException(AiProviderException::RATE_LIMIT, 429, 45),
-            'healthy' => 'Available response',
+        $repository = $this->repository();
+        $adapter = new FakeOllamaAdapter([
+            'ollama-secret' => new AiProviderException(AiProviderException::RATE_LIMIT, 429, 30),
         ]);
-
-        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
-            ->generate($this->prompt());
-
-        $this->assertSame('Available response', $result->answer);
-        $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::RATE_LIMIT]], $repository->cooldowns);
-    }
-
-    public function testStreamingResetsPartialOutputBeforeFallingBack(): void
-    {
-        $repository = new FakeAiCredentialRepository(
-            [['name' => 'gemini', 'model' => 'gemini-test']],
-            ['gemini' => [
-                new AiProviderCredential('gemini', 'gemini-test', 'partial', 1, false),
-                new AiProviderCredential('gemini', 'gemini-test', 'complete', 2, false),
-            ]],
-        );
-        $adapter = new FakeStreamingAiProviderAdapter('gemini', [
-            'partial' => [
-                'deltas' => ['This answer'],
-                'error' => new AiProviderException(AiProviderException::TIMEOUT),
-            ],
-            'complete' => ['deltas' => ['Final ', 'answer']],
-        ]);
-        $rendered = '';
-        $resets = 0;
-
-        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))
-            ->stream(
-                $this->prompt(),
-                static function (string $delta) use (&$rendered): void {
-                    $rendered .= $delta;
-                },
-                null,
-                static function () use (&$rendered, &$resets): void {
-                    $rendered = '';
-                    ++$resets;
-                },
-            );
-
-        $this->assertSame('Final answer', $result->answer);
-        $this->assertSame('Final answer', $rendered);
-        $this->assertSame(1, $resets);
-    }
-
-    public function testItFallsBackAcrossKeysAndThenProviders(): void
-    {
-        $repository = new FakeAiCredentialRepository(
-            [
-                ['name' => 'gemini', 'model' => 'gemini-test', 'priority' => 10, 'timeout_seconds' => 17],
-                ['name' => 'groq', 'model' => 'groq-test', 'priority' => 20],
-            ],
-            [
-                'gemini' => [
-                    new AiProviderCredential('gemini', 'gemini-test', 'gemini-one', 1, false),
-                    new AiProviderCredential('gemini', 'gemini-test', 'gemini-two', 2, false),
-                ],
-                'groq' => [
-                    new AiProviderCredential('groq', 'groq-test', 'groq-one', 3, false),
-                ],
-            ],
-        );
-        $gemini = new FakeAiProviderAdapter('gemini', [
-            'gemini-one' => new AiProviderException(AiProviderException::RATE_LIMIT, 429),
-            'gemini-two' => new AiProviderException(AiProviderException::INVALID_CREDENTIAL, 401),
-        ]);
-        $groq = new FakeAiProviderAdapter('groq', ['groq-one' => 'Fallback answer']);
-        $logger = new MemoryLogger();
-        $manager = new AiAssistantProviderManager($repository, [$gemini, $groq], $logger);
-
-        $result = $manager->generate(new AiProviderPrompt('System', [['role' => 'user', 'content' => 'Help']]));
-
-        $this->assertSame('groq', $result->provider);
-        $this->assertSame('Fallback answer', $result->answer);
-        $this->assertSame(['gemini-one', 'gemini-two'], $gemini->attempts);
-        $this->assertSame(['groq-one'], $groq->attempts);
-        $this->assertSame([17], $repository->timeouts['gemini']);
-        $this->assertSame([25], $repository->timeouts['groq']);
-        $this->assertSame([
-            ['key_id' => 1, 'reason' => AiProviderException::RATE_LIMIT],
-            ['key_id' => 2, 'reason' => AiProviderException::INVALID_CREDENTIAL],
-        ], $repository->cooldowns);
-        $this->assertSame([3], $repository->healthy);
-        $this->assertFalse($logger->containsCredentialValue(['gemini-one', 'gemini-two', 'groq-one']));
-    }
-
-    public function testItReturnsAnErrorOnlyAfterEveryAvailableCredentialFails(): void
-    {
-        $repository = new FakeAiCredentialRepository(
-            [['name' => 'gemini', 'model' => 'gemini-test', 'priority' => 10]],
-            ['gemini' => [
-                new AiProviderCredential('gemini', 'gemini-test', 'first', 1, false),
-                new AiProviderCredential('gemini', 'gemini-test', 'second', 2, false),
-            ]],
-        );
-        $adapter = new FakeAiProviderAdapter('gemini', [
-            'first' => new AiProviderException(AiProviderException::TIMEOUT),
-            'second' => new AiProviderException(AiProviderException::UNAVAILABLE, 503),
-        ]);
-        $manager = new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger());
-
-        $this->expectException(DisplayException::class);
-        $this->expectExceptionMessage('All configured providers failed or are cooling down.');
 
         try {
-            $manager->generate(new AiProviderPrompt('System', [['role' => 'user', 'content' => 'Help']]));
-        } finally {
-            $this->assertSame(['first', 'second'], $adapter->attempts);
-            $this->assertCount(2, $repository->cooldowns);
+            (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))->generate($this->prompt());
+            $this->fail('Expected provider error.');
+        } catch (DisplayException $exception) {
+            $this->assertStringContainsString('local AI assistant is busy', $exception->getMessage());
+            $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::RATE_LIMIT]], $repository->cooldowns);
         }
     }
 
-    public function testItClassifiesProviderFailuresAndAppliesBoundedCooldowns(): void
+    public function testUnexpectedPhpExceptionDoesNotPoisonCredentialOrLeakSecrets(): void
     {
-        $rateLimit = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(429, ['Retry-After' => '45'])));
-        $geminiRateLimit = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(
-            429,
-            [],
-            '{"error":{"details":[{"retryDelay":"1.4s"}]}}',
-        )));
-        $invalid = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(401)));
-        $unavailable = AiProviderException::fromResponse(new HttpResponse(new PsrResponse(503)));
+        $repository = $this->repository();
+        $logger = new MemoryLogger();
+        $adapter = new FakeOllamaAdapter([
+            'ollama-secret' => new \RuntimeException('failure at http://ollama.internal:11435 using ollama-secret'),
+        ]);
 
-        $this->assertSame(AiProviderException::RATE_LIMIT, $rateLimit->reason);
-        $this->assertSame(45, $rateLimit->cooldownSeconds());
-        $this->assertSame(2, $geminiRateLimit->retryAfter);
-        $this->assertSame(AiProviderException::INVALID_CREDENTIAL, $invalid->reason);
-        $this->assertSame(1800, $invalid->cooldownSeconds());
-        $this->assertSame(AiProviderException::UNAVAILABLE, $unavailable->reason);
-        $this->assertSame(120, $unavailable->cooldownSeconds());
+        try {
+            (new AiAssistantProviderManager($repository, [$adapter], $logger))->generate($this->prompt());
+            $this->fail('Expected internal provider error.');
+        } catch (DisplayException $exception) {
+            $this->assertStringContainsString('internal error', $exception->getMessage());
+            $this->assertSame([], $repository->cooldowns);
+            $this->assertFalse($logger->contains(['ollama-secret', 'http://ollama.internal:11435']));
+            $this->assertTrue($logger->contains(['[redacted]']));
+        }
     }
 
-    public function testShortProviderRateLimitIsRetriedOnceBeforeFallback(): void
+    public function testNoAvailableCredentialReturnsConfiguredStateInsteadOfAttemptsZeroFailure(): void
     {
-        $repository = new FakeAiCredentialRepository(
-            [['name' => 'gemini', 'model' => 'gemini-test']],
-            ['gemini' => [new AiProviderCredential('gemini', 'gemini-test', 'limited', 1, false, 25)]],
+        $repository = new FakeOllamaCredentialRepository(
+            [['name' => 'ollama', 'model' => 'qwen:latest', 'timeout_seconds' => 90]],
+            [],
         );
-        $adapter = new SequentialFakeAiProviderAdapter('gemini', [
-            'limited' => [
-                new AiProviderException(AiProviderException::RATE_LIMIT, 429, 1),
-                'Answer after the short backoff',
-            ],
-        ]);
-        $delays = [];
-        $manager = new AiAssistantProviderManager(
-            $repository,
-            [$adapter],
-            new MemoryLogger(),
-            90,
-            new AiPromptBudgeter(),
-            static function (int $milliseconds) use (&$delays): void {
-                $delays[] = $milliseconds;
+
+        $this->expectException(DisplayException::class);
+        $this->expectExceptionMessage('not configured or is temporarily unavailable');
+        (new AiAssistantProviderManager($repository, [new FakeOllamaAdapter([])], new MemoryLogger()))
+            ->generate($this->prompt());
+    }
+
+    public function testStreamingUsesTheSameOllamaRequestWithoutFallbackReset(): void
+    {
+        $repository = $this->repository();
+        $adapter = new FakeStreamingOllamaAdapter(['Local ', 'stream']);
+        $answer = '';
+        $resets = 0;
+
+        $result = (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))->stream(
+            $this->prompt(),
+            static function (string $delta) use (&$answer): void {
+                $answer .= $delta;
+            },
+            null,
+            static function () use (&$resets): void {
+                ++$resets;
             },
         );
 
-        $result = $manager->generate($this->prompt());
-
-        $this->assertSame('Answer after the short backoff', $result->answer);
-        $this->assertSame(['limited', 'limited'], $adapter->attempts);
-        $this->assertCount(1, $delays);
-        $this->assertGreaterThanOrEqual(1050, $delays[0]);
-        $this->assertLessThanOrEqual(1250, $delays[0]);
-        $this->assertSame([], $repository->cooldowns);
+        $this->assertSame('Local stream', $result->answer);
+        $this->assertSame('Local stream', $answer);
+        $this->assertSame(0, $resets);
     }
 
-    public function testComplexPromptGetsMoreTimeWithoutStarvingFallbackAttempts(): void
+    public function testLongPromptIsCompactedAndReceivesOllamaTimeoutBudget(): void
     {
-        $repository = new FakeAiCredentialRepository(
-            [
-                ['name' => 'gemini', 'model' => 'gemini-test'],
-                ['name' => 'groq', 'model' => 'groq-test'],
-            ],
-            [
-                'gemini' => [
-                    new AiProviderCredential('gemini', 'gemini-test', 'first', 1, false, 20),
-                    new AiProviderCredential('gemini', 'gemini-test', 'second', 2, false, 20),
-                ],
-                'groq' => [new AiProviderCredential('groq', 'groq-test', 'fallback', 3, false, 20)],
-            ],
-        );
-        $adapter = new FakeAiProviderAdapter('gemini', ['first' => 'Answer']);
-        $groq = new FakeAiProviderAdapter('groq', ['fallback' => 'Fallback']);
-        $prompt = new AiProviderPrompt(str_repeat('system ', 1800), [['role' => 'user', 'content' => str_repeat('question ', 300)]]);
+        $repository = $this->repository();
+        $adapter = new FakeOllamaAdapter(['ollama-secret' => 'Answer']);
+        $prompt = new AiProviderPrompt(str_repeat('system ', 3000), [
+            ['role' => 'user', 'content' => str_repeat('question ', 2000)],
+        ]);
 
-        (new AiAssistantProviderManager($repository, [$adapter, $groq], new MemoryLogger(), 90))->generate($prompt);
+        (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger(), 120))->generate($prompt);
 
-        $this->assertCount(1, $adapter->timeouts);
-        $this->assertGreaterThanOrEqual(29, $adapter->timeouts[0]);
-        $this->assertLessThanOrEqual(30, $adapter->timeouts[0]);
         $this->assertLessThanOrEqual(20000, $adapter->promptLengths[0]);
+        $this->assertGreaterThanOrEqual(89, $adapter->timeouts[0]);
+    }
+
+    private function repository(): FakeOllamaCredentialRepository
+    {
+        return new FakeOllamaCredentialRepository(
+            [['name' => 'ollama', 'model' => 'qwen:latest', 'timeout_seconds' => 90]],
+            [new AiProviderCredential(
+                'ollama',
+                'qwen:latest',
+                'ollama-secret',
+                1,
+                false,
+                90,
+                'http://ollama.internal:11435',
+            )],
+        );
     }
 
     private function prompt(): AiProviderPrompt
@@ -277,16 +136,13 @@ class AiAssistantProviderManagerTest extends TestCase
     }
 }
 
-final class FakeAiCredentialRepository implements AiCredentialRepository
+final class FakeOllamaCredentialRepository implements AiCredentialRepository
 {
     public array $cooldowns = [];
     public array $healthy = [];
-    public array $timeouts = [];
 
-    public function __construct(
-        private array $providers,
-        private array $credentials,
-    ) {
+    public function __construct(private array $providers, private array $credentials)
+    {
     }
 
     public function orderedAiProviders(): array
@@ -296,9 +152,7 @@ final class FakeAiCredentialRepository implements AiCredentialRepository
 
     public function availableAiCredentials(string $provider, string $model, int $timeoutSeconds): array
     {
-        $this->timeouts[$provider][] = $timeoutSeconds;
-
-        return $this->credentials[$provider] ?? [];
+        return $this->credentials;
     }
 
     public function putOnCooldown(AiProviderCredential $credential, int $seconds, string $reason): void
@@ -312,21 +166,19 @@ final class FakeAiCredentialRepository implements AiCredentialRepository
     }
 }
 
-final class FakeAiProviderAdapter implements AiProviderAdapter
+final class FakeOllamaAdapter implements AiProviderAdapter
 {
     public array $attempts = [];
     public array $timeouts = [];
     public array $promptLengths = [];
 
-    public function __construct(
-        private string $provider,
-        private array $responses,
-    ) {
+    public function __construct(private array $responses)
+    {
     }
 
     public function name(): string
     {
-        return $this->provider;
+        return 'ollama';
     }
 
     public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
@@ -344,67 +196,29 @@ final class FakeAiProviderAdapter implements AiProviderAdapter
     }
 }
 
-final class SequentialFakeAiProviderAdapter implements AiProviderAdapter
+final class FakeStreamingOllamaAdapter implements StreamingAiProviderAdapter
 {
-    public array $attempts = [];
-
-    public function __construct(
-        private string $provider,
-        private array $responses,
-    ) {
+    public function __construct(private array $deltas)
+    {
     }
 
     public function name(): string
     {
-        return $this->provider;
+        return 'ollama';
     }
 
     public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
     {
-        $this->attempts[] = $credential->secret;
-        $response = array_shift($this->responses[$credential->secret]);
-        if ($response instanceof \Throwable) {
-            throw $response;
-        }
-
-        return $response;
-    }
-}
-
-final class FakeStreamingAiProviderAdapter implements StreamingAiProviderAdapter
-{
-    public array $attempts = [];
-
-    public function __construct(
-        private string $provider,
-        private array $responses,
-    ) {
-    }
-
-    public function name(): string
-    {
-        return $this->provider;
-    }
-
-    public function generate(AiProviderCredential $credential, AiProviderPrompt $prompt): string
-    {
-        return $this->stream($credential, $prompt, static fn (): null => null);
+        return implode('', $this->deltas);
     }
 
     public function stream(AiProviderCredential $credential, AiProviderPrompt $prompt, callable $onDelta): string
     {
-        $this->attempts[] = $credential->secret;
-        $response = $this->responses[$credential->secret];
-        $answer = '';
-        foreach ($response['deltas'] as $delta) {
-            $answer .= $delta;
+        foreach ($this->deltas as $delta) {
             $onDelta($delta);
         }
-        if (($response['error'] ?? null) instanceof \Throwable) {
-            throw $response['error'];
-        }
 
-        return $answer;
+        return implode('', $this->deltas);
     }
 }
 
@@ -417,10 +231,10 @@ final class MemoryLogger extends AbstractLogger
         $this->records[] = compact('level', 'message', 'context');
     }
 
-    public function containsCredentialValue(array $credentials): bool
+    public function contains(array $values): bool
     {
         $logs = (string) json_encode($this->records);
 
-        return collect($credentials)->contains(fn (string $credential): bool => str_contains($logs, $credential));
+        return collect($values)->contains(fn (string $value): bool => str_contains($logs, $value));
     }
 }

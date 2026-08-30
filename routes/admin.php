@@ -71,6 +71,8 @@ Route::group(['prefix' => 'settings'], function () {
     Route::get('/integrations', [Admin\Settings\IntegrationController::class, 'index'])->name('admin.settings.integrations');
 
     Route::post('/mail/test', [Admin\Settings\MailController::class, 'test'])->name('admin.settings.mail.test');
+    Route::post('/integrations/ollama/models', [Admin\Settings\IntegrationController::class, 'refreshOllamaModels'])
+        ->name('admin.settings.integrations.ollama-models');
 
     Route::patch('/', [Admin\Settings\IndexController::class, 'update']);
     Route::patch('/mail', [Admin\Settings\MailController::class, 'update']);

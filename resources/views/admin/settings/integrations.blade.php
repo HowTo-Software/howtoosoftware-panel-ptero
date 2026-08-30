@@ -29,7 +29,7 @@
                         </div>
                         <div class="box-body">
                             <div class="row">
-                                <div class="{{ in_array($provider, ['gemini', 'groq'], true) ? 'col-sm-4' : 'col-sm-6' }}">
+                                <div class="{{ $provider === 'ollama' ? 'col-sm-4' : 'col-sm-6' }}">
                                     <div class="form-group">
                                         <label>
                                             <input type="hidden" name="providers[{{ $provider }}][enabled]" value="0">
@@ -38,7 +38,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="{{ in_array($provider, ['gemini', 'groq'], true) ? 'col-sm-4' : 'col-sm-6' }}">
+                                <div class="{{ $provider === 'ollama' ? 'col-sm-4' : 'col-sm-6' }}">
                                     <div class="form-group">
                                         <label for="{{ $provider }}-priority">{{ __('Provider priority') }}</label>
                                         <input id="{{ $provider }}-priority" class="form-control" type="number" min="1" max="1000"
@@ -46,12 +46,12 @@
                                                value="{{ old("providers.$provider.priority", $status['priority']) }}" required>
                                     </div>
                                 </div>
-                                @if (in_array($provider, ['gemini', 'groq'], true))
+                                @if ($provider === 'ollama')
                                     <div class="col-sm-4">
                                         <div class="form-group">
                                             <label for="{{ $provider }}-timeout">{{ __('Attempt timeout') }}</label>
                                             <div class="input-group">
-                                                <input id="{{ $provider }}-timeout" class="form-control" type="number" min="5" max="55"
+                                                <input id="{{ $provider }}-timeout" class="form-control" type="number" min="5" max="180"
                                                        name="providers[{{ $provider }}][timeout_seconds]"
                                                        value="{{ old("providers.$provider.timeout_seconds", $status['timeout_seconds']) }}" required>
                                                 <span class="input-group-addon">{{ __('seconds') }}</span>
@@ -63,17 +63,41 @@
                                 @endif
                             </div>
 
-                            @if (in_array($provider, ['gemini', 'groq'], true))
+                            @if ($provider === 'ollama')
+                                <div class="form-group">
+                                    <label for="ollama-base-url">{{ __('Base URL') }}</label>
+                                    <input id="ollama-base-url" class="form-control" type="url"
+                                           name="providers[ollama][base_url]"
+                                           value="{{ old('providers.ollama.base_url', $status['base_url']) }}"
+                                           placeholder="http://192.168.x.x:11435" maxlength="255" autocomplete="off">
+                                    <p class="text-muted small">{{ __('Stored server-side. Do not include /api/chat or /api/tags.') }}</p>
+                                </div>
                                 <div class="form-group">
                                     <label for="{{ $provider }}-model">{{ __('Model') }}</label>
-                                    <input id="{{ $provider }}-model" class="form-control" type="text"
-                                           name="providers[{{ $provider }}][model]"
-                                           value="{{ old("providers.$provider.model", $status['model']) }}"
-                                           maxlength="120" autocomplete="off">
-                                    <p class="text-muted small">{{ __('Lower provider priority values are attempted first.') }}</p>
+                                    @php($knownModels = collect($ollamaDiscovery['models'] ?? [])->push($status['model'])->filter()->unique()->values())
+                                    <select id="{{ $provider }}-model" class="form-control" name="providers[{{ $provider }}][model]">
+                                        <option value="">{{ __('Select a discovered model') }}</option>
+                                        @foreach ($knownModels as $model)
+                                            <option value="{{ $model }}" @selected(old("providers.$provider.model", $status['model']) === $model)>{{ $model }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-muted small">
+                                        {{ __('Connection status:') }}
+                                        @if (($ollamaDiscovery['connected'] ?? null) === true)
+                                            <span class="label label-success">{{ __('Connected') }}</span>
+                                        @elseif (($ollamaDiscovery['connected'] ?? null) === false)
+                                            <span class="label label-danger">{{ __('Unavailable') }}</span>
+                                        @else
+                                            <span class="label label-default">{{ __('Not tested') }}</span>
+                                        @endif
+                                        <button type="submit" form="ollama-model-refresh" class="btn btn-xs btn-default pull-right">
+                                            <i class="fa fa-refresh"></i> {{ __('Test connection / Refresh models') }}
+                                        </button>
+                                    </p>
                                 </div>
                             @else
                                 <input type="hidden" name="providers[{{ $provider }}][model]" value="">
+                                <input type="hidden" name="providers[{{ $provider }}][base_url]" value="">
                             @endif
 
                             <div class="form-group">
@@ -89,6 +113,15 @@
                                 </span>
                             </div>
 
+                            @if ($provider === 'ollama')
+                                <div class="form-group">
+                                    <label for="ollama-secret">{{ __('API Key') }}</label>
+                                    <input id="ollama-secret" class="form-control" type="password" maxlength="512"
+                                           name="providers[ollama][secret]" value="" autocomplete="new-password"
+                                           placeholder="{{ $status['configured'] ? __('Keep current API key') : __('Bearer API key') }}">
+                                    <p class="text-muted small">{{ __('Encrypted with APP_KEY and never returned to this page or the browser client.') }}</p>
+                                </div>
+                            @else
                             <hr>
                             <div class="clearfix" style="margin-bottom: 10px;">
                                 <strong>{{ __('API keys') }}</strong>
@@ -169,6 +202,7 @@
                                     </td>
                                 </tr>
                             </template>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -181,6 +215,9 @@
                 <button type="submit" class="btn btn-primary pull-right">{{ __('Save integrations') }}</button>
             </div>
         </div>
+    </form>
+    <form id="ollama-model-refresh" action="{{ route('admin.settings.integrations.ollama-models') }}" method="POST">
+        {!! csrf_field() !!}
     </form>
 @endsection
 

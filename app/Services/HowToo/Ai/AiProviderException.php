@@ -12,6 +12,7 @@ final class AiProviderException extends \RuntimeException
     public const INVALID_CREDENTIAL = 'invalid_credential';
     public const INVALID_RESPONSE = 'invalid_response';
     public const REQUEST_REJECTED = 'request_rejected';
+    public const MODEL_NOT_FOUND = 'model_not_found';
 
     public function __construct(
         public readonly string $reason,
@@ -38,6 +39,10 @@ final class AiProviderException extends \RuntimeException
             return new self(self::TIMEOUT, $status);
         }
 
+        if ($status === 404 || str_contains($body, 'model') && str_contains($body, 'not found')) {
+            return new self(self::MODEL_NOT_FOUND, $status);
+        }
+
         if ($status >= 500 || $status === 498) {
             return new self(self::UNAVAILABLE, $status);
         }
@@ -62,6 +67,7 @@ final class AiProviderException extends \RuntimeException
             self::RATE_LIMIT => max(30, min($this->retryAfter ?? 120, 3600)),
             self::INVALID_CREDENTIAL => 1800,
             self::REQUEST_REJECTED => 300,
+            self::MODEL_NOT_FOUND => 300,
             self::UNAVAILABLE => 120,
             self::TIMEOUT, self::INVALID_RESPONSE => 60,
             default => 120,

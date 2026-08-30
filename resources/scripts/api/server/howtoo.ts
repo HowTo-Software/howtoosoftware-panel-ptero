@@ -25,6 +25,20 @@ export interface WorkshopConfiguration {
     detailsError: string | null;
 }
 
+export interface WorkshopPagination {
+    page: number;
+    perPage: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+}
+
+export interface WorkshopSearchResult {
+    items: WorkshopItem[];
+    pagination: WorkshopPagination;
+    mode: 'text' | 'direct';
+}
+
 export interface CurseForgeMod {
     id: number;
     name: string;
@@ -190,9 +204,26 @@ export const getWorkshopConfiguration = async (uuid: string): Promise<WorkshopCo
     };
 };
 
-export const searchWorkshop = async (uuid: string, query: string): Promise<WorkshopItem[]> => {
-    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/workshop/search`, { params: { query } });
-    return (data.items || []).map(workshopItem);
+export const searchWorkshop = async (
+    uuid: string,
+    query: string,
+    page = 1,
+    perPage = 30
+): Promise<WorkshopSearchResult> => {
+    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/workshop/search`, {
+        params: { query, page, per_page: perPage },
+    });
+    return {
+        items: (data.items || []).map(workshopItem),
+        pagination: {
+            page: data.pagination?.page ?? page,
+            perPage: data.pagination?.per_page ?? perPage,
+            total: data.pagination?.total ?? 0,
+            totalPages: data.pagination?.total_pages ?? 0,
+            hasNext: data.pagination?.has_next ?? false,
+        },
+        mode: data.mode === 'direct' ? 'direct' : 'text',
+    };
 };
 
 export const resolveWorkshopItem = async (uuid: string, workshopId: string): Promise<WorkshopItem> => {

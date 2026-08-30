@@ -8,21 +8,13 @@ return [
         'max_output_tokens' => (int) env('AI_MAX_OUTPUT_TOKENS', 1000),
     ],
     'providers' => [
-        'gemini' => [
-            'enabled' => env('FEATURE_AI_SUPPORT', false),
+        'ollama' => [
+            'enabled' => env('FEATURE_OLLAMA', true),
             'priority' => 10,
-            'timeout_seconds' => (int) env('GEMINI_TIMEOUT_SECONDS', 40),
-            'secret' => env('GEMINI_API_KEY'),
-            'model' => env('GEMINI_MODEL') ?: 'gemini-2.5-flash',
-            'base_url' => 'https://generativelanguage.googleapis.com',
-        ],
-        'groq' => [
-            'enabled' => env('FEATURE_AI_HELPER', false),
-            'priority' => 20,
-            'timeout_seconds' => (int) env('GROQ_TIMEOUT_SECONDS', 35),
-            'secret' => env('GROQ_API_KEY'),
-            'model' => env('GROQ_MODEL') ?: 'llama-3.3-70b-versatile',
-            'base_url' => 'https://api.groq.com/openai/v1',
+            'timeout_seconds' => (int) env('OLLAMA_TIMEOUT_SECONDS', 90),
+            'secret' => env('OLLAMA_API_KEY'),
+            'model' => env('OLLAMA_MODEL') ?: 'hermes:70B',
+            'base_url' => env('OLLAMA_BASE_URL') ?: 'http://92.168.1.252:11435',
         ],
         'steam' => [
             'enabled' => env('FEATURE_STEAM_WORKSHOP', false),
