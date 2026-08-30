@@ -38,7 +38,11 @@ class OAuthController extends AbstractLoginController
     {
         $this->assertConfigured();
 
-        return Socialite::driver(self::DRIVER)->redirect();
+        // setScopes replaces the provider defaults, which otherwise include
+        // goauthentik.io/api. Identity is all this route needs.
+        return Socialite::driver(self::DRIVER)
+            ->setScopes(['openid', 'profile', 'email'])
+            ->redirect();
     }
 
     /**
