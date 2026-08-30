@@ -96,7 +96,7 @@ return [
         'forgot_password' => 'Esqueceu a senha?',
         'username_required' => 'Informe seu usuário ou email.',
         'password_required' => 'Informe a senha da sua conta.',
-        'sso_login' => 'Entrar com HowToo SSO',
+        'sso_login' => 'Entrar com HowTooSoftware SSO',
     ],
     'server_navigation' => [
         'label' => 'Navegação do servidor',
