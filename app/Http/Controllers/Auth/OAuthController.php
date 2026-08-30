@@ -69,12 +69,12 @@ class OAuthController extends AbstractLoginController
             return $this->reject($request, 'no email claim returned by the identity provider');
         }
 
-        // Honour email_verified when the provider sends it. Absent means the
-        // claim was not requested, which is not the same as "unverified".
-        $raw = $oauthUser->getRaw();
-        if (array_key_exists('email_verified', $raw) && $raw['email_verified'] === false) {
-            return $this->reject($request, "unverified email claim for {$email}");
-        }
+        // Note there is deliberately no email_verified check. Authentik reports
+        // that claim as false for directory-sourced users, because it only
+        // records whether the address was confirmed through an Authentik email
+        // stage. Here the address is mastered in Active Directory, and users
+        // cannot edit their own email or username in Authentik, so the claim
+        // carries no signal and would reject every legitimate login.
 
         /** @var User|null $user */
         $user = User::query()
