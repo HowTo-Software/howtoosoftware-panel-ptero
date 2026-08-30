@@ -39,5 +39,6 @@ return [
         'client_id' => env('AUTHENTIK_CLIENT_ID'),
         'client_secret' => env('AUTHENTIK_CLIENT_SECRET'),
         'redirect' => env('AUTHENTIK_REDIRECT_URI', '/auth/oauth/callback/authentik'),
+        'recovery_flow' => env('AUTHENTIK_RECOVERY_FLOW', 'default-recovery-flow'),
     ],
 ];

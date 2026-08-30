@@ -9,6 +9,7 @@ export interface SiteSettings {
     };
     sso: {
         enabled: boolean;
+        recoveryUrl: string;
     };
 }
 

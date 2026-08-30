@@ -19,6 +19,9 @@ class AssetComposer
      */
     public function compose(View $view): void
     {
+        $authentik = config('services.authentik');
+        $ssoEnabled = !empty($authentik['client_id']) && !empty($authentik['base_url']);
+
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
             'name' => config('app.name') ?? 'Pterodactyl',
@@ -28,8 +31,11 @@ class AssetComposer
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
             'sso' => [
-                'enabled' => !empty(config('services.authentik.client_id'))
-                    && !empty(config('services.authentik.base_url')),
+                'enabled' => $ssoEnabled,
+                // Passwords live in Active Directory, so recovery is Authentik's flow, not ours.
+                'recoveryUrl' => $ssoEnabled
+                    ? rtrim($authentik['base_url'], '/') . '/if/flow/' . trim($authentik['recovery_flow'], '/') . '/'
+                    : '',
             ],
         ]);
     }

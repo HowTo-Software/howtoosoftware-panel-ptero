@@ -51,7 +51,7 @@ const Brand = styled.div`
     }
 `;
 
-const FormSurface = styled.div`
+export const FormSurface = styled.div`
     width: 100%;
     border: 1px solid var(--hts-border-strong);
     border-radius: 0.5rem;
@@ -60,7 +60,8 @@ const FormSurface = styled.div`
     box-shadow: 0 24px 60px -38px rgba(0, 0, 0, 0.95);
 `;
 
-export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => {
+// The branding around the card, without a form - the login screen has no fields to submit.
+export const AuthPageShell: React.FC<{ title?: string }> = ({ title, children }) => {
     const name = useStoreState((state: ApplicationStore) => state.settings.data!.name);
 
     return (
@@ -71,10 +72,16 @@ export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => 
                 {title && <h2>{title}</h2>}
             </Brand>
             <FlashMessageRender css={tw`mb-3`} />
-            <Form {...props} ref={ref}>
-                <FormSurface>{props.children}</FormSurface>
-            </Form>
+            {children}
             <p css={tw`text-center text-neutral-500 text-xs mt-4`}>Copyright &copy; 2024 - 2026 HowTo.Software.</p>
         </Container>
     );
-});
+};
+
+export default forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => (
+    <AuthPageShell title={title}>
+        <Form {...props} ref={ref}>
+            <FormSurface>{props.children}</FormSurface>
+        </Form>
+    </AuthPageShell>
+));
