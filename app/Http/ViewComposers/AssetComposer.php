@@ -21,6 +21,7 @@ class AssetComposer
     {
         $authentik = config('services.authentik');
         $ssoEnabled = !empty($authentik['client_id']) && !empty($authentik['base_url']);
+        $flow = fn (string $slug) => rtrim($authentik['base_url'], '/') . '/if/flow/' . trim($slug, '/') . '/';
 
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
@@ -33,9 +34,10 @@ class AssetComposer
             'sso' => [
                 'enabled' => $ssoEnabled,
                 // Passwords live in Active Directory, so recovery is Authentik's flow, not ours.
-                'recoveryUrl' => $ssoEnabled
-                    ? rtrim($authentik['base_url'], '/') . '/if/flow/' . trim($authentik['recovery_flow'], '/') . '/'
-                    : '',
+                'recoveryUrl' => $ssoEnabled ? $flow($authentik['recovery_flow']) : '',
+                // Same store, so a signed-in user changes their password there too. This
+                // flow requires an Authentik session; the recovery one requires no session.
+                'passwordChangeUrl' => $ssoEnabled ? $flow($authentik['password_change_flow']) : '',
             ],
         ]);
     }

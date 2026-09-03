@@ -71,15 +71,16 @@
                     <h3 class="box-title">Password</h3>
                 </div>
                 <div class="box-body">
-                    <div class="alert alert-success" style="display:none;margin-bottom:10px;" id="gen_pass"></div>
-                    <div class="form-group no-margin-bottom">
-                        <label for="password" class="control-label">Password <span class="field-optional"></span></label>
-                        <div>
-                            <input type="password" id="password" name="password" class="form-control form-autocomplete-stop">
-                            <p class="text-muted small">Leave blank to keep this user's password the same. User will not receive any notification if password is changed.</p>
-                        </div>
+                    <p>Passwords live in Active Directory, so they are reset in Authentik rather than here. A password set on the Panel is never read by a login.</p>
+                    <div class="alert alert-warning no-margin">
+                        Authentik may only write into <code>OU=PanelUsers</code>, so this works for customer accounts. A staff reset fails the write back to Active Directory and has to be done on the domain controller.
                     </div>
                 </div>
+                @if($ssoUserUrl !== '')
+                    <div class="box-footer">
+                        <a href="{{ $ssoUserUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Reset Password</a>
+                    </div>
+                @endif
             </div>
         </div>
         <div class="col-md-6">

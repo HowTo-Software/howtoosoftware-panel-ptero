@@ -10,6 +10,7 @@ export interface SiteSettings {
     sso: {
         enabled: boolean;
         recoveryUrl: string;
+        passwordChangeUrl: string;
     };
 }
 

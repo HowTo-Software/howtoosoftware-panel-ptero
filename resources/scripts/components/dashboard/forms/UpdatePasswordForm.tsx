@@ -30,10 +30,34 @@ const schema = Yup.object().shape({
 
 export default () => {
     const user = useStoreState((state: State<ApplicationStore>) => state.user.data);
+    const passwordChangeUrl = useStoreState(
+        (state: State<ApplicationStore>) => state.settings.data!.sso?.passwordChangeUrl ?? ''
+    );
     const { clearFlashes, addFlash } = useStoreActions((actions: Actions<ApplicationStore>) => actions.flashes);
 
     if (!user) {
         return null;
+    }
+
+    // With SSO on, the panel password is a placeholder no one knows: Active
+    // Directory holds the real one and Authentik is the only thing that writes
+    // to it. Sending the form here would change nothing a login ever reads.
+    if (passwordChangeUrl.length > 0) {
+        return (
+            <div>
+                <p css={tw`text-sm`}>
+                    Your password is held in Active Directory, so it is changed in your HowTo.Software account rather
+                    than here. Sign in there if you are asked to; the new password then applies everywhere, including
+                    this panel.
+                </p>
+                <div css={tw`mt-6`}>
+                    {/* Full page load in a new tab, not a router link: this leaves the SPA. */}
+                    <a href={passwordChangeUrl} target={'_blank'} rel={'noopener noreferrer'}>
+                        <Button type={'button'}>Change Password</Button>
+                    </a>
+                </div>
+            </div>
+        );
     }
 
     const submit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {

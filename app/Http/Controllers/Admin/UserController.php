@@ -79,7 +79,23 @@ class UserController extends Controller
         return view('admin.users.view', [
             'user' => $user,
             'languages' => $this->getAvailableLanguages(true),
+            'ssoUserUrl' => $this->authentikUserUrl($user),
         ]);
+    }
+
+    /**
+     * Authentik's user list, pre-filtered to this account, or an empty string
+     * when SSO is off. The semicolon segment is how its router carries params.
+     */
+    private function authentikUserUrl(User $user): string
+    {
+        $authentik = config('services.authentik');
+        if (empty($authentik['base_url']) || empty($authentik['client_id'])) {
+            return '';
+        }
+
+        return rtrim($authentik['base_url'], '/') . '/if/admin/#/identity/users;'
+            . rawurlencode(json_encode(['search' => $user->username]));
     }
 
     /**
