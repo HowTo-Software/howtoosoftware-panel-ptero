@@ -20,7 +20,7 @@ class AssetComposer
     public function compose(View $view): void
     {
         $authentik = config('services.authentik');
-        $ssoEnabled = !empty($authentik['client_id']) && !empty($authentik['base_url']);
+        $ssoEnabled = !empty($authentik['client_id']) && !empty($authentik['client_secret']) && !empty($authentik['base_url']);
         $flow = fn (string $slug) => rtrim($authentik['base_url'], '/') . '/if/flow/' . trim($slug, '/') . '/';
 
         $view->with('asset', $this->assetHashService);
