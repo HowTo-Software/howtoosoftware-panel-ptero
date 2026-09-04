@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 const LoginContainer = () => {
     const { clearFlashes } = useFlash();
     const { t } = useTranslation('strings');
+    const ssoEnabled = useStoreState((state) => state.settings.data!.sso?.enabled ?? false);
     const recoveryUrl = useStoreState((state) => state.settings.data!.sso?.recoveryUrl ?? '');
 
     useEffect(() => {
@@ -19,11 +20,13 @@ const LoginContainer = () => {
         <AuthPageShell title={t('auth.login_title')}>
             <FormSurface>
                 {/* Full page loads, not router links: both flows leave the SPA. */}
-                <a href={'/auth/oauth/redirect/authentik'} css={tw`block`}>
-                    <Button type={'button'} size={'xlarge'} css={tw`w-full`}>
-                        {t('auth.sso_login')}
-                    </Button>
-                </a>
+                {ssoEnabled && (
+                    <a href={'/auth/oauth/redirect/authentik'} css={tw`block`}>
+                        <Button type={'button'} size={'xlarge'} css={tw`w-full`}>
+                            {t('auth.sso_login')}
+                        </Button>
+                    </a>
+                )}
                 {recoveryUrl.length > 0 && (
                     <div css={tw`mt-6 text-center`}>
                         <a
