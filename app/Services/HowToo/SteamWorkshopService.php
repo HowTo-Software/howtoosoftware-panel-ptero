@@ -65,7 +65,7 @@ final class SteamWorkshopService
         $publishedFiles = data_get($response, 'response.publishedfiledetails', []);
         $publishedFiles = is_array($publishedFiles) ? $publishedFiles : [];
         $items = collect($publishedFiles)
-            ->filter('is_array')
+            ->filter(fn ($item): bool => is_array($item))
             ->map(fn (array $item): array => $this->transform($item))
             ->filter(fn (array $item): bool => $item['workshop_id'] !== '')
             ->unique('workshop_id')

@@ -79,6 +79,20 @@ class SteamWorkshopServiceTest extends TestCase
         $this->assertFalse($this->reflection->hasConstant('SEARCH_RESULT_LIMIT'));
     }
 
+    public function testPublishedFileFilteringUsesAnAritySafeCallback(): void
+    {
+        $source = file_get_contents($this->reflection->getFileName());
+        $filtered = collect([['publishedfileid' => '1'], 'invalid'])
+            ->filter(fn ($item): bool => is_array($item))
+            ->values()
+            ->all();
+
+        $this->assertIsString($source);
+        $this->assertStringNotContainsString("->filter('is_array')", $source);
+        $this->assertStringContainsString('->filter(fn ($item): bool => is_array($item))', $source);
+        $this->assertSame([['publishedfileid' => '1']], $filtered);
+    }
+
     private function invoke(string $method, array $arguments): mixed
     {
         $reflection = $this->reflection->getMethod($method);

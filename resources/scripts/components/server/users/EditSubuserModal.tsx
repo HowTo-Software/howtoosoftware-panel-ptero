@@ -17,6 +17,7 @@ import PermissionTitleBox from '@/components/server/users/PermissionTitleBox';
 import asModal from '@/hoc/asModal';
 import PermissionRow from '@/components/server/users/PermissionRow';
 import ModalContext from '@/context/ModalContext';
+import PermissionSelectionToggle from '@/components/server/users/PermissionSelectionToggle';
 
 type Props = {
     subuser?: Subuser;
@@ -136,6 +137,10 @@ const EditSubuserModal = ({ subuser }: Props) => {
                     </div>
                 )}
                 <div css={tw`my-6`}>
+                    <PermissionSelectionToggle
+                        disabled={!canEditUser}
+                        permissions={editablePermissions.filter((permission) => !permission.startsWith('websocket.'))}
+                    />
                     {Object.keys(permissions)
                         .filter((key) => key !== 'websocket')
                         .map((key, index) => (

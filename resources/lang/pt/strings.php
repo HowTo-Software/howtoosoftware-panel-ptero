@@ -114,5 +114,9 @@ return [
         'curseforge_mods' => 'Mods CurseForge',
         'admin' => 'Abrir na administração',
     ],
+    'subuser_permissions' => [
+        'select_all' => 'Marcar todas as opções',
+        'clear_all' => 'Desmarcar todas as opções',
+    ],
     'copyright' => 'Copyright &copy; 2024 - 2026 HowTo.Software.',
 ];

@@ -98,7 +98,7 @@
                     <h3 class="box-title">Assign New Allocations</h3>
                 </div>
                 <div class="box-body">
-                    <div class="form-group">
+                    <div class="form-group allocation-multiselect">
                         <label for="pAllocationIP" class="control-label">IP Address</label>
                         <div>
                             <select class="form-control" name="allocation_ip" id="pAllocationIP" multiple>
@@ -110,13 +110,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="pAllocationIP" class="control-label">IP Alias</label>
+                        <label for="pAllocationAlias" class="control-label">IP Alias</label>
                         <div>
                             <input type="text" id="pAllocationAlias" class="form-control" name="allocation_alias" placeholder="alias" />
                             <p class="text-muted small">If you would like to assign a default alias to these allocations enter it here.</p>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group allocation-multiselect">
                         <label for="pAllocationPorts" class="control-label">Ports</label>
                         <div>
                             <select class="form-control" name="allocation_ports[]" id="pAllocationPorts" multiple></select>
@@ -186,12 +186,16 @@
         maximumSelectionLength: 1,
         selectOnClose: true,
         tokenSeparators: [',', ' '],
+        placeholder: 'Select or enter an IP address',
+        dropdownCssClass: 'hts-allocation-dropdown',
     });
 
     $('#pAllocationPorts').select2({
         tags: true,
         selectOnClose: true,
         tokenSeparators: [',', ' '],
+        placeholder: 'Enter ports or port ranges',
+        dropdownCssClass: 'hts-allocation-dropdown',
     });
 
     $('button[data-action="deallocate"]').click(function (event) {
