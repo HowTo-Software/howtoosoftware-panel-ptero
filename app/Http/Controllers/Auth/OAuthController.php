@@ -16,12 +16,12 @@ use Pterodactyl\Models\User;
 /**
  * Single sign-on against Authentik, which federates Active Directory.
  *
- * Two rules make this safe to run beside customer accounts:
+ * Two rules make this safe to run beside non-directory accounts:
  *
  *  1. An SSO login may only ever land on an account that Active Directory
  *     owns, i.e. one stamped by panel-ad-sync.py with an "ad-" external_id.
- *     Customer accounts have a null external_id and are therefore unreachable
- *     through this route even if someone contrives a matching email address.
+ *     Accounts without an AD-owned external_id are unreachable through this
+ *     route even if someone contrives a matching email address.
  *  2. Two-factor is NOT bypassed. When the account has TOTP enabled this
  *     hands off to the existing checkpoint flow rather than logging the user
  *     straight in, so the same verification code path is used as for a
