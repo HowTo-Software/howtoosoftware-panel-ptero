@@ -39,8 +39,7 @@ class AccountCreated extends Notification implements ShouldQueue
             ->line('Email: ' . $this->user->email);
 
         $authentik = config('services.authentik');
-        if (!empty($authentik['client_id']) && !empty($authentik['base_url'])) {
-            // The panel reset link would set a password the SSO-only sign-in
+        if (!empty($authentik['client_id']) && !empty($authentik['client_secret']) && !empty($authentik['base_url'])) {
             // never reads, and linking to Authentik instead would be worse: the
             // directory account does not exist until provisioning has run.
             return $message->line(
