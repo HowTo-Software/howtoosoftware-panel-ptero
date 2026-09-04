@@ -50,6 +50,10 @@ export default () => {
                     than here. Sign in there if you are asked to; the new password then applies everywhere, including
                     this panel.
                 </p>
+                <p css={tw`text-sm mt-4 text-neutral-400`}>
+                    If it reports that the password could not be set, your account is managed outside this system and
+                    an administrator has to reset it for you.
+                </p>
                 <div css={tw`mt-6`}>
                     {/* Full page load in a new tab, not a router link: this leaves the SPA. */}
                     <a href={passwordChangeUrl} target={'_blank'} rel={'noopener noreferrer'}>

@@ -73,7 +73,7 @@
                 <div class="box-body">
                     <p>Passwords live in Active Directory, so they are reset in Authentik rather than here. A password set on the Panel is never read by a login.</p>
                     <div class="alert alert-warning no-margin">
-                        Authentik may only write into <code>OU=PanelUsers</code>, so this works for customer accounts. A staff reset fails the write back to Active Directory and has to be done on the domain controller.
+                        Authentik may only write into <code>OU=PanelUsers</code>, so this works for customer accounts. A staff reset fails the write back to Active Directory with <code>Failed to set password</code> and has to be done on the domain controller.
                     </div>
                 </div>
                 @if($ssoUserUrl !== '')
