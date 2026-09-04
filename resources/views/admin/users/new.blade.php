@@ -89,12 +89,12 @@
                     <h3 class="box-title">Password</h3>
                 </div>
                 <div class="box-body">
-                    <div class="alert alert-info">
-                        <p>Providing a user password is optional. New user emails prompt users to create a password the first time they login. If a password is provided here you will need to find a different method of providing it to the user.</p>
+                    <div class="alert alert-warning">
+                        <p>Leave this blank. Passwords live in Active Directory and users sign in with Single Sign-On, so a password set here is <strong>not</strong> the one they log in with.</p>
+                        <p class="no-margin">It is a break-glass credential only: the sign-in screen has no password field, and it is accepted solely by a direct <code>POST /auth/login</code> if Authentik or Active Directory is unavailable.</p>
                     </div>
-                    <div id="gen_pass" class=" alert alert-success" style="display:none;margin-bottom: 10px;"></div>
                     <div class="form-group">
-                        <label for="pass" class="control-label">Password</label>
+                        <label for="pass" class="control-label">Password <span class="field-optional"></span></label>
                         <div>
                             <input type="password" name="password" class="form-control" />
                         </div>
@@ -104,25 +104,4 @@
         </div>
     </form>
 </div>
-@endsection
-
-@section('footer-scripts')
-    @parent
-    <script>$("#gen_pass_bttn").click(function (event) {
-            event.preventDefault();
-            $.ajax({
-                type: "GET",
-                url: "/password-gen/12",
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-               },
-                success: function(data) {
-                    $("#gen_pass").html('<strong>Generated Password:</strong> ' + data).slideDown();
-                    $('input[name="password"], input[name="password_confirmation"]').val(data);
-                    return false;
-                }
-            });
-            return false;
-        });
-    </script>
 @endsection
