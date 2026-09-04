@@ -6,9 +6,9 @@ return [
     'failed' => 'Nenhuma conta foi encontrada com essas credenciais.',
 
     'sso' => [
-        'failed' => 'O login unico nao foi concluido. Tente novamente.',
-        'not_permitted' => 'Essa conta nao pode entrar com login unico.',
-        'not_configured' => 'O login unico nao esta configurado neste painel.',
+        'failed' => 'O login único não foi concluído. Tente novamente.',
+        'not_permitted' => 'Essa conta não pode entrar com login único.',
+        'not_configured' => 'O login único não está configurado neste painel.',
     ],
 
     'forgot_password' => [
