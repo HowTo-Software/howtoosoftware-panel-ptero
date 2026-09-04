@@ -89,14 +89,18 @@
                     <h3 class="box-title">Password</h3>
                 </div>
                 <div class="box-body">
-                    <div class="alert alert-info">
-                        <p>Providing a user password is optional. New user emails prompt users to create a password the first time they login. If a password is provided here you will need to find a different method of providing it to the user.</p>
+                    <div class="alert alert-warning">
+                        <p>Leave this blank. Passwords live in Active Directory and users sign in with Single Sign-On, so a password set here is <strong>not</strong> the one they log in with.</p>
+                        <p class="no-margin">It is a break-glass credential only: the sign-in screen has no password field, and it is accepted solely by a direct <code>POST /auth/login</code> if Authentik or Active Directory is unavailable. If you need one, generate it below and record it now &mdash; it is never shown again.</p>
                     </div>
-                    <div id="gen_pass" class=" alert alert-success" style="display:none;margin-bottom: 10px;"></div>
+                    <div id="gen_pass" class="alert alert-success" style="display:none;margin-bottom:10px;"></div>
                     <div class="form-group">
-                        <label for="pass" class="control-label">Password</label>
-                        <div>
-                            <input type="password" name="password" class="form-control" />
+                        <label for="pass" class="control-label">Password <span class="field-optional"></span></label>
+                        <div class="input-group">
+                            <input type="password" id="pass" name="password" class="form-control form-autocomplete-stop" autocomplete="new-password" />
+                            <span class="input-group-btn">
+                                <button type="button" id="gen_pass_bttn" class="btn btn-default">Generate</button>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -108,21 +112,30 @@
 
 @section('footer-scripts')
     @parent
-    <script>$("#gen_pass_bttn").click(function (event) {
+    <script>
+        $('#gen_pass_bttn').on('click', function (event) {
             event.preventDefault();
-            $.ajax({
-                type: "GET",
-                url: "/password-gen/12",
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-               },
-                success: function(data) {
-                    $("#gen_pass").html('<strong>Generated Password:</strong> ' + data).slideDown();
-                    $('input[name="password"], input[name="password_confirmation"]').val(data);
-                    return false;
+
+            // Generated in the browser, so the value crosses the network once on
+            // submit. The endpoint the previous version fetched was never routed.
+            var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_=+!@#%^*';
+            // Reject the tail of the byte range, or the first characters of the
+            // alphabet would come up more often than the last.
+            var limit = Math.floor(256 / alphabet.length) * alphabet.length;
+            var byte = new Uint8Array(1);
+            var password = '';
+
+            while (password.length < 24) {
+                window.crypto.getRandomValues(byte);
+                if (byte[0] < limit) {
+                    password += alphabet.charAt(byte[0] % alphabet.length);
                 }
-            });
-            return false;
+            }
+
+            $('#pass').val(password);
+            // .text() not .html(): the alphabet contains characters that would
+            // otherwise be parsed as markup.
+            $('#gen_pass').text('Generated password: ' + password).slideDown();
         });
     </script>
 @endsection

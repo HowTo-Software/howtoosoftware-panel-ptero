@@ -96,6 +96,7 @@ return [
         'forgot_password' => 'Forgot password?',
         'username_required' => 'A username or email must be provided.',
         'password_required' => 'Please enter your account password.',
+        'sso_login' => 'Sign in with HowTo.Software SSO',
     ],
     'server_navigation' => [
         'label' => 'Server navigation',

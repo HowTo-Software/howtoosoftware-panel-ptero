@@ -18,6 +18,16 @@ Route::get('/login', [Auth\LoginController::class, 'index'])->name('auth.login')
 Route::get('/password', [Auth\LoginController::class, 'index'])->name('auth.forgot-password');
 Route::get('/password/reset/{token}', [Auth\LoginController::class, 'index'])->name('auth.reset');
 
+// Single sign-on against Authentik. These routes live under the `/auth` guest
+// middleware group because they establish a session rather than requiring one.
+// Throttled like every other auth endpoint.
+Route::middleware(['throttle:authentication'])->group(function () {
+    Route::get('/oauth/redirect/authentik', [Auth\OAuthController::class, 'redirect'])
+        ->name('auth.oauth.redirect');
+    Route::get('/oauth/callback/authentik', [Auth\OAuthController::class, 'callback'])
+        ->name('auth.oauth.callback');
+});
+
 // Apply a throttle to authentication action endpoints, in addition to the
 // recaptcha endpoints to slow down manual attack spammers even more. 🤷‍
 //

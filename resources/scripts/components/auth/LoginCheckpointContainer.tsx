@@ -100,6 +100,20 @@ const EnhancedForm = withFormik<Props, Values>({
 export default ({ history, location, ...props }: OwnProps) => {
     const { clearAndAddHttpError } = useFlash();
 
+    // A password login arrives with the token in router state. An SSO login is
+    // a server redirect, so it carries the token in the URL fragment instead -
+    // fragments are never sent to a server or placed in a Referer header. It is
+    // stripped from the address bar immediately after being read.
+    const hashToken = location.hash.startsWith('#token=')
+        ? decodeURIComponent(location.hash.slice('#token='.length))
+        : undefined;
+
+    if (hashToken && !location.state?.token) {
+        history.replace('/auth/login/checkpoint', { token: hashToken });
+
+        return null;
+    }
+
     if (!location.state?.token) {
         history.replace('/auth/login');
 

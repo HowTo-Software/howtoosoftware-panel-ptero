@@ -38,6 +38,16 @@ class AccountCreated extends Notification implements ShouldQueue
             ->line('Username: ' . $this->user->username)
             ->line('Email: ' . $this->user->email);
 
+        $authentik = config('services.authentik');
+        if (!empty($authentik['client_id']) && !empty($authentik['client_secret']) && !empty($authentik['base_url'])) {
+            // never reads, and linking to Authentik instead would be worse: the
+            // directory account does not exist until provisioning has run.
+            return $message->line(
+                'You sign in with the Single Sign-On button - there is no separate password for this panel. '
+                . 'Your sign-in details are set up separately and you will be contacted once your account is ready.'
+            );
+        }
+
         if (!is_null($this->token)) {
             return $message->action('Setup Your Account', url('/auth/password/reset/' . $this->token . '?email=' . urlencode($this->user->email)));
         }

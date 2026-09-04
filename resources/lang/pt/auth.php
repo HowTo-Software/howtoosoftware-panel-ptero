@@ -5,6 +5,12 @@ return [
     'go_to_login' => 'Ir para o login',
     'failed' => 'Nenhuma conta foi encontrada com essas credenciais.',
 
+    'sso' => [
+        'failed' => 'O login único não foi concluído. Tente novamente.',
+        'not_permitted' => 'Essa conta não pode entrar com login único.',
+        'not_configured' => 'O login único não está configurado neste painel.',
+    ],
+
     'forgot_password' => [
         'label' => 'Esqueceu a senha?',
         'label_help' => 'Informe o email da sua conta para receber instruções de redefinição de senha.',

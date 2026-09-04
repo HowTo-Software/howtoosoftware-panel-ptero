@@ -19,6 +19,10 @@ class AssetComposer
      */
     public function compose(View $view): void
     {
+        $authentik = config('services.authentik');
+        $ssoEnabled = !empty($authentik['client_id']) && !empty($authentik['client_secret']) && !empty($authentik['base_url']);
+        $flow = fn (string $slug) => rtrim($authentik['base_url'], '/') . '/if/flow/' . trim($slug, '/') . '/';
+
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
             'name' => config('app.name') ?? 'Pterodactyl',
@@ -26,6 +30,14 @@ class AssetComposer
             'recaptcha' => [
                 'enabled' => config('recaptcha.enabled', false),
                 'siteKey' => config('recaptcha.website_key') ?? '',
+            ],
+            'sso' => [
+                'enabled' => $ssoEnabled,
+                // Passwords live in Active Directory, so recovery is Authentik's flow, not ours.
+                'recoveryUrl' => $ssoEnabled ? $flow($authentik['recovery_flow']) : '',
+                // Same store, so a signed-in user changes their password there too. This
+                // flow requires an Authentik session; the recovery one requires no session.
+                'passwordChangeUrl' => $ssoEnabled ? $flow($authentik['password_change_flow']) : '',
             ],
         ]);
     }

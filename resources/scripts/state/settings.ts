@@ -7,6 +7,11 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    sso: {
+        enabled: boolean;
+        recoveryUrl: string;
+        passwordChangeUrl: string;
+    };
 }
 
 export interface SettingsStore {

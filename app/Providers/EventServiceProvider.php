@@ -13,6 +13,8 @@ use Pterodactyl\Listeners\TwoFactorListener;
 use Pterodactyl\Listeners\RevocationListener;
 use Pterodactyl\Observers\EggVariableObserver;
 use Pterodactyl\Listeners\AuthenticationListener;
+use SocialiteProviders\Authentik\AuthentikExtendSocialite;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 use Pterodactyl\Events\Server\Installed as ServerInstalledEvent;
 use Pterodactyl\Notifications\ServerInstalled as ServerInstalledNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -24,6 +26,11 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         ServerInstalledEvent::class => [ServerInstalledNotification::class],
+        // Registers the Authentik driver with Socialite. Event discovery is
+        // disabled below, so this mapping is required.
+        SocialiteWasCalled::class => [
+            AuthentikExtendSocialite::class . '@handle',
+        ],
     ];
 
     protected $subscribe = [
