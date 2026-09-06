@@ -45,6 +45,48 @@ class AiAssistantProviderManagerTest extends TestCase
         }
     }
 
+    /**
+     * A wrong model tag, a cold-start timeout or a restarting Ollama must not bench the
+     * only stored key, otherwise the assistant reports "not configured" until it expires.
+     */
+    public function testDeploymentFailureDoesNotBenchTheOnlyOllamaCredential(): void
+    {
+        $failures = [
+            new AiProviderException(AiProviderException::MODEL_NOT_FOUND, 404),
+            new AiProviderException(AiProviderException::TIMEOUT),
+            new AiProviderException(AiProviderException::UNAVAILABLE, 503),
+            new AiProviderException(AiProviderException::INVALID_RESPONSE, 200),
+            new AiProviderException(AiProviderException::REQUEST_REJECTED, 400),
+        ];
+
+        foreach ($failures as $failure) {
+            $repository = $this->repository();
+            $adapter = new FakeOllamaAdapter(['ollama-secret' => $failure]);
+
+            try {
+                (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))->generate($this->prompt());
+                $this->fail("Expected provider error for $failure->reason.");
+            } catch (DisplayException) {
+                $this->assertSame([], $repository->cooldowns, "$failure->reason must not cool down the credential.");
+            }
+        }
+    }
+
+    public function testInvalidCredentialStillAppliesCooldown(): void
+    {
+        $repository = $this->repository();
+        $adapter = new FakeOllamaAdapter([
+            'ollama-secret' => new AiProviderException(AiProviderException::INVALID_CREDENTIAL, 401),
+        ]);
+
+        try {
+            (new AiAssistantProviderManager($repository, [$adapter], new MemoryLogger()))->generate($this->prompt());
+            $this->fail('Expected provider error.');
+        } catch (DisplayException) {
+            $this->assertSame([['key_id' => 1, 'reason' => AiProviderException::INVALID_CREDENTIAL]], $repository->cooldowns);
+        }
+    }
+
     public function testUnexpectedPhpExceptionDoesNotPoisonCredentialOrLeakSecrets(): void
     {
         $repository = $this->repository();

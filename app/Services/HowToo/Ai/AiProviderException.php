@@ -74,6 +74,17 @@ final class AiProviderException extends \RuntimeException
         };
     }
 
+    /**
+     * Whether the failure is attributable to the credential itself. Everything else
+     * (bad model name, cold-start timeout, server restart) is a deployment fault, and
+     * benching the key for it takes the whole assistant offline on single-key providers
+     * such as a self-hosted Ollama.
+     */
+    public function blamesCredential(): bool
+    {
+        return in_array($this->reason, [self::RATE_LIMIT, self::INVALID_CREDENTIAL], true);
+    }
+
     private static function retryAfterSeconds(Response $response): ?int
     {
         foreach (['Retry-After', 'X-RateLimit-Reset-Tokens'] as $header) {

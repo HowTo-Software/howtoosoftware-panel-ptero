@@ -98,7 +98,9 @@ final class AiAssistantProviderManager
             } catch (AiStreamCancelledException $exception) {
                 throw $exception;
             } catch (AiProviderException $exception) {
-                $this->credentials->putOnCooldown($credential, $exception->cooldownSeconds(), $exception->reason);
+                if ($exception->blamesCredential()) {
+                    $this->credentials->putOnCooldown($credential, $exception->cooldownSeconds(), $exception->reason);
+                }
                 $this->logger->warning('Ollama AI assistant provider request failed.', [
                     'provider' => $name,
                     'model' => $credential->model,
