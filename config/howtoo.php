@@ -13,8 +13,8 @@ return [
             'priority' => 10,
             'timeout_seconds' => (int) env('OLLAMA_TIMEOUT_SECONDS', 90),
             'secret' => env('OLLAMA_API_KEY'),
-            'model' => env('OLLAMA_MODEL') ?: 'hermes:70B',
-            'base_url' => env('OLLAMA_BASE_URL') ?: 'http://92.168.1.252:11435',
+            'model' => env('OLLAMA_MODEL') ?: 'hermes3:70b',
+            'base_url' => env('OLLAMA_BASE_URL') ?: 'http://192.168.1.252:11435',
         ],
         'steam' => [
             'enabled' => env('FEATURE_STEAM_WORKSHOP', false),
