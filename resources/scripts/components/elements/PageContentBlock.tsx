@@ -36,16 +36,27 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({
         }
     }, [title]);
 
-    const Container = serverPage ? ServerContentContainer : ContentContainer;
+    const content = (
+        <>
+            {showFlashKey && <FlashMessageRender byKey={showFlashKey} css={tw`mb-4`} />}
+            {children}
+        </>
+    );
 
     return (
         <CSSTransition timeout={150} classNames={'fade'} appear in>
             <>
-                <Container css={serverPage ? tw`my-4 sm:my-5` : tw`my-4 sm:my-10`} className={className}>
-                    {showFlashKey && <FlashMessageRender byKey={showFlashKey} css={tw`mb-4`} />}
-                    {children}
-                </Container>
-                <Container css={tw`mb-4`}>
+                {serverPage ? (
+                    <ServerContentContainer css={tw`my-4 sm:my-5`} className={className}>
+                        {content}
+                    </ServerContentContainer>
+                ) : (
+                    <ContentContainer css={tw`my-4 sm:my-10`} className={className}>
+                        {content}
+                    </ContentContainer>
+                )}
+
+                <ContentContainer css={tw`mb-4`}>
                     <p css={tw`text-center text-neutral-500 text-xs`}>
                         Copyright &copy; 2024 - 2026{' '}
                         <a
@@ -57,7 +68,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({
                         </a>
                         .
                     </p>
-                </Container>
+                </ContentContainer>
             </>
         </CSSTransition>
     );
