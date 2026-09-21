@@ -80,7 +80,8 @@
                                     @if ($node['maintenance'])
                                         <span class="label label-warning">{{ __('Maintenance') }}</span>
                                     @endif
-                                    <span class="label label-danger" data-node-unreachable hidden>{{ __('Unreachable') }}</span>
+                                    {{-- Bootstrap's .label sets display, which outranks the hidden attribute. --}}
+                                    <span class="label label-danger" data-node-unreachable style="display: none;">{{ __('Unreachable') }}</span>
                                 </td>
                                 <td class="text-center"><span data-node-online>&mdash;</span> / {{ $node['servers'] }}</td>
                                 @foreach (['cpu', 'memory', 'disk'] as $resource)
@@ -277,7 +278,7 @@
                         return;
                     }
 
-                    row.querySelector('[data-node-unreachable]').hidden = node.reachable;
+                    row.querySelector('[data-node-unreachable]').style.display = node.reachable ? 'none' : '';
                     row.querySelector('[data-node-online]').textContent = node.reachable ? node.online : '\u2014';
 
                     ['cpu', 'memory', 'disk'].forEach(function (metric) {
