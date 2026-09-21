@@ -129,7 +129,7 @@ final class NodeUtilizationService
     {
         // A configured capacity of zero means unlimited, so there is nothing to measure against.
         if ($total <= 0) {
-            return ['used' => $used, 'total' => null, 'percent' => null, 'source' => null, 'status' => 'unlimited'];
+return ['used' => $used, 'total' => null, 'percent' => null, 'source' => $source, 'status' => 'unlimited'];
         }
 
         $percent = ResourceStatus::percentage($used, $total);
