@@ -250,6 +250,10 @@ if (!function_exists('disk_total_space') || !function_exists('disk_free_space'))
 
     private function read(string $path): ?string
     {
+        if (!function_exists('is_readable') || !function_exists('file_get_contents')) {
+            return null;
+        }
+
         if (!@is_readable($path)) {
             return null;
         }
