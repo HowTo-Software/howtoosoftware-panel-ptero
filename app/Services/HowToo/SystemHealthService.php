@@ -204,6 +204,10 @@ final class SystemHealthService
 
     private function storage(): array
     {
+if (!function_exists('disk_total_space') || !function_exists('disk_free_space')) {
+            return ['percent' => null, 'used' => null, 'total' => null, 'status' => 'unknown'];
+        }
+
         $total = @disk_total_space(base_path());
         $free = @disk_free_space(base_path());
 
