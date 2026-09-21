@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Pterodactyl\Models\Node;
 use GuzzleHttp\Promise\Utils;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Foundation\Application;
 
 final class NodeUtilizationService
@@ -25,11 +26,31 @@ final class NodeUtilizationService
      */
     public function all(): array
     {
-        return Cache::remember(
-            self::CACHE_KEY,
-            now()->addSeconds(self::CACHE_SECONDS),
-            fn (): array => $this->collect(),
-        );
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        try {
+            return Cache::lock(self::CACHE_KEY . ':lock', self::TIMEOUT)->block(
+                self::CONNECT_TIMEOUT,
+                function (): array {
+                    $cached = Cache::get(self::CACHE_KEY);
+
+                    if (is_array($cached)) {
+                        return $cached;
+                    }
+
+                    $fresh = $this->collect();
+                    Cache::put(self::CACHE_KEY, $fresh, now()->addSeconds(self::CACHE_SECONDS));
+
+                    return $fresh;
+                },
+            );
+        } catch (LockTimeoutException) {
+            return Cache::get(self::CACHE_KEY) ?? $this->collect();
+        }
     }
 
     private function collect(): array
