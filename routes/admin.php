@@ -5,6 +5,7 @@ use Pterodactyl\Http\Controllers\Admin;
 use Pterodactyl\Http\Middleware\Admin\Servers\ServerInstalled;
 
 Route::get('/', [Admin\BaseController::class, 'index'])->name('admin.index');
+Route::get('/health', Admin\SystemHealthController::class)->name('admin.health');
 
 /*
 |--------------------------------------------------------------------------
