@@ -252,6 +252,10 @@
                     return strings.unreachable;
                 }
 
+                if (data.status === 'unknown') {
+                    return statuses.unknown.label;
+                }
+
                 // A null total means the resource is uncapped, so only the usage is meaningful.
                 if (metric === 'cpu') {
                     var used = (data.used / 100).toFixed(2);
