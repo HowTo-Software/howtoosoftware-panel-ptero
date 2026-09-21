@@ -13,10 +13,6 @@
 @endsection
 
 @section('content')
-@php
-    $barClasses = ['ok' => 'progress-bar-success', 'warning' => 'progress-bar-warning', 'critical' => 'progress-bar-danger', 'unknown' => ''];
-    $labelClasses = ['ok' => 'label-success', 'warning' => 'label-warning', 'critical' => 'label-danger', 'unknown' => 'label-default'];
-@endphp
 <div class="row">
     <div class="col-xs-12">
         <div class="box box-primary" id="system-health">
@@ -60,48 +56,53 @@
     <div class="col-xs-12">
         <div class="box">
             <div class="box-header with-border">
-                <h3 class="box-title"><i class="fa fa-sitemap"></i> {{ __('Resource Consumption by Node') }}</h3>
+                <h3 class="box-title"><i class="fa fa-sitemap"></i> {{ __('Live Consumption by Node') }}</h3>
+                <div class="box-tools pull-right">
+                    <span class="text-muted small" data-nodes-updated></span>
+                </div>
             </div>
             <div class="box-body table-responsive no-padding">
                 <table class="table table-hover">
                     <thead>
                         <tr>
                             <th>{{ __('Node') }}</th>
-                            <th class="text-center" style="width: 90px;">{{ __('Servers') }}</th>
-                            <th style="width: 35%;">{{ __('Memory') }}</th>
-                            <th style="width: 35%;">{{ __('Disk') }}</th>
+                            <th class="text-center" style="width: 110px;">{{ __('Running') }}</th>
+                            <th style="width: 25%;">{{ __('CPU') }}</th>
+                            <th style="width: 25%;">{{ __('Memory') }}</th>
+                            <th style="width: 25%;">{{ __('Disk') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($nodes as $node)
-                            <tr>
+                            <tr data-node-row="{{ $node['id'] }}">
                                 <td>
                                     <a href="{{ route('admin.nodes.view', $node['id']) }}">{{ $node['name'] }}</a>
                                     @if ($node['maintenance'])
                                         <span class="label label-warning">{{ __('Maintenance') }}</span>
                                     @endif
+                                    <span class="label label-danger" data-node-unreachable hidden>{{ __('Unreachable') }}</span>
                                 </td>
-                                <td class="text-center">{{ $node['servers'] }}</td>
-                                @foreach (['memory', 'disk'] as $resource)
-                                    @php($usage = $node[$resource])
-                                    <td>
+                                <td class="text-center"><span data-node-online>&mdash;</span> / {{ $node['servers'] }}</td>
+                                @foreach (['cpu', 'memory', 'disk'] as $resource)
+                                    <td data-node-metric="{{ $resource }}">
                                         <div class="progress progress-xs" style="margin-bottom:4px;">
-                                            <div class="progress-bar {{ $barClasses[$usage['status']] }}" style="width: {{ min(100, $usage['percent'] ?? 0) }}%;"></div>
+                                            <div class="progress-bar" data-node-bar style="width: 0;"></div>
                                         </div>
-                                        <span class="text-muted small">
-                                            {{ number_format($usage['used_mib']) }} / {{ number_format($usage['total_mib']) }} MiB
-                                            <span class="label {{ $labelClasses[$usage['status']] }}">{{ $usage['percent'] === null ? '—' : $usage['percent'] . '%' }}</span>
-                                        </span>
+                                        <span class="text-muted small" data-node-text>&mdash;</span>
+                                        <span class="label label-default" data-node-percent>&mdash;</span>
                                     </td>
                                 @endforeach
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted">{{ __('No nodes have been configured yet.') }}</td>
+                                <td colspan="5" class="text-center text-muted">{{ __('No nodes have been configured yet.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="box-footer text-muted small">
+                {{ __('CPU and memory are measured against the totals the daemon reports for its host. Wings reports disk usage but no filesystem total, so disk is measured against the capacity configured on the node.') }}
             </div>
         </div>
     </div>
@@ -149,20 +150,30 @@
     @parent
     <script>
         (function () {
-            var endpoint = @json(route('admin.health'));
+            var hostEndpoint = @json(route('admin.health'));
+            var nodesEndpoint = @json(route('admin.health.nodes'));
+            var HOST_INTERVAL = 3000;
+            var NODE_INTERVAL = 5000;
             var statuses = {
                 ok: { label: @json(__('Healthy')), labelClass: 'label-success', barClass: 'progress-bar-success' },
                 warning: { label: @json(__('Elevated')), labelClass: 'label-warning', barClass: 'progress-bar-warning' },
                 critical: { label: @json(__('Critical')), labelClass: 'label-danger', barClass: 'progress-bar-danger' },
+                unlimited: { label: @json(__('Unlimited')), labelClass: 'label-info', barClass: '' },
                 unknown: { label: @json(__('Unavailable')), labelClass: 'label-default', barClass: '' }
             };
             var strings = {
                 cores: @json(__('cores')),
+                threads: @json(__('threads')),
                 load: @json(__('load')),
                 of: @json(__('of')),
                 uptime: @json(__('Host uptime: :uptime')),
                 updated: @json(__('Updated :time')),
-                unavailable: @json(__('Not available on this host.'))
+                unavailable: @json(__('Not available on this host.')),
+                unreachable: @json(__('Daemon unreachable'))
+            };
+            var sources = {
+                daemon: @json(__('Total reported by the daemon for its host.')),
+                configured: @json(__('Capacity configured on the node. The daemon does not report a total for this resource.'))
             };
 
             function bytes(value) {
@@ -233,17 +244,99 @@
                 document.querySelector('[data-health-uptime]').textContent = uptime === null
                     ? strings.unavailable
                     : strings.uptime.replace(':uptime', uptime);
-                document.querySelector('[data-health-updated]').textContent = strings.updated
-                    .replace(':time', new Date(payload.generated_at).toLocaleTimeString());
+                stamp('[data-health-updated]', payload.generated_at);
             }
 
-            function poll() {
-                $.getJSON(endpoint).done(render);
+            function nodeText(metric, data) {
+                if (typeof data.used !== 'number') {
+                    return strings.unreachable;
+                }
+
+                if (data.status === 'unknown') {
+                    return statuses.unknown.label;
+                }
+
+                // A null total means the resource is uncapped, so only the usage is meaningful.
+                if (metric === 'cpu') {
+                    var used = (data.used / 100).toFixed(2);
+
+                    return data.total === null
+                        ? used + ' ' + strings.threads
+                        : used + ' ' + strings.of + ' ' + (data.total / 100) + ' ' + strings.threads;
+                }
+
+                return data.total === null
+                    ? bytes(data.used)
+                    : bytes(data.used) + ' ' + strings.of + ' ' + bytes(data.total);
+            }
+
+            function renderNodes(payload) {
+                payload.nodes.forEach(function (node) {
+                    var row = document.querySelector('[data-node-row="' + node.id + '"]');
+                    if (!row) {
+                        return;
+                    }
+
+                    row.querySelector('[data-node-unreachable]').hidden = node.reachable;
+                    row.querySelector('[data-node-online]').textContent = node.reachable ? node.online : '\u2014';
+
+                    ['cpu', 'memory', 'disk'].forEach(function (metric) {
+                        var cell = row.querySelector('[data-node-metric="' + metric + '"]');
+                        var data = node[metric] || { status: 'unknown', percent: null };
+                        var status = statuses[data.status] || statuses.unknown;
+                        var percent = typeof data.percent === 'number' ? data.percent : null;
+
+                        var bar = cell.querySelector('[data-node-bar]');
+                        bar.className = 'progress-bar ' + status.barClass;
+                        bar.style.width = Math.min(100, percent === null ? 0 : percent) + '%';
+
+                        var badge = cell.querySelector('[data-node-percent]');
+                        badge.className = 'label ' + status.labelClass;
+                        badge.textContent = percent === null ? status.label : percent + '%';
+
+                        var text = cell.querySelector('[data-node-text]');
+                        text.textContent = nodeText(metric, data);
+                        text.title = sources[data.source] || '';
+                    });
+                });
+
+                stamp('[data-nodes-updated]', payload.generated_at);
+            }
+
+            function stamp(selector, generatedAt) {
+                document.querySelector(selector).textContent = strings.updated
+                    .replace(':time', new Date(generatedAt).toLocaleTimeString());
+            }
+
+            // Skips a tick rather than stacking requests when a daemon is slow to answer.
+            function poller(url, handler, interval) {
+                var inFlight = false;
+                var run = function () {
+                    if (inFlight) {
+                        return;
+                    }
+
+                    inFlight = true;
+                    $.getJSON(url).done(handler).always(function () {
+                        inFlight = false;
+                    });
+                };
+
+                window.setInterval(run, interval);
+
+                return run;
             }
 
             render(@json($health));
-            document.querySelector('[data-health-refresh]').addEventListener('click', poll);
-            window.setInterval(poll, 15000);
+            var pollHost = poller(hostEndpoint, render, HOST_INTERVAL);
+            var pollNodes = poller(nodesEndpoint, renderNodes, NODE_INTERVAL);
+
+            document.querySelector('[data-health-refresh]').addEventListener('click', function () {
+                pollHost();
+                pollNodes();
+            });
+
+            pollNodes();
         })();
     </script>
 @endsection
