@@ -5,11 +5,11 @@ namespace Pterodactyl\Services\HowToo;
 use Pterodactyl\Models\Node;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Pterodactyl\Contracts\Repository\NodeRepositoryInterface;
 
 final class SystemHealthService
 {
     private const CPU_SAMPLE_KEY = 'howtoo:system-health:cpu-sample';
+    private const CPU_VALUE_KEY = 'howtoo:system-health:cpu-percent';
 
     /**
      * Live resource consumption for the machine running the panel.
@@ -26,46 +26,26 @@ final class SystemHealthService
     }
 
     /**
-     * Memory and disk committed to servers on every node, read from the database only
-     * so that an unreachable daemon can never stall the admin overview.
+     * The node rows for the overview table. Live consumption is fetched separately by
+     * NodeUtilizationService so that an unreachable daemon can never stall the page load.
      */
     public function nodes(): array
     {
-        $usage = DB::table('servers')
-            ->selectRaw('node_id, COUNT(*) as servers, COALESCE(SUM(memory), 0) as memory, COALESCE(SUM(disk), 0) as disk')
+        $counts = DB::table('servers')
+            ->selectRaw('node_id, COUNT(*) as total')
             ->groupBy('node_id')
-            ->get()
-            ->keyBy('node_id');
+            ->pluck('total', 'node_id');
 
         return Node::query()
             ->orderBy('name')
             ->get()
-            ->map(function (Node $node) use ($usage): array {
-                $allocated = $usage->get($node->id);
-
-                return [
-                    'id' => $node->id,
-                    'name' => $node->name,
-                    'servers' => (int) ($allocated->servers ?? 0),
-                    'maintenance' => (bool) $node->maintenance_mode,
-                    'memory' => $this->nodeResource((int) ($allocated->memory ?? 0), $node->memory, $node->memory_overallocate),
-                    'disk' => $this->nodeResource((int) ($allocated->disk ?? 0), $node->disk, $node->disk_overallocate),
-                ];
-            })
+            ->map(fn (Node $node): array => [
+                'id' => $node->id,
+                'name' => $node->name,
+                'servers' => (int) ($counts[$node->id] ?? 0),
+                'maintenance' => (bool) $node->maintenance_mode,
+            ])
             ->all();
-    }
-
-    private function nodeResource(int $allocated, int $capacity, int $overallocate): array
-    {
-        $max = $overallocate > 0 ? $capacity * (1 + ($overallocate / 100)) : $capacity;
-        $percent = $this->percentage($allocated, $max);
-
-        return [
-            'used_mib' => $allocated,
-            'total_mib' => (int) round($max),
-            'percent' => $percent,
-            'status' => $this->status($percent),
-        ];
     }
 
     private function cpu(): array
@@ -104,18 +84,27 @@ final class SystemHealthService
 
         $sample = ['total' => array_sum($fields), 'idle' => $fields[3] + $fields[4]];
         $previous = Cache::get(self::CPU_SAMPLE_KEY);
-        Cache::put(self::CPU_SAMPLE_KEY, $sample, now()->addMinutes(5));
 
         if (!is_array($previous) || !isset($previous['total'], $previous['idle'])) {
+            Cache::put(self::CPU_SAMPLE_KEY, $sample, now()->addMinutes(5));
+
             return null;
         }
 
+        // Two dashboards polling at once can land in the same tick; reuse the last
+        // figure rather than dividing by a window too short to mean anything.
         $total = $sample['total'] - $previous['total'];
-        if ($total <= 0) {
-            return null;
+        if ($total < 50) {
+            $last = Cache::get(self::CPU_VALUE_KEY);
+
+            return is_float($last) ? $last : null;
         }
 
-        return $this->percentage($total - ($sample['idle'] - $previous['idle']), $total);
+        Cache::put(self::CPU_SAMPLE_KEY, $sample, now()->addMinutes(5));
+        $percent = $this->percentage($total - ($sample['idle'] - $previous['idle']), $total);
+        Cache::put(self::CPU_VALUE_KEY, $percent, now()->addMinutes(5));
+
+        return $percent;
     }
 
     private function cores(): int
@@ -235,17 +224,12 @@ final class SystemHealthService
 
     private function status(?float $percent): string
     {
-        return match (true) {
-            $percent === null => 'unknown',
-            $percent > NodeRepositoryInterface::THRESHOLD_PERCENTAGE_MEDIUM => 'critical',
-            $percent > NodeRepositoryInterface::THRESHOLD_PERCENTAGE_LOW => 'warning',
-            default => 'ok',
-        };
+        return ResourceStatus::fromPercent($percent);
     }
 
     private function percentage(float $used, float $total): ?float
     {
-        return $total <= 0 ? null : round(max(0, $used / $total * 100), 1);
+        return ResourceStatus::percentage($used, $total);
     }
 
     private function read(string $path): ?string
