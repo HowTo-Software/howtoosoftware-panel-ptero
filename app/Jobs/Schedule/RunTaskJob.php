@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Pterodactyl\Services\Backups\InitiateBackupService;
 use Pterodactyl\Repositories\Wings\DaemonPowerRepository;
+use Pterodactyl\Repositories\Wings\DaemonServerRepository;
 use Pterodactyl\Repositories\Wings\DaemonCommandRepository;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 
@@ -36,6 +37,7 @@ class RunTaskJob implements ShouldQueue
         DaemonCommandRepository $commandRepository,
         InitiateBackupService $backupService,
         DaemonPowerRepository $powerRepository,
+        DaemonServerRepository $serverRepository,
     ) {
         // Do not process a task that is not set to active, unless it's been manually triggered.
         if (!$this->task->schedule->is_active && !$this->manualRun) {
@@ -54,6 +56,24 @@ class RunTaskJob implements ShouldQueue
             $this->failed();
 
             return;
+        }
+
+        // The schedule may have waited in the queue or behind a task offset. Re-check
+        // the live Wings state immediately before executing so it cannot run after
+        // the server has gone offline in the meantime.
+        if ($this->task->schedule->only_when_online) {
+            try {
+                $details = $serverRepository->setServer($server)->getDetails();
+                if (in_array($details['state'] ?? 'offline', ['offline', 'stopping'], true)) {
+                    $this->failed();
+
+                    return;
+                }
+            } catch (\Exception $exception) {
+                $this->failed($exception);
+
+                return;
+            }
         }
 
         // Perform the provided task against the daemon.

@@ -13,6 +13,7 @@ export interface Schedule {
     isActive: boolean;
     isProcessing: boolean;
     onlyWhenOnline: boolean;
+    timezone: string;
     lastRunAt: Date | null;
     nextRunAt: Date | null;
     createdAt: Date;
@@ -58,6 +59,7 @@ export const rawDataToServerSchedule = (data: any): Schedule => ({
     isActive: data.is_active,
     isProcessing: data.is_processing,
     onlyWhenOnline: data.only_when_online,
+    timezone: data.timezone || 'UTC',
     lastRunAt: data.last_run_at ? new Date(data.last_run_at) : null,
     nextRunAt: data.next_run_at ? new Date(data.next_run_at) : null,
     createdAt: new Date(data.created_at),

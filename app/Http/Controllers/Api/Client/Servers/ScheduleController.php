@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\Schedule;
+use Pterodactyl\Models\Task;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Database\ConnectionInterface;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Helpers\Utilities;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Repositories\Eloquent\ScheduleRepository;
+use Pterodactyl\Repositories\Eloquent\TaskRepository;
+use Pterodactyl\Exceptions\Service\ServiceLimitExceededException;
 use Pterodactyl\Services\Schedules\ProcessScheduleService;
 use Pterodactyl\Transformers\Api\Client\ScheduleTransformer;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
@@ -27,7 +31,12 @@ class ScheduleController extends ClientApiController
     /**
      * ScheduleController constructor.
      */
-    public function __construct(private ScheduleRepository $repository, private ProcessScheduleService $service)
+    public function __construct(
+        private ScheduleRepository $repository,
+        private TaskRepository $taskRepository,
+        private ConnectionInterface $connection,
+        private ProcessScheduleService $service,
+    )
     {
         parent::__construct();
     }
@@ -53,23 +62,38 @@ class ScheduleController extends ClientApiController
     public function store(StoreScheduleRequest $request, Server $server): array
     {
         /** @var Schedule $model */
-        $model = $this->repository->create([
-            'server_id' => $server->id,
-            'name' => $request->input('name'),
-            'cron_day_of_week' => $request->input('day_of_week'),
-            'cron_month' => $request->input('month'),
-            'cron_day_of_month' => $request->input('day_of_month'),
-            'cron_hour' => $request->input('hour'),
-            'cron_minute' => $request->input('minute'),
-            'is_active' => (bool) $request->input('is_active'),
-            'only_when_online' => (bool) $request->input('only_when_online'),
-            'next_run_at' => $this->getNextRunAt($request),
-        ]);
+        [$model, $task] = $this->connection->transaction(function () use ($request, $server) {
+            $model = $this->repository->create([
+                'server_id' => $server->id,
+                'name' => $request->input('name'),
+                'cron_day_of_week' => $request->input('day_of_week'),
+                'cron_month' => $request->input('month'),
+                'cron_day_of_month' => $request->input('day_of_month'),
+                'cron_hour' => $request->input('hour'),
+                'cron_minute' => $request->input('minute'),
+                'is_active' => (bool) $request->input('is_active'),
+                'only_when_online' => $request->boolean('only_when_online'),
+                'next_run_at' => $this->getNextRunAt($request),
+            ]);
+
+            $task = $request->filled('task') ? $this->createPrimaryTask($request, $server, $model) : null;
+
+            return [$model, $task];
+        });
 
         Activity::event('server:schedule.create')
             ->subject($model)
             ->property('name', $model->name)
             ->log();
+
+        if ($task) {
+            Activity::event('server:task.create')
+                ->subject($model, $task)
+                ->property(['name' => $model->name, 'action' => $task->action, 'payload' => $task->payload])
+                ->log();
+        }
+
+        $model->load('tasks');
 
         return $this->fractal->item($model)
             ->transformWith($this->getTransformer(ScheduleTransformer::class))
@@ -123,14 +147,38 @@ class ScheduleController extends ClientApiController
             $data['is_processing'] = false;
         }
 
-        $this->repository->update($schedule->id, $data);
+        [$task, $taskWasCreated] = $this->connection->transaction(function () use ($request, $server, $schedule, $data) {
+            $this->repository->update($schedule->id, $data);
+            if (!$request->filled('task')) {
+                return [null, false];
+            }
+
+            $primaryTask = $schedule->tasks()->orderBy('sequence_id')->first();
+            if (is_null($primaryTask)) {
+                return [$this->createPrimaryTask($request, $server, $schedule), true];
+            }
+
+            $attributes = $this->primaryTaskAttributes($request, $primaryTask->sequence_id);
+            $this->taskRepository->update($primaryTask->id, $attributes);
+
+            return [$primaryTask->refresh(), false];
+        });
 
         Activity::event('server:schedule.update')
             ->subject($schedule)
             ->property(['name' => $schedule->name, 'active' => $active])
             ->log();
 
-        return $this->fractal->item($schedule->refresh())
+        if ($task) {
+            Activity::event($taskWasCreated ? 'server:task.create' : 'server:task.update')
+                ->subject($schedule, $task)
+                ->property(['name' => $schedule->name, 'action' => $task->action, 'payload' => $task->payload])
+                ->log();
+        }
+
+        $schedule->load('tasks');
+
+        return $this->fractal->item($schedule->refresh()->load('tasks'))
             ->transformWith($this->getTransformer(ScheduleTransformer::class))
             ->toArray();
     }
@@ -186,5 +234,36 @@ class ScheduleController extends ClientApiController
         } catch (\Exception $exception) {
             throw new DisplayException('The cron data provided does not evaluate to a valid expression.');
         }
+    }
+
+    private function createPrimaryTask(StoreScheduleRequest $request, Server $server, Schedule $schedule): Task
+    {
+        $data = $request->input('task');
+        $limit = config('pterodactyl.client_features.schedules.per_schedule_task_limit', 10);
+        if ($limit < 1) {
+            throw new ServiceLimitExceededException("Schedules may not have more than $limit tasks associated with them.");
+        }
+
+        if ($data['action'] === Task::ACTION_BACKUP && $server->backup_limit === 0) {
+            throw new \Pterodactyl\Exceptions\Http\HttpForbiddenException("A backup task cannot be created when the server's backup limit is set to 0.");
+        }
+
+        return $this->taskRepository->create(array_merge(
+            ['schedule_id' => $schedule->id],
+            $this->primaryTaskAttributes($request, 1)
+        ));
+    }
+
+    private function primaryTaskAttributes(StoreScheduleRequest $request, int $sequenceId): array
+    {
+        $data = $request->input('task');
+
+        return [
+            'sequence_id' => $sequenceId,
+            'action' => $data['action'],
+            'payload' => $data['payload'] ?? '',
+            'time_offset' => $data['time_offset'] ?? 0,
+            'continue_on_failure' => (bool) ($data['continue_on_failure'] ?? false),
+        ];
     }
 }

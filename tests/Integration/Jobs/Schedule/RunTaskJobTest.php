@@ -14,6 +14,7 @@ use Pterodactyl\Jobs\Schedule\RunTaskJob;
 use GuzzleHttp\Exception\BadResponseException;
 use Pterodactyl\Tests\Integration\IntegrationTestCase;
 use Pterodactyl\Repositories\Wings\DaemonPowerRepository;
+use Pterodactyl\Repositories\Wings\DaemonServerRepository;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 
 class RunTaskJobTest extends IntegrationTestCase
@@ -169,6 +170,30 @@ class RunTaskJobTest extends IntegrationTestCase
         $this->assertFalse($task->is_queued);
         $this->assertFalse($schedule->is_processing);
         $this->assertTrue(Carbon::now()->isSameAs(\DateTimeInterface::ATOM, $schedule->last_run_at));
+    }
+
+    public function testTaskIsNotRunWhenServerWentOfflineWhileQueued()
+    {
+        $server = $this->createServerModel();
+        $schedule = Schedule::factory()->for($server)->create([
+            'only_when_online' => true,
+            'is_processing' => true,
+        ]);
+        $task = Task::factory()->for($schedule)->create([
+            'action' => Task::ACTION_POWER,
+            'payload' => 'restart',
+            'is_queued' => true,
+        ]);
+
+        $daemon = \Mockery::mock(DaemonServerRepository::class);
+        $this->instance(DaemonServerRepository::class, $daemon);
+        $daemon->expects('setServer')->with(\Mockery::on(fn ($value) => $value instanceof Server && $value->id === $server->id))->andReturnSelf();
+        $daemon->expects('getDetails')->andReturn(['state' => 'offline']);
+
+        Bus::dispatchSync(new RunTaskJob($task));
+
+        $this->assertFalse($task->refresh()->is_queued);
+        $this->assertFalse($schedule->refresh()->is_processing);
     }
 
     public static function isManualRunDataProvider(): array
