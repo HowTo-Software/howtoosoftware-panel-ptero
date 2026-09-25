@@ -11,9 +11,13 @@ use Illuminate\Http\Client\ConnectionException;
 final class SteamWorkshopService
 {
     private const PROJECT_ZOMBOID_APP_ID = 108600;
+    private const QUERY_TYPE_TRENDING = 3;
+    private const QUERY_TYPE_MOST_SUBSCRIBED = 9;
     private const QUERY_TYPE_TEXT_SEARCH = 12;
+    private const QUERY_TYPE_RECENTLY_UPDATED = 21;
     private const DEFAULT_PER_PAGE = 30;
     private const MAX_PER_PAGE = 50;
+    private const BROWSE_MODES = ['search', 'trending', 'most_subscribed', 'recent'];
 
     public function __construct(
         private IntegrationCredentialStore $credentials,
@@ -21,12 +25,16 @@ final class SteamWorkshopService
     ) {
     }
 
-    public function search(string $query, int $page = 1, int $perPage = self::DEFAULT_PER_PAGE): array
-    {
-        $key = $this->requireCredential();
+    public function search(
+        string $query,
+        int $page = 1,
+        int $perPage = self::DEFAULT_PER_PAGE,
+        array $tags = [],
+    ): array {
         $query = trim($query);
         $page = max(1, $page);
         $perPage = max(10, min($perPage, self::MAX_PER_PAGE));
+        $tags = $this->normalizeTags($tags);
 
         if ($workshopId = $this->directWorkshopId($query)) {
             $item = $this->details([$workshopId])[0] ?? null;
@@ -41,39 +49,41 @@ final class SteamWorkshopService
             throw new DisplayException('The Steam Workshop URL is invalid.');
         }
 
-        $cacheKey = sprintf('howtoo:steam:search:%s:%d:%d', sha1($query), $page, $perPage);
-        $response = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($key, $query, $page, $perPage): array {
-            try {
-                $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
-                    ->acceptJson()
-                    ->connectTimeout(5)
-                    ->timeout(20)
-                    ->get('/IPublishedFileService/QueryFiles/v1/', $this->queryParameters($key, $query, $page, $perPage));
-            } catch (ConnectionException) {
-                throw new DisplayException('Steam Workshop is temporarily unavailable.');
-            }
-
-            $this->throwForSteamResponse($response->status());
-            $payload = $response->json();
-            if (!is_array($payload)) {
-                throw new DisplayException('Steam Workshop returned an invalid response.');
-            }
-
-            return $payload;
-        });
-
-        $publishedFiles = data_get($response, 'response.publishedfiledetails', []);
-        $publishedFiles = is_array($publishedFiles) ? $publishedFiles : [];
-        $items = collect($publishedFiles)
-            ->filter(fn ($item): bool => is_array($item))
-            ->map(fn (array $item): array => $this->transform($item))
-            ->filter(fn (array $item): bool => $item['workshop_id'] !== '')
-            ->unique('workshop_id')
-            ->values()
-            ->all();
+        $response = $this->queryWorkshop(
+            'search:' . sha1($query),
+            self::QUERY_TYPE_TEXT_SEARCH,
+            $query,
+            $page,
+            $perPage,
+            $tags,
+        );
+        $items = $this->itemsFromResponse($response);
         $total = max(0, (int) data_get($response, 'response.total', count($items)));
 
         return $this->result($this->rankResults($items, $query), $total, $page, $perPage, false);
+    }
+
+    public function browse(
+        string $mode = 'trending',
+        int $page = 1,
+        int $perPage = self::DEFAULT_PER_PAGE,
+        array $tags = [],
+    ): array {
+        $mode = in_array($mode, self::BROWSE_MODES, true) && $mode !== 'search' ? $mode : 'trending';
+        $page = max(1, $page);
+        $perPage = max(10, min($perPage, self::MAX_PER_PAGE));
+        $tags = $this->normalizeTags($tags);
+        $queryType = match ($mode) {
+            'most_subscribed' => self::QUERY_TYPE_MOST_SUBSCRIBED,
+            'recent' => self::QUERY_TYPE_RECENTLY_UPDATED,
+            default => self::QUERY_TYPE_TRENDING,
+        };
+
+        $response = $this->queryWorkshop($mode, $queryType, '', $page, $perPage, $tags);
+        $items = $this->itemsFromResponse($response);
+        $total = max(0, (int) data_get($response, 'response.total', count($items)));
+
+        return $this->result($items, $total, $page, $perPage, false);
     }
 
     public function details(array $workshopIds): array
@@ -132,6 +142,14 @@ final class SteamWorkshopService
     {
         $description = $this->plainText((string) ($item['description'] ?? $item['short_description'] ?? ''));
 
+        $tags = collect($item['tags'] ?? [])
+            ->map(fn ($tag): string => is_array($tag) ? trim((string) ($tag['tag'] ?? '')) : trim((string) $tag))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $voteData = is_array($item['vote_data'] ?? null) ? $item['vote_data'] : [];
+
         return [
             'workshop_id' => (string) ($item['publishedfileid'] ?? ''),
             'name' => mb_substr(trim((string) ($item['title'] ?? 'Untitled mod')), 0, 180),
@@ -139,6 +157,12 @@ final class SteamWorkshopService
             'description' => mb_substr($description, 0, 12000),
             'mod_ids' => $this->resolveModIds($item),
             'mod_id_source' => $this->modIdSource($item),
+            'tags' => $tags,
+            'score' => isset($voteData['score']) ? (float) $voteData['score'] : null,
+            'votes_up' => isset($voteData['votes_up']) ? (int) $voteData['votes_up'] : null,
+            'votes_down' => isset($voteData['votes_down']) ? (int) $voteData['votes_down'] : null,
+            'subscriptions' => isset($item['subscriptions']) ? (int) $item['subscriptions'] : null,
+            'creator_id' => isset($item['creator']) ? (string) $item['creator'] : null,
             'metadata' => $item['metadata'] ?? null,
             'kv_tags' => $item['kv_tags'] ?? [],
             'raw_description' => (string) ($item['description'] ?? ''),
@@ -186,11 +210,93 @@ final class SteamWorkshopService
             ->all();
     }
 
-    private function queryParameters(string $key, string $query, int $page, int $perPage): array
+    private function queryWorkshop(
+        string $cacheFragment,
+        int $queryType,
+        string $query,
+        int $page,
+        int $perPage,
+        array $tags,
+    ): array {
+        $key = $this->requireCredential();
+        $cacheKey = sprintf(
+            'howtoo:steam:query:%s:%d:%d:%s',
+            $cacheFragment,
+            $page,
+            $perPage,
+            sha1(implode('|', $tags)),
+        );
+
+        return Cache::remember($cacheKey, now()->addMinutes(2), function () use ($key, $queryType, $query, $page, $perPage, $tags): array {
+            try {
+                $response = Http::baseUrl(config('howtoo.providers.steam.base_url'))
+                    ->acceptJson()
+                    ->connectTimeout(5)
+                    ->timeout(20)
+                    ->get('/IPublishedFileService/QueryFiles/v1/', $this->queryParameters(
+                        $key,
+                        $queryType,
+                        $query,
+                        $page,
+                        $perPage,
+                        $tags,
+                    ));
+            } catch (ConnectionException) {
+                throw new DisplayException('Steam Workshop is temporarily unavailable.');
+            }
+
+            $this->throwForSteamResponse($response->status());
+            $payload = $response->json();
+            if (!is_array($payload)) {
+                throw new DisplayException('Steam Workshop returned an invalid response.');
+            }
+
+            return $payload;
+        });
+    }
+
+    private function itemsFromResponse(array $response): array
     {
-        return [
+        $publishedFiles = data_get($response, 'response.publishedfiledetails', []);
+        $publishedFiles = is_array($publishedFiles) ? $publishedFiles : [];
+
+        return collect($publishedFiles)
+            ->filter(fn ($item): bool => is_array($item))
+            ->map(fn (array $item): array => $this->transform($item))
+            ->filter(fn (array $item): bool => $item['workshop_id'] !== '')
+            ->unique('workshop_id')
+            ->values()
+            ->all();
+    }
+
+    private function normalizeTags(array $tags): array
+    {
+        $allowed = [
+            'Build 42', 'Build 41', 'Animals', 'Audio', 'Balance', 'Building', 'Clothing/Armor',
+            'Farming', 'Food', 'Framework', 'Hardmode', 'Interface', 'Items', 'Language/Translation',
+            'Literature', 'Map',
+        ];
+
+        return collect($tags)
+            ->map(fn ($tag): string => trim((string) $tag))
+            ->filter(fn (string $tag): bool => in_array($tag, $allowed, true))
+            ->unique()
+            ->take(8)
+            ->values()
+            ->all();
+    }
+
+    private function queryParameters(
+        string $key,
+        int $queryType,
+        string $query,
+        int $page,
+        int $perPage,
+        array $tags = [],
+    ): array {
+        $parameters = [
             'key' => $key,
-            'query_type' => self::QUERY_TYPE_TEXT_SEARCH,
+            'query_type' => $queryType,
             'page' => $page,
             'numperpage' => $perPage,
             'creator_appid' => self::PROJECT_ZOMBOID_APP_ID,
@@ -202,7 +308,21 @@ final class SteamWorkshopService
             'return_kv_tags' => true,
             'return_tags' => true,
             'return_previews' => true,
+            'return_vote_data' => true,
         ];
+
+        if ($queryType === self::QUERY_TYPE_TRENDING) {
+            $parameters['days'] = 7;
+            $parameters['include_recent_votes_only'] = true;
+        }
+
+        if ($tags !== []) {
+            // QueryFiles documents requiredtags as a comma-delimited string.
+            $parameters['requiredtags'] = implode(',', $tags);
+            $parameters['match_all_tags'] = true;
+        }
+
+        return $parameters;
     }
 
     private function result(array $items, int $total, int $page, int $perPage, bool $direct): array

@@ -69,11 +69,20 @@ class WorkshopController extends ClientApiController
             throw new DisplayException('Workshop Manager is only available for Project Zomboid servers.');
         }
 
-        $results = $this->steam->search(
-            $request->string('query')->toString(),
-            $request->integer('page', 1),
-            $request->integer('per_page', 30),
-        );
+        $mode = $request->string('mode', 'search')->toString();
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('per_page', 30);
+        $tags = $request->input('tags', []);
+
+        $results = $mode === 'search'
+            ? $this->steam->search(
+                $request->string('query')->toString(),
+                $page,
+                $perPage,
+                $tags,
+            )
+            : $this->steam->browse($mode, $page, $perPage, $tags);
+
         $results['items'] = collect($results['items'])->map(fn (array $item): array => $this->publicItem($item))->all();
 
         return new JsonResponse($results);
@@ -147,6 +156,12 @@ class WorkshopController extends ClientApiController
             'description',
             'mod_ids',
             'mod_id_source',
+            'tags',
+            'score',
+            'votes_up',
+            'votes_down',
+            'subscriptions',
+            'creator_id',
             'updated_at',
         ])->all();
     }

@@ -13,6 +13,12 @@ const item = (workshopId: string, modIds: string[]): WorkshopItem => ({
     image: null,
     description: '',
     modIdSource: null,
+    tags: [],
+    score: null,
+    votesUp: null,
+    votesDown: null,
+    subscriptions: null,
+    creatorId: null,
     updatedAt: null,
 });
 

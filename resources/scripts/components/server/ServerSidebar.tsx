@@ -144,6 +144,22 @@ const routeIcons: Record<string, IconDefinition> = {
     '/curseforge-mods': faPuzzlePiece,
 };
 
+const routeIconColors: Record<string, string> = {
+    '/': '#67d5ff',
+    '/files': '#8bb7ff',
+    '/databases': '#b9a0ff',
+    '/schedules': '#ffc46b',
+    '/users': '#6ee7b7',
+    '/backups': '#9aabff',
+    '/network': '#5eead4',
+    '/startup': '#fbbf77',
+    '/settings': '#b7c2db',
+    '/activity': '#7dd3fc',
+    '/assistant': '#d0a2ff',
+    '/workshop-mods': '#c4a0ff',
+    '/curseforge-mods': '#89d3ff',
+};
+
 const translationKeys: Record<string, string> = {
     '/': 'server_navigation.console',
     '/files': 'server_navigation.files',
@@ -192,7 +208,11 @@ export default ({ adminUrl }: Props) => {
                     .map((route) => {
                         const link = (
                             <NavLink key={route.path} to={to(route.path)} exact={route.exact}>
-                                <FontAwesomeIcon icon={routeIcons[route.path] || faCog} fixedWidth />
+                                <FontAwesomeIcon
+                                    icon={routeIcons[route.path] || faCog}
+                                    fixedWidth
+                                    style={{ color: routeIconColors[route.path] || 'var(--hts-secondary)' }}
+                                />
                                 <span>{t(translationKeys[route.path] || route.name!)}</span>
                             </NavLink>
                         );

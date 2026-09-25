@@ -18,6 +18,9 @@ import Spinner from '@/components/elements/Spinner';
 const DashboardRouter = lazy(() => import(/* webpackChunkName: "dashboard" */ '@/routers/DashboardRouter'));
 const ServerRouter = lazy(() => import(/* webpackChunkName: "server" */ '@/routers/ServerRouter'));
 const AuthenticationRouter = lazy(() => import(/* webpackChunkName: "auth" */ '@/routers/AuthenticationRouter'));
+const WorkshopPreview = lazy(
+    () => import(/* webpackChunkName: "workshop-preview" */ '@/components/server/howtoo/WorkshopPreview')
+);
 
 interface ExtendedWindow extends Window {
     SiteConfiguration?: SiteSettings;
@@ -64,6 +67,13 @@ const App = () => {
                 <div css={tw`mx-auto w-auto`}>
                     <Router history={history}>
                         <Switch>
+                            {process.env.NODE_ENV === 'development' && (
+                                <Route path={'/workshop-preview'}>
+                                    <Spinner.Suspense>
+                                        <WorkshopPreview />
+                                    </Spinner.Suspense>
+                                </Route>
+                            )}
                             <Route path={'/auth'}>
                                 <Spinner.Suspense>
                                     <AuthenticationRouter />

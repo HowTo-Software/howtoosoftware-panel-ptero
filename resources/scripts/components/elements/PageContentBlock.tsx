@@ -16,11 +16,32 @@ const ServerContentContainer = styled(ContentContainer)`
     max-width: 1200px;
     margin-right: 1rem;
     margin-left: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 
     @media (min-width: 769px) {
         margin-right: 1rem;
         margin-left: 2rem;
     }
+
+    @media (min-width: 640px) {
+        margin-top: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+`;
+
+const StandardContentContainer = styled(ContentContainer)`
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+
+    @media (min-width: 640px) {
+        margin-top: 2.5rem;
+        margin-bottom: 2.5rem;
+    }
+`;
+
+const FooterContainer = styled(ContentContainer)`
+    margin-bottom: 1rem;
 `;
 
 const PageContentBlock: React.FC<PageContentBlockProps> = ({
@@ -36,16 +57,16 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({
         }
     }, [title]);
 
-    const Container = serverPage ? ServerContentContainer : ContentContainer;
+    const Container = serverPage ? ServerContentContainer : StandardContentContainer;
 
     return (
         <CSSTransition timeout={150} classNames={'fade'} appear in>
             <>
-                <Container css={serverPage ? tw`my-4 sm:my-5` : tw`my-4 sm:my-10`} className={className}>
+                <Container className={className}>
                     {showFlashKey && <FlashMessageRender byKey={showFlashKey} css={tw`mb-4`} />}
                     {children}
                 </Container>
-                <Container css={tw`mb-4`}>
+                <FooterContainer>
                     <p css={tw`text-center text-neutral-500 text-xs`}>
                         Copyright &copy; 2024 - 2026{' '}
                         <a
@@ -57,7 +78,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({
                         </a>
                         .
                     </p>
-                </Container>
+                </FooterContainer>
             </>
         </CSSTransition>
     );

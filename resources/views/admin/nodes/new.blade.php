@@ -63,16 +63,16 @@
                         <label class="form-label">Communicate Over SSL</label>
                         <div>
                             <div class="radio radio-success radio-inline">
-                                <input type="radio" id="pSSLTrue" value="https" name="scheme" checked>
+                                <input type="radio" id="pSSLTrue" value="https" name="scheme" {{ old('scheme', 'https') === 'https' ? 'checked' : '' }}>
                                 <label for="pSSLTrue"> Use SSL Connection</label>
                             </div>
                             <div class="radio radio-danger radio-inline">
-                                <input type="radio" id="pSSLFalse" value="http" name="scheme" @if(request()->isSecure()) disabled @endif>
+                                <input type="radio" id="pSSLFalse" value="http" name="scheme" {{ old('scheme') === 'http' ? 'checked' : '' }}>
                                 <label for="pSSLFalse"> Use HTTP Connection</label>
                             </div>
                         </div>
                         @if(request()->isSecure())
-                            <p class="text-danger small">Your Panel is currently configured to use a secure connection. In order for browsers to connect to your node it <strong>must</strong> use a SSL connection.</p>
+                            <p class="text-warning small">HTTP can be selected, but browsers block insecure connections from an HTTPS panel. Use SSL if you need the browser console and other direct browser connections to this node.</p>
                         @else
                             <p class="text-muted small">In most cases you should select to use a SSL connection. If using an IP Address or you do not wish to use SSL at all, select a HTTP connection.</p>
                         @endif
