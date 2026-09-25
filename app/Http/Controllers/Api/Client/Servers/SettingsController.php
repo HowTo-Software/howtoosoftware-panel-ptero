@@ -8,11 +8,13 @@ use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Repositories\Eloquent\ServerRepository;
 use Pterodactyl\Services\Servers\ReinstallServerService;
+use Pterodactyl\Services\HowToo\ProjectZomboidSaveWipeService;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\RenameServerRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\SetDockerImageRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\ReinstallServerRequest;
+use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\WipeProjectZomboidRequest;
 
 class SettingsController extends ClientApiController
 {
@@ -22,6 +24,7 @@ class SettingsController extends ClientApiController
     public function __construct(
         private ServerRepository $repository,
         private ReinstallServerService $reinstallServerService,
+        private ProjectZomboidSaveWipeService $projectZomboidSaveWipeService,
     ) {
         parent::__construct();
     }
@@ -68,6 +71,18 @@ class SettingsController extends ClientApiController
         Activity::event('server:reinstall')->log();
 
         return new JsonResponse([], Response::HTTP_ACCEPTED);
+    }
+
+    /** Wipes the fixed Project Zomboid save-data directories while the daemon reports the server offline. */
+    public function wipeProjectZomboid(WipeProjectZomboidRequest $request, Server $server): JsonResponse
+    {
+        $targets = $this->projectZomboidSaveWipeService->handle($server);
+
+        Activity::event('server:settings.project-zomboid-wipe')
+            ->property(['targets' => $targets])
+            ->log();
+
+        return new JsonResponse(['targets' => $targets], Response::HTTP_OK);
     }
 
     /**
