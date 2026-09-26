@@ -27,8 +27,19 @@ class CurseForgeController extends ClientApiController
     {
         return new JsonResponse($this->curseForge->search(
             $server,
-            $request->string('query')->toString(),
+            (string) $request->input('query', ''),
             $request->integer('index', 0),
+            (string) $request->input('sort', 'downloads'),
+        ));
+    }
+
+    public function searchModpacks(CurseForgeSearchRequest $request, Server $server): JsonResponse
+    {
+        return new JsonResponse($this->curseForge->searchModpacks(
+            $server,
+            (string) $request->input('query', ''),
+            $request->integer('index', 0),
+            (string) $request->input('sort', 'downloads'),
         ));
     }
 
@@ -42,11 +53,30 @@ class CurseForgeController extends ClientApiController
         return new JsonResponse(['items' => $this->curseForge->compatibleFiles($server, $modId)]);
     }
 
+    public function serverPackFiles(CurseForgeReadRequest $request, Server $server, int $modId): JsonResponse
+    {
+        return new JsonResponse(['items' => $this->curseForge->compatibleServerPackFiles($server, $modId)]);
+    }
+
     public function install(CurseForgeInstallRequest $request, Server $server): JsonResponse
     {
         $result = $this->curseForge->install($server, $request->integer('mod_id'), $request->integer('file_id'));
 
         Activity::event('server:integration.curseforge-install')
+            ->property('mod_id', $request->integer('mod_id'))
+            ->property('file_id', $request->integer('file_id'))
+            ->property('file_name', $result['file_name'])
+            ->log();
+
+        return new JsonResponse($result);
+    }
+
+    public function installServerPack(CurseForgeInstallRequest $request, Server $server): JsonResponse
+    {
+        set_time_limit(900);
+        $result = $this->curseForge->installServerPack($server, $request->integer('mod_id'), $request->integer('file_id'));
+
+        Activity::event('server:integration.curseforge-modpack-install')
             ->property('mod_id', $request->integer('mod_id'))
             ->property('file_id', $request->integer('file_id'))
             ->property('file_name', $result['file_name'])

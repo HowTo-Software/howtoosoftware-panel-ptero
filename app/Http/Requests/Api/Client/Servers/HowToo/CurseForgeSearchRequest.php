@@ -7,8 +7,9 @@ class CurseForgeSearchRequest extends CurseForgeReadRequest
     public function rules(): array
     {
         return [
-            'query' => 'required|string|min:2|max:100',
+            'query' => 'nullable|string|min:2|max:300',
             'index' => 'sometimes|integer|min:0|max:9980',
+            'sort' => 'sometimes|in:downloads,popular,updated',
         ];
     }
 }

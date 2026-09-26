@@ -11,10 +11,22 @@ final class ServerGameContext
         'MC_VERSION',
         'MINECRAFT_JAR_VERSION',
         'SERVER_VERSION',
+        'VANILLA_VERSION',
+        'BEDROCK_VERSION',
+        'GAME_VERSION',
         'VERSION',
     ];
 
-    private const LOADER_VARIABLES = ['MOD_LOADER', 'MODLOADER', 'LOADER_TYPE', 'SERVER_TYPE', 'TYPE'];
+    private const LOADER_VARIABLES = [
+        'MOD_LOADER',
+        'MOD_LOADER_TYPE',
+        'MODLOADER',
+        'MINECRAFT_MOD_LOADER',
+        'LOADER_TYPE',
+        'SERVER_TYPE',
+        'SERVER_SOFTWARE',
+        'TYPE',
+    ];
 
     public function for(Server $server): array
     {
@@ -38,15 +50,31 @@ final class ServerGameContext
         })->all();
 
         $projectZomboid = str_contains($identity, 'project zomboid') || str_contains($identity, 'zomboid');
-        $minecraft = str_contains($identity, 'minecraft') || $this->detectLoader($identity, $variables) !== null;
-        $version = $minecraft ? $this->firstVariable($variables, self::VERSION_VARIABLES) : null;
-        $loader = $minecraft ? $this->detectLoader($identity, $variables) : null;
+        $loaderIdentity = implode(' ', array_map(
+            fn (string $name): string => $variables[$name] ?? '',
+            self::LOADER_VARIABLES,
+        ));
+        $bedrock = array_key_exists('BEDROCK_VERSION', $variables)
+            || preg_match('/\b(bedrock|pocketmine|nukkit)\b/', "$identity $loaderIdentity") === 1;
+        $minecraft = str_contains($identity, 'minecraft') || $bedrock || $this->detectLoader($identity, $variables) !== null;
+        $minecraftJava = $minecraft && !$bedrock;
+        $version = $minecraft ? $this->firstMinecraftVersion($variables) : null;
+        $loader = $minecraftJava ? $this->detectLoader($identity, $variables) : null;
+
+        // Vanilla Minecraft eggs do not have a loader variable. Their version is
+        // still useful for identifying and browsing server packs, while the
+        // CurseForge API's loader value 0 means "Any", not "Vanilla".
+        if ($minecraftJava && $loader === null && $this->isVanillaJavaEgg($identity)) {
+            $loader = CurseForgeLoader::Vanilla;
+        }
 
         return [
             'game' => $projectZomboid ? 'project_zomboid' : ($minecraft ? 'minecraft' : 'other'),
             'project_zomboid' => $projectZomboid,
             'minecraft' => $minecraft,
-            'minecraft_version' => $this->validVersion($version) ? $version : null,
+            'minecraft_java' => $minecraftJava,
+            'minecraft_edition' => !$minecraft ? null : ($bedrock ? 'bedrock' : 'java'),
+            'minecraft_version' => $this->normalizeVersion($version),
             'mod_loader' => $loader?->name,
             'mod_loader_type' => $loader?->value,
             'zomboid_server_name' => $this->zomboidServerName($variables),
@@ -64,6 +92,18 @@ final class ServerGameContext
         return null;
     }
 
+    private function firstMinecraftVersion(array $variables): ?string
+    {
+        foreach (self::VERSION_VARIABLES as $name) {
+            $version = $this->normalizeVersion($variables[$name] ?? null);
+            if ($version !== null) {
+                return $version;
+            }
+        }
+
+        return null;
+    }
+
     private function detectLoader(string $identity, array $variables): ?CurseForgeLoader
     {
         $value = mb_strtolower((string) ($this->firstVariable($variables, self::LOADER_VARIABLES) ?? ''));
@@ -74,6 +114,7 @@ final class ServerGameContext
             'fabric' => CurseForgeLoader::Fabric,
             'quilt' => CurseForgeLoader::Quilt,
             'forge' => CurseForgeLoader::Forge,
+            'vanilla' => CurseForgeLoader::Vanilla,
         ] as $name => $loader) {
             if (str_contains($haystack, $name)) {
                 return $loader;
@@ -83,9 +124,19 @@ final class ServerGameContext
         return null;
     }
 
-    private function validVersion(?string $version): bool
+    private function isVanillaJavaEgg(string $identity): bool
     {
-        return is_string($version) && preg_match('/^\d+(?:\.\d+){1,3}(?:[-+._a-zA-Z0-9]*)?$/', $version) === 1;
+        return !preg_match('/\b(bungee(?:cord)?|waterfall|velocity|paper|spigot|purpur|folia|bukkit|sponge)\b/', $identity)
+            && (str_contains($identity, 'minecraft') || str_contains($identity, 'vanilla'));
+    }
+
+    private function normalizeVersion(?string $version): ?string
+    {
+        if (!is_string($version) || preg_match('/^(\d+\.\d+(?:\.\d+){0,2})(?:[-+._a-zA-Z0-9]*)?$/', trim($version), $matches) !== 1) {
+            return null;
+        }
+
+        return $matches[1];
     }
 
     private function zomboidServerName(array $variables): string
@@ -98,6 +149,7 @@ final class ServerGameContext
 
 enum CurseForgeLoader: int
 {
+    case Vanilla = 0;
     case Forge = 1;
     case Fabric = 4;
     case Quilt = 5;
