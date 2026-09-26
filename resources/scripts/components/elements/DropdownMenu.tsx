@@ -2,6 +2,7 @@ import React, { createRef } from 'react';
 import styled from 'styled-components/macro';
 import tw from 'twin.macro';
 import Fade from '@/components/elements/Fade';
+import Portal from '@/components/elements/Portal';
 
 interface Props {
     children: React.ReactNode;
@@ -9,16 +10,17 @@ interface Props {
 }
 
 export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded w-full text-neutral-500`};
+    ${tw`p-2 flex items-center rounded w-full text-gray-300`};
     transition: 150ms all ease;
 
     &:hover {
-        ${(props) => (props.danger ? tw`text-red-700 bg-red-100` : tw`text-neutral-700 bg-neutral-100`)};
+        ${(props) => (props.danger ? tw`text-red-200 bg-red-900` : tw`text-white bg-gray-800`)};
     }
 `;
 
 interface State {
     posX: number;
+    posY: number;
     visible: boolean;
 }
 
@@ -27,6 +29,7 @@ class DropdownMenu extends React.PureComponent<Props, State> {
 
     state: State = {
         posX: 0,
+        posY: 0,
         visible: false,
     };
 
@@ -40,7 +43,16 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         if (this.state.visible && !prevState.visible && menu) {
             document.addEventListener('click', this.windowListener);
             document.addEventListener('contextmenu', this.contextMenuListener);
-            menu.style.left = `${Math.round(this.state.posX - menu.clientWidth)}px`;
+            const left = Math.max(
+                8,
+                Math.min(this.state.posX - menu.clientWidth, window.innerWidth - menu.clientWidth - 8)
+            );
+            const top =
+                this.state.posY + menu.clientHeight > window.innerHeight - 8
+                    ? Math.max(8, this.state.posY - menu.clientHeight)
+                    : this.state.posY;
+            menu.style.left = `${Math.round(left)}px`;
+            menu.style.top = `${Math.round(top)}px`;
         }
 
         if (!this.state.visible && prevState.visible) {
@@ -55,7 +67,7 @@ class DropdownMenu extends React.PureComponent<Props, State> {
 
     onClickHandler = (e: React.MouseEvent<any, MouseEvent>) => {
         e.preventDefault();
-        this.triggerMenu(e.clientX);
+        this.triggerMenu(e.clientX, e.clientY);
     };
 
     contextMenuListener = () => this.setState({ visible: false });
@@ -76,9 +88,10 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         }
     };
 
-    triggerMenu = (posX: number) =>
+    triggerMenu = (posX: number, posY: number) =>
         this.setState((s) => ({
             posX: !s.visible ? posX : s.posX,
+            posY: !s.visible ? posY : s.posY,
             visible: !s.visible,
         }));
 
@@ -86,19 +99,21 @@ class DropdownMenu extends React.PureComponent<Props, State> {
         return (
             <div>
                 {this.props.renderToggle(this.onClickHandler)}
-                <Fade timeout={150} in={this.state.visible} unmountOnExit>
-                    <div
-                        ref={this.menu}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            this.setState({ visible: false });
-                        }}
-                        style={{ width: '12rem' }}
-                        css={tw`absolute bg-white p-2 rounded border border-neutral-700 shadow-lg text-neutral-500 z-50`}
-                    >
-                        {this.props.children}
-                    </div>
-                </Fade>
+                <Portal>
+                    <Fade timeout={150} in={this.state.visible} unmountOnExit>
+                        <div
+                            ref={this.menu}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                this.setState({ visible: false });
+                            }}
+                            style={{ position: 'fixed', top: 0, left: 0, width: '12rem' }}
+                            css={tw`bg-gray-900 p-2 rounded border border-gray-700 shadow-lg text-gray-200 z-50`}
+                        >
+                            {this.props.children}
+                        </div>
+                    </Fade>
+                </Portal>
             </div>
         );
     }

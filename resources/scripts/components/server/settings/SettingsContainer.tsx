@@ -128,9 +128,6 @@ const SettingsContainer = () => {
 
             <div className={styles.grid}>
                 <div className={styles.column}>
-                    <Can action={'settings.rename'}>
-                        <ServerCoverBox />
-                    </Can>
                     <section className={styles.card}>
                         <CardHeader
                             icon={faServer}
@@ -226,6 +223,10 @@ const SettingsContainer = () => {
                     </Can>
                 </div>
             </div>
+
+            <Can action={'settings.rename'}>
+                <ServerCoverBox />
+            </Can>
 
             <Dialog.Confirm
                 open={confirmWipe}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     faClock,
     faCloudDownloadAlt,
@@ -16,6 +16,7 @@ import StatBlock from '@/components/server/console/StatBlock';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
+import getServerResourceUsage from '@/api/server/getServerResourceUsage';
 
 type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime' | 'rx' | 'tx', number>;
 
@@ -41,10 +42,12 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0, tx: 0, rx: 0 });
+    const lastSocketStatsAt = useRef(0);
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
     const instance = ServerContext.useStoreState((state) => state.socket.instance);
+    const serverUuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const limits = ServerContext.useStoreState((state) => state.server.data!.limits);
 
     const textLimits = useMemo(
@@ -63,6 +66,37 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     });
 
     useEffect(() => {
+        let active = true;
+        lastSocketStatsAt.current = 0;
+
+        const refreshStats = () => {
+            getServerResourceUsage(serverUuid)
+                .then((usage) => {
+                    if (!active) return;
+                    if (Date.now() - lastSocketStatsAt.current < 20000) return;
+
+                    setStats({
+                        memory: usage.memoryUsageInBytes,
+                        cpu: usage.cpuUsagePercent,
+                        disk: usage.diskUsageInBytes,
+                        rx: usage.networkRxInBytes,
+                        tx: usage.networkTxInBytes,
+                        uptime: usage.uptime,
+                    });
+                })
+                .catch(() => undefined);
+        };
+
+        refreshStats();
+        const interval = setInterval(refreshStats, 15000);
+
+        return () => {
+            active = false;
+            clearInterval(interval);
+        };
+    }, [serverUuid]);
+
+    useEffect(() => {
         if (!connected || !instance) {
             return;
         }
@@ -71,21 +105,30 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     }, [instance, connected]);
 
     useWebsocketEvent(SocketEvent.STATS, (data) => {
-        let stats: any = {};
+        let incoming: any;
         try {
-            stats = JSON.parse(data);
+            incoming = JSON.parse(data);
         } catch (e) {
             return;
         }
 
-        setStats({
-            memory: stats.memory_bytes,
-            cpu: stats.cpu_absolute,
-            disk: stats.disk_bytes,
-            tx: stats.network.tx_bytes,
-            rx: stats.network.rx_bytes,
-            uptime: stats.uptime || 0,
-        });
+        if (!incoming || typeof incoming !== 'object') return;
+        const network = incoming.network || {};
+        const coreValues = [incoming.memory_bytes, incoming.cpu_absolute, incoming.disk_bytes];
+        if (!coreValues.every((value) => value !== null && value !== undefined && Number.isFinite(Number(value)))) {
+            return;
+        }
+
+        lastSocketStatsAt.current = Date.now();
+
+        setStats((current) => ({
+            memory: Number(incoming.memory_bytes),
+            cpu: Number(incoming.cpu_absolute),
+            disk: Number(incoming.disk_bytes),
+            tx: Number.isFinite(Number(network.tx_bytes)) ? Number(network.tx_bytes) : current.tx,
+            rx: Number.isFinite(Number(network.rx_bytes)) ? Number(network.rx_bytes) : current.rx,
+            uptime: Number(incoming.uptime) || 0,
+        }));
     });
 
     return (

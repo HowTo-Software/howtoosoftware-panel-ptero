@@ -15,6 +15,9 @@ import Avatar from '@/components/Avatar';
 import { useTranslation } from 'react-i18next';
 
 const Navigation = styled.header`
+    position: sticky;
+    top: 0;
+    z-index: 50;
     width: 100%;
     overflow-x: hidden;
     border-bottom: 1px solid rgba(111, 129, 182, 0.14);
