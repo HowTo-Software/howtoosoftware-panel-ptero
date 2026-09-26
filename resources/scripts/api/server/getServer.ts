@@ -35,6 +35,8 @@ export interface Server {
     name: string;
     node: string;
     eggName: string | null;
+    coverImageUrl: string | null;
+    iconImageUrl: string | null;
     isNodeUnderMaintenance: boolean;
     status: ServerStatus;
     sftpDetails: {
@@ -87,6 +89,8 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     uuid: data.uuid,
     name: data.name,
     node: data.node,
+    coverImageUrl: data.cover_image_url ?? null,
+    iconImageUrl: data.icon_image_url ?? null,
     eggName:
         data.relationships?.egg && 'attributes' in data.relationships.egg
             ? data.relationships.egg.attributes.name ?? null

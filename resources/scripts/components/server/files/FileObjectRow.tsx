@@ -15,26 +15,39 @@ import { join } from 'pathe';
 import { bytesToString } from '@/lib/formatters';
 import styles from './style.module.css';
 
-const Clickable: React.FC<{ file: FileObject }> = memo(({ file, children }) => {
-    const [canRead] = usePermissions(['file.read']);
-    const [canReadContents] = usePermissions(['file.read-content']);
-    const directory = ServerContext.useStoreState((state) => state.files.directory);
+const Clickable: React.FC<{ file: FileObject; onOpenFile?: (file: FileObject) => void }> = memo(
+    ({ file, onOpenFile, children }) => {
+        const [canRead] = usePermissions(['file.read']);
+        const [canReadContents] = usePermissions(['file.read-content']);
+        const directory = ServerContext.useStoreState((state) => state.files.directory);
 
-    const match = useRouteMatch();
+        const match = useRouteMatch();
 
-    return (file.isFile && (!file.isEditable() || !canReadContents)) || (!file.isFile && !canRead) ? (
-        <div className={styles.details}>{children}</div>
-    ) : (
-        <NavLink
-            className={styles.details}
-            to={`${match.url}${file.isFile ? '/edit' : ''}#${encodePathSegments(join(directory, file.name))}`}
-        >
-            {children}
-        </NavLink>
-    );
-}, isEqual);
+        if ((file.isFile && (!file.isEditable() || !canReadContents)) || (!file.isFile && !canRead)) {
+            return <div className={styles.details}>{children}</div>;
+        }
 
-const FileObjectRow = ({ file }: { file: FileObject }) => (
+        if (file.isFile && onOpenFile) {
+            return (
+                <button type={'button'} className={styles.details} onClick={() => onOpenFile(file)} title={file.name}>
+                    {children}
+                </button>
+            );
+        }
+
+        return (
+            <NavLink
+                className={styles.details}
+                to={`${match.url}${file.isFile ? '/edit' : ''}#${encodePathSegments(join(directory, file.name))}`}
+            >
+                {children}
+            </NavLink>
+        );
+    },
+    isEqual
+);
+
+const FileObjectRow = ({ file, onOpenFile }: { file: FileObject; onOpenFile?: (file: FileObject) => void }) => (
     <div
         className={styles.file_row}
         key={file.name}
@@ -44,7 +57,7 @@ const FileObjectRow = ({ file }: { file: FileObject }) => (
         }}
     >
         <SelectFileCheckbox name={file.name} />
-        <Clickable file={file}>
+        <Clickable file={file} onOpenFile={onOpenFile}>
             <div css={tw`flex-none ml-6 mr-4 text-lg pl-3`}>
                 {file.isFile ? (
                     <FontAwesomeIcon
@@ -68,6 +81,8 @@ const FileObjectRow = ({ file }: { file: FileObject }) => (
 );
 
 export default memo(FileObjectRow, (prevProps, nextProps) => {
+    if (prevProps.onOpenFile !== nextProps.onOpenFile) return false;
+
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const { isArchiveType, isEditable, ...prevFile } = prevProps.file;
     const { isArchiveType: nextIsArchiveType, isEditable: nextIsEditable, ...nextFile } = nextProps.file;

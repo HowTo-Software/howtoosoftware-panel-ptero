@@ -1,0 +1,30 @@
+.startupPage :global(input:not([type='checkbox']):not([type='radio'])),
+.startupPage :global(select) {
+    border-color: #344a7a !important;
+    background-color: #111a34 !important;
+    color: #e5edff !important;
+    color-scheme: dark;
+}
+
+.startupPage :global(input:not([type='checkbox']):not([type='radio']):hover:not(:disabled)),
+.startupPage :global(select:hover:not(:disabled)) {
+    border-color: #52699f !important;
+}
+
+.startupPage :global(input:not([type='checkbox']):not([type='radio']):focus),
+.startupPage :global(select:focus) {
+    border-color: #8875ff !important;
+    outline: 2px solid rgb(136 117 255 / 16%);
+}
+
+.startupPage :global(input:disabled),
+.startupPage :global(select:disabled) {
+    background-color: #0c142b !important;
+    color: #9eaccb !important;
+    opacity: 1;
+}
+
+.startupPage :global(option) {
+    background: #111a34;
+    color: #e5edff;
+}

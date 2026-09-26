@@ -1,20 +1,56 @@
 .stat_block {
-    @apply flex items-center rounded shadow-lg relative;
-    @apply col-span-3 md:col-span-2 lg:col-span-6;
-    @apply px-3 py-2 md:p-3 lg:p-4;
+    @apply relative flex items-center;
+    min-width: 0;
+    min-height: 3.55rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgba(112, 133, 193, 0.15);
+    border-radius: 0.65rem;
+    background: linear-gradient(145deg, rgba(29, 35, 59, 0.96), rgba(19, 24, 42, 0.98));
+    box-shadow: 0 10px 24px -22px rgba(0, 0, 0, 0.95);
+    transition: border-color 140ms ease, transform 140ms ease, background-color 140ms ease;
+
+    &:hover {
+        border-color: rgba(176, 105, 255, 0.34);
+        transform: translateY(-1px);
+    }
 
     & > .status_bar {
-        @apply w-1 h-full absolute left-0 top-0 rounded-l sm:hidden;
+        position: absolute;
+        left: 0;
+        top: 0.65rem;
+        bottom: 0.65rem;
+        width: 2px;
+        border-radius: 9999px;
+        opacity: 0.85;
     }
 
     & > .icon {
-        @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-md w-12 h-12;
-        @apply transition-colors duration-500;
-        @apply sm:flex sm:mr-4;
+        @apply flex flex-shrink-0 items-center justify-center transition-colors duration-500;
+        width: 2.15rem;
+        height: 2.15rem;
+        margin-right: 0.65rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 0.55rem;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 18px -14px rgba(0, 0, 0, 0.95);
 
         & > svg {
-            @apply w-6 h-6 m-auto;
+            width: 0.95rem;
+            height: 0.95rem;
+            margin: auto;
         }
+    }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+    .stat_block {
+        min-height: 3.15rem;
+        padding: 0.4rem 0.55rem;
+    }
+
+    .stat_block > .icon {
+        width: 1.9rem;
+        height: 1.9rem;
+        margin-right: 0.55rem;
     }
 }
 
@@ -59,5 +95,173 @@
 }
 
 .chart_container {
-    @apply bg-gray-600 rounded shadow-lg pt-2 border-b-4 border-gray-700 relative;
+    @apply relative flex flex-col overflow-hidden;
+    min-height: 8.25rem;
+    border: 1px solid rgba(120, 139, 198, 0.16);
+    border-radius: 0.7rem;
+    background: linear-gradient(155deg, rgba(26, 32, 55, 0.96), rgba(16, 20, 37, 0.98));
+    box-shadow: 0 12px 30px -24px rgba(0, 0, 0, 0.95);
+}
+
+.chart_plot {
+    position: relative;
+    min-height: 0;
+    height: 6rem;
+    padding: 0 0.25rem 0.25rem;
+}
+
+.console_page {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.console_header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(119, 137, 190, 0.12);
+    padding: 0.1rem 0 0.7rem;
+}
+
+.console_identity {
+    min-width: 0;
+}
+
+.console_identity h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.45rem;
+    letter-spacing: -0.015em;
+}
+
+.console_identity p {
+    margin-top: 0.2rem;
+    color: var(--hts-ink-muted);
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.power_buttons {
+    display: flex;
+    flex: none;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+.power_buttons > * {
+    min-height: 2.15rem;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+    font-size: 0.75rem !important;
+}
+
+.console_workspace {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 14.75rem;
+    align-items: stretch;
+    gap: 0.65rem;
+}
+
+.console_panel {
+    display: flex;
+    min-width: 0;
+    min-height: 24rem;
+    overflow: hidden;
+    border: 1px solid rgba(104, 124, 185, 0.18);
+    border-radius: 0.75rem;
+    background: linear-gradient(155deg, rgba(14, 18, 32, 0.98), rgba(9, 12, 23, 0.99));
+    box-shadow: 0 18px 40px -30px rgba(0, 0, 0, 0.95);
+}
+
+.details_rail {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 0.5rem;
+}
+
+.chart_grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+@media (max-width: 1023px) {
+    .console_workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .details_rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .console_header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .power_buttons {
+        justify-content: stretch;
+    }
+
+    .power_buttons > * {
+        flex: 1;
+    }
+
+    .details_rail,
+    .chart_grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .console_panel {
+        min-height: 20rem;
+    }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+    .console_page {
+        gap: 0.55rem;
+    }
+
+    .console_header {
+        padding-bottom: 0.5rem;
+    }
+
+    .console_identity h1 {
+        font-size: 1.1rem;
+    }
+
+    .console_workspace {
+        grid-template-columns: minmax(0, 1fr) 13.5rem;
+        gap: 0.5rem;
+    }
+
+    .console_panel {
+        min-height: 20.5rem;
+    }
+
+    .details_rail {
+        gap: 0.4rem;
+    }
+
+    .chart_grid {
+        gap: 0.5rem;
+    }
+
+    .chart_container {
+        min-height: 7rem;
+    }
+
+    .chart_plot {
+        height: 4.75rem;
+    }
 }

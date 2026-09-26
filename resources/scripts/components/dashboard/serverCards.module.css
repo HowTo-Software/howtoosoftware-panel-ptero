@@ -118,9 +118,9 @@
 }
 
 .statusPending {
-    border-color: rgba(120, 150, 240, 0.3);
-    background: rgba(35, 49, 86, 0.78);
-    color: #becbff;
+    border-color: rgba(245, 180, 54, 0.42);
+    background: rgba(105, 69, 12, 0.78);
+    color: #ffd166;
 }
 
 .statusNeutral {

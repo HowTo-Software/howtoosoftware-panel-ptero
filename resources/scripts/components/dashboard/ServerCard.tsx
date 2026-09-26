@@ -34,7 +34,9 @@ export default ({ server }: Props) => {
     const [checking, setChecking] = useState(true);
     const [connectionError, setConnectionError] = useState(false);
     const [iconMissing, setIconMissing] = useState(false);
+    const [customIconUnavailable, setCustomIconUnavailable] = useState(false);
     const [backgroundMissing, setBackgroundMissing] = useState(false);
+    const [customCoverUnavailable, setCustomCoverUnavailable] = useState(false);
     const provisioningStatus = getProvisioningStatus(server);
     const visuals = resolveGameVisuals(server);
 
@@ -71,8 +73,10 @@ export default ({ server }: Props) => {
 
     useEffect(() => {
         setIconMissing(false);
+        setCustomIconUnavailable(false);
         setBackgroundMissing(false);
-    }, [visuals.icon, visuals.background]);
+        setCustomCoverUnavailable(false);
+    }, [server.coverImageUrl, server.iconImageUrl, visuals.icon, visuals.background]);
 
     const status = provisioningStatus
         ? { label: provisioningStatus, className: styles.statusNeutral }
@@ -94,10 +98,18 @@ export default ({ server }: Props) => {
                 {!backgroundMissing ? (
                     <img
                         className={styles.backgroundImage}
-                        src={visuals.background}
+                        src={
+                            server.coverImageUrl && !customCoverUnavailable ? server.coverImageUrl : visuals.background
+                        }
                         alt={''}
                         aria-hidden={'true'}
-                        onError={() => setBackgroundMissing(true)}
+                        onError={() => {
+                            if (server.coverImageUrl && !customCoverUnavailable) {
+                                setCustomCoverUnavailable(true);
+                            } else {
+                                setBackgroundMissing(true);
+                            }
+                        }}
                     />
                 ) : (
                     <div className={styles.backgroundPlaceholder}>NO Image</div>
@@ -114,10 +126,16 @@ export default ({ server }: Props) => {
                     <div className={styles.iconFrame}>
                         {!iconMissing ? (
                             <img
-                                src={visuals.icon}
+                                src={server.iconImageUrl && !customIconUnavailable ? server.iconImageUrl : visuals.icon}
                                 alt={''}
                                 aria-hidden={'true'}
-                                onError={() => setIconMissing(true)}
+                                onError={() => {
+                                    if (server.iconImageUrl && !customIconUnavailable) {
+                                        setCustomIconUnavailable(true);
+                                    } else {
+                                        setIconMissing(true);
+                                    }
+                                }}
                             />
                         ) : (
                             <span>NO Image</span>

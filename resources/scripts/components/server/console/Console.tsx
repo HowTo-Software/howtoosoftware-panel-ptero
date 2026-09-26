@@ -56,7 +56,7 @@ export default () => {
     const TERMINAL_PRELUDE = '\u001b[1m\u001b[33mcontainer@pterodactyl~ \u001b[0m';
     const ref = useRef<HTMLDivElement>(null);
     const terminal = useMemo(() => new Terminal({ ...terminalProps }), []);
-    const fitAddon = new FitAddon();
+    const fitAddon = useMemo(() => new FitAddon(), []);
     const searchAddon = new SearchAddon();
     const searchBar = new SearchBarAddon({ searchAddon });
     const webLinksAddon = new WebLinksAddon();
@@ -156,6 +156,27 @@ export default () => {
             });
         }
     }, [terminal, connected]);
+
+    useEffect(() => {
+        const container = ref.current?.parentElement;
+        if (!container || !terminal.element) {
+            return;
+        }
+
+        let frame = 0;
+        const fit = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => fitAddon.fit());
+        };
+        const observer = new ResizeObserver(fit);
+        observer.observe(container);
+        fit();
+
+        return () => {
+            observer.disconnect();
+            cancelAnimationFrame(frame);
+        };
+    }, [connected, fitAddon, terminal]);
 
     useEventListener(
         'resize',

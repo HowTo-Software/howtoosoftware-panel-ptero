@@ -7,6 +7,8 @@ describe('game artwork detection', () => {
 
     it('recognizes supported game names and common egg labels', () => {
         expect(detectGameVisual({ eggName: 'Minecraft Java' })).toBe('minecraft');
+        expect(detectGameVisual({ eggName: 'Bedrock Dedicated Server' })).toBe('minecraft');
+        expect(detectGameVisual({ eggName: 'PocketMine-MP' })).toBe('minecraft');
         expect(detectGameVisual({ description: 'ARK: Survival Ascended' })).toBe('ark');
         expect(detectGameVisual({ name: 'Terraria community' })).toBe('terraria');
         expect(detectGameVisual({ name: 'Counter Strike 2 server' })).toBe('cs');

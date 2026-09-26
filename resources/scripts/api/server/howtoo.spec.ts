@@ -180,15 +180,15 @@ describe('searchWorkshop', () => {
     it('requests a filtered Workshop catalog without a search phrase', async () => {
         jest.mocked(http.get).mockResolvedValue({
             data: {
-                items: [{ workshop_id: '3', name: 'Build 42 mod', tags: ['Build 42'], mod_ids: [] }],
+                items: [{ workshop_id: '3', name: 'Build 41 mod', tags: ['Build 41', 'Animals'], mod_ids: [] }],
                 pagination: { page: 1, per_page: 30, total: 1, total_pages: 1, has_next: false },
             },
         });
 
-        await searchWorkshop('server-id', '', 1, 30, 'trending', ['Build 42', 'Animals']);
+        await searchWorkshop('server-id', '', 1, 30, 'trending', ['Build 41', 'Animals']);
 
         expect(http.get).toHaveBeenCalledWith('/api/client/servers/server-id/howtoo/workshop/search', {
-            params: { query: undefined, mode: 'trending', tags: ['Build 42', 'Animals'], page: 1, per_page: 30 },
+            params: { query: undefined, mode: 'trending', tags: ['Build 41', 'Animals'], page: 1, per_page: 30 },
         });
     });
 

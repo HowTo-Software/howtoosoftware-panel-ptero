@@ -25,6 +25,22 @@ const Label = styled.label`
     ${tw`uppercase text-xs mt-1 text-neutral-400 block px-1 select-none transition-colors duration-150`}
 `;
 
+const NotesTextarea = styled(Textarea)`
+    background-color: #111a34 !important;
+    border-color: #344a7a !important;
+    color: #e5edff !important;
+
+    &::placeholder {
+        color: #8e9bbb !important;
+        opacity: 1;
+    }
+
+    &:focus {
+        border-color: #8875ff !important;
+        box-shadow: 0 0 0 2px rgb(136 117 255 / 16%) !important;
+    }
+`;
+
 interface Props {
     allocation: Allocation;
 }
@@ -86,8 +102,7 @@ const AllocationRow = ({ allocation }: Props) => {
             </div>
             <div className={'mt-4 w-full md:mt-0 md:flex-1 md:w-auto'}>
                 <InputSpinner visible={loading}>
-                    <Textarea
-                        className={'bg-neutral-800 hover:border-neutral-600 border-transparent'}
+                    <NotesTextarea
                         placeholder={'Notes'}
                         defaultValue={allocation.notes || undefined}
                         onChange={(e) => setAllocationNotes(e.currentTarget.value)}

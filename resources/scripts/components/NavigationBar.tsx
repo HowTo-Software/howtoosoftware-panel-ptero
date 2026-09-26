@@ -16,26 +16,41 @@ import { useTranslation } from 'react-i18next';
 
 const Navigation = styled.header`
     width: 100%;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--hts-border);
-    background: var(--hts-surface-soft);
-    box-shadow: 0 8px 30px -24px rgba(0, 0, 0, 0.9);
+    overflow-x: hidden;
+    border-bottom: 1px solid rgba(111, 129, 182, 0.14);
+    background: linear-gradient(90deg, rgba(18, 23, 41, 0.99), rgba(22, 27, 48, 0.99));
+    box-shadow: 0 10px 28px -24px rgba(0, 0, 0, 0.95);
+
+    #logo > a {
+        @media (max-width: 640px) {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
 `;
 
 const Brand = styled.span`
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.5rem;
+    font-size: 1rem;
+    min-width: 0;
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
     img {
-        width: 2rem;
-        height: 2rem;
+        width: 1.7rem;
+        height: 1.7rem;
         flex: none;
-        padding: 0.125rem;
-        border: 1px solid var(--hts-border-blue);
-        border-radius: 0.375rem;
-        background: rgba(176, 105, 255, 0.08);
-        filter: drop-shadow(0 0 6px rgba(176, 105, 255, 0.32));
+        padding: 0.1rem;
+        border: 1px solid rgba(176, 105, 255, 0.24);
+        border-radius: 0.45rem;
+        background: rgba(176, 105, 255, 0.07);
+        filter: drop-shadow(0 0 6px rgba(176, 105, 255, 0.24));
     }
 `;
 
@@ -43,11 +58,20 @@ const RightNavigation = styled.div`
     & > a,
     & > button,
     & > .navigation-link {
-        ${tw`flex items-center h-full no-underline text-neutral-300 px-6 cursor-pointer transition-all duration-150`};
+        ${tw`flex items-center h-full no-underline text-neutral-300 cursor-pointer transition-all duration-150`};
+        padding-left: 1rem;
+        padding-right: 1rem;
+        font-size: 0.82rem;
+
+        @media (max-width: 640px) {
+            padding-left: 0.6rem;
+            padding-right: 0.6rem;
+        }
 
         &:active,
         &:hover {
-            ${tw`text-neutral-100 bg-black`};
+            color: rgb(245 247 255);
+            background: rgba(131, 168, 243, 0.06);
         }
 
         &:active,
@@ -75,8 +99,8 @@ export default () => {
     return (
         <Navigation>
             <SpinnerOverlay visible={isLoggingOut} />
-            <div className={'mx-auto w-full flex items-center h-[3.5rem] max-w-[1200px]'}>
-                <div id={'logo'} className={'flex-1'}>
+            <div className={'mx-auto flex min-w-0 w-full items-center h-[3.25rem] max-w-[1600px]'}>
+                <div id={'logo'} className={'min-w-0 flex-1'}>
                     <Link
                         to={'/'}
                         className={

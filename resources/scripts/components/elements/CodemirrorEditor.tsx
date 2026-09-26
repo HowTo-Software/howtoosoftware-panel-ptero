@@ -108,8 +108,10 @@ const EditorContainer = styled.div`
 export interface Props {
     style?: React.CSSProperties;
     initialContent?: string;
+    documentKey?: string;
     mode: string;
     filename?: string;
+    readOnly?: boolean;
     onModeChanged: (mode: string) => void;
     fetchContent: (callback: () => Promise<string>) => void;
     onContentSaved: () => void;
@@ -147,14 +149,17 @@ const findModeByFilename = (filename: string) => {
 export default ({
     style,
     initialContent,
+    documentKey,
     filename,
     mode,
+    readOnly = false,
     fetchContent,
     onContentSaved,
     onModeChanged,
     onContentChanged,
 }: Props) => {
-    const [editor, setEditor] = useState<CodeMirror.Editor>();
+    const [editor, setEditor] = useState<CodeMirror.EditorFromTextArea>();
+    const currentDocument = React.useRef<string>();
 
     const ref = useCallback((node) => {
         if (!node) return;
@@ -201,18 +206,32 @@ export default ({
     }, [editor, mode]);
 
     useEffect(() => {
+        editor && editor.setOption('readOnly', readOnly);
+    }, [editor, readOnly]);
+
+    useEffect(() => {
         if (editor) {
-            editor.setValue(initialContent || '');
-            // Reset the history so that "Ctrl+Z" doesn't delete the intial content
-            // we just set above.
-            editor.setHistory({ done: [], undone: [] });
+            const content = initialContent || '';
+            const contentChanged = editor.getValue() !== content;
+            if (contentChanged) editor.setValue(content);
+
+            const documentChanged = documentKey !== undefined && currentDocument.current !== documentKey;
+            if (documentChanged || (documentKey === undefined && contentChanged)) {
+                // Don't let undo history from another file change this document.
+                editor.setHistory({ done: [], undone: [] });
+            }
+            if (documentKey !== undefined) currentDocument.current = documentKey;
         }
-    }, [editor, initialContent]);
+    }, [editor, initialContent, documentKey]);
+
+    useEffect(() => () => editor?.toTextArea(), [editor]);
 
     useEffect(() => {
         if (!editor || !onContentChanged) return;
 
-        const onChange = () => onContentChanged(editor.getValue());
+        const onChange = (_editor: CodeMirror.Editor, change: CodeMirror.EditorChange) => {
+            if (change.origin !== 'setValue') onContentChanged(editor.getValue());
+        };
 
         editor.on('change', onChange);
 
@@ -225,12 +244,14 @@ export default ({
             return;
         }
 
-        editor.addKeyMap({
+        const keyMap = {
             'Ctrl-S': () => onContentSaved(),
             'Cmd-S': () => onContentSaved(),
-        });
+        };
+        editor.addKeyMap(keyMap);
 
         fetchContent(() => Promise.resolve(editor.getValue()));
+        return () => editor.removeKeyMap(keyMap);
     }, [editor, fetchContent, onContentSaved]);
 
     return (

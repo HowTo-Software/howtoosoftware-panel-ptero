@@ -459,4 +459,4 @@ const EditScheduleModal = ({ schedule }: Props) => {
     );
 };
 
-export default asModal<Props>()(EditScheduleModal);
+export default asModal<Props>({ top: false, size: 'large' })(EditScheduleModal);

@@ -21,8 +21,8 @@ import styled from 'styled-components/macro';
 
 const ServerShell = styled.div`
     display: grid;
-    grid-template-columns: 15.5rem minmax(0, 1fr);
-    min-height: calc(100vh - 3.5rem);
+    grid-template-columns: 13.25rem minmax(0, 1fr);
+    min-height: calc(100vh - 3.25rem);
 
     @media (max-width: 768px) {
         display: block;

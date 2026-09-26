@@ -59,6 +59,14 @@ class ServerTransformer extends BaseClientTransformer
                 'port' => $server->node->daemonSFTP,
             ],
             'description' => $server->description,
+            'cover_image_url' => $server->cover_image
+                ? route('api:client:server.settings.cover', ['server' => $server->uuid])
+                    . '?v=' . substr(hash('sha256', $server->cover_image), 0, 12)
+                : null,
+            'icon_image_url' => $server->icon_image
+                ? route('api:client:server.settings.icon', ['server' => $server->uuid])
+                    . '?v=' . substr(hash('sha256', $server->icon_image), 0, 12)
+                : null,
             'limits' => [
                 'memory' => $server->memory,
                 'swap' => $server->swap,
