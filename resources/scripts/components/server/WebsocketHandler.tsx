@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { Websocket } from '@/plugins/Websocket';
 import { ServerContext } from '@/state/server';
@@ -35,7 +36,11 @@ export default () => {
         socket.on('auth success', () => setConnectionState(true));
         socket.on('SOCKET_CLOSE', () => setConnectionState(false));
         socket.on('SOCKET_CONNECT_ERROR', () => {
-            setError('Failed to connect to websocket instance after multiple attempts: try refreshing the page.');
+            setError(
+                translateUiText(
+                    'Failed to connect to websocket instance after multiple attempts: try refreshing the page.'
+                )
+            );
         });
         socket.on('SOCKET_ERROR', () => {
             setError('connecting');
@@ -115,7 +120,7 @@ export default () => {
                         <>
                             <Spinner size={'small'} />
                             <p css={tw`ml-2 text-sm text-red-100`}>
-                                We&apos;re having some trouble connecting to your server, please wait...
+                                {translateUiText("We're having some trouble connecting to your server, please wait...")}
                             </p>
                         </>
                     ) : (

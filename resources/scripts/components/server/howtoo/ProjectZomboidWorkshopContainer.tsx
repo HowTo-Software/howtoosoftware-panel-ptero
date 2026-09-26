@@ -1,3 +1,5 @@
+import { translateUiText } from '@/i18n/uiTranslations';
+import { getBrowserLocale } from '@/i18n/locale';
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components/macro';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
@@ -376,19 +378,30 @@ export default () => {
                 const fallbackIds = manualModIds(manualIds[item.workshopId] || '');
                 if (!fallbackIds.length) {
                     setManualFallback((current) => new Set(current).add(item.workshopId));
-                    setError(`${item.name}: não foi possível descobrir o Mod ID. Informe o valor exato de mod.info.`);
+                    setError(
+                        translateUiText(
+                            '{{name}}: não foi possível descobrir o Mod ID. Informe o valor exato de mod.info.',
+                            { name: item.name }
+                        )
+                    );
                     setResolving(null);
                     return;
                 }
                 resolved = { ...item, modIds: fallbackIds, modIdSource: null };
-                setError('Usando os Mod IDs informados manualmente. Confira se estão corretos antes de salvar.');
+                setError(
+                    translateUiText(
+                        'Usando os Mod IDs informados manualmente. Confira se estão corretos antes de salvar.'
+                    )
+                );
             }
         }
 
         const ids = resolved.modIds.length ? resolved.modIds : manualModIds(manualIds[item.workshopId] || '');
         if (!ids.length) {
             setManualFallback((current) => new Set(current).add(item.workshopId));
-            setError(`${item.name}: informe o Mod ID exato antes de adicionar ao servidor.`);
+            setError(
+                translateUiText('{{name}}: informe o Mod ID exato antes de adicionar ao servidor.', { name: item.name })
+            );
             setResolving(null);
             return;
         }
@@ -414,7 +427,7 @@ export default () => {
         setWorkshopItems(nextItems);
         setMods(nextMods);
         setSelectedCandidates(new Map());
-        setNotice('Seleção adicionada à configuração pendente. Salve para aplicar no servidor.');
+        setNotice(translateUiText('Seleção adicionada à configuração pendente. Salve para aplicar no servidor.'));
     };
 
     const remove = (workshopId: string) => {
@@ -492,21 +505,21 @@ export default () => {
     const status = changed ? 'Alterações pendentes' : 'Configuração sincronizada';
 
     return (
-        <ServerContentBlock title='Workshop Mods'>
+        <ServerContentBlock title={translateUiText('Workshop Mods')}>
             <PageGrid>
                 <MainColumn>
                     <Cover>
                         <GameMark aria-hidden='true'>♟</GameMark>
                         <div style={{ minWidth: 0 }}>
-                            <h1>Project Zomboid Workshop Mods</h1>
+                            <h1>{translateUiText('Project Zomboid Workshop Mods')}</h1>
                             <p>
                                 {configuration?.path ||
-                                    'Descubra mods e sincronize Workshop IDs e Mod IDs do servidor.'}
+                                    translateUiText('Descubra mods e sincronize Workshop IDs e Mod IDs do servidor.')}
                             </p>
                         </div>
                         <HeaderStatus>
                             <span style={{ color: changed ? '#fbbf24' : '#4ade80' }}>●</span>
-                            {status}
+                            {translateUiText(status)}
                         </HeaderStatus>
                     </Cover>
                     <Surface style={{ marginTop: '.8rem' }}>
@@ -530,28 +543,35 @@ export default () => {
                         />
                         {configuration?.detailsError && (
                             <Muted style={{ marginTop: '.7rem' }}>
-                                {configuration.detailsError} A lista configurada continua disponível abaixo.
+                                {configuration.detailsError}{' '}
+                                {translateUiText('A lista configurada continua disponível abaixo.')}
                             </Muted>
                         )}
-                        {notice && <Muted style={{ marginTop: '.65rem', color: '#86efac' }}>{notice}</Muted>}
+                        {notice && (
+                            <Muted style={{ marginTop: '.65rem', color: '#86efac' }}>{translateUiText(notice)}</Muted>
+                        )}
                         {error && <ErrorText role='alert'>{error}</ErrorText>}
                         <Heading style={{ marginTop: '1rem' }}>
                             <div>
                                 <h2>
                                     {catalogMode === 'installed'
-                                        ? 'Instalados na configuração'
+                                        ? translateUiText('Instalados na configuração')
                                         : catalogMode === 'search'
-                                        ? 'Resultados da busca'
+                                        ? translateUiText('Resultados da busca')
                                         : catalogMode === 'most_subscribed'
-                                        ? 'Mais inscritos'
+                                        ? translateUiText('Mais inscritos')
                                         : catalogMode === 'recent'
-                                        ? 'Atualizados recentemente'
-                                        : 'Mods em alta'}
+                                        ? translateUiText('Atualizados recentemente')
+                                        : translateUiText('Mods em alta')}
                                 </h2>
                                 <p>
                                     {catalogMode === 'installed'
-                                        ? 'Workshop IDs atualmente salvos no servidor'
-                                        : `${total.toLocaleString()} resultados do Steam Workshop para Project Zomboid`}
+                                        ? translateUiText('Workshop IDs atualmente salvos no servidor')
+                                        : translateUiText('{{count}} results from Steam Workshop for Project Zomboid', {
+                                              count: total.toLocaleString(
+                                                  getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US'
+                                              ),
+                                          })}
                                 </p>
                             </div>
                             {catalogMode !== 'installed' && (
@@ -560,7 +580,7 @@ export default () => {
                                     target='_blank'
                                     rel='noreferrer'
                                 >
-                                    Ver no Steam ↗
+                                    {translateUiText('Ver no Steam ↗')}
                                 </a>
                             )}
                         </Heading>
@@ -580,7 +600,7 @@ export default () => {
                                 }
                                 emptyMessage={
                                     catalogMode === 'installed'
-                                        ? 'Ainda não há Workshop IDs salvos neste servidor.'
+                                        ? translateUiText('Ainda não há Workshop IDs salvos neste servidor.')
                                         : undefined
                                 }
                             />
@@ -601,7 +621,7 @@ export default () => {
                                         )
                                     }
                                 >
-                                    Carregar mais
+                                    {translateUiText('Carregar mais')}
                                 </Button>
                             </div>
                         )}
@@ -611,14 +631,14 @@ export default () => {
                 <SidePanel>
                     <Heading>
                         <div>
-                            <h2>Itens na configuração pendente</h2>
-                            <p>Alterações aplicadas ao salvar</p>
+                            <h2>{translateUiText('Itens na configuração pendente')}</h2>
+                            <p>{translateUiText('Alterações aplicadas ao salvar')}</p>
                         </div>
                         <AddedCount>{workshopItems.length}</AddedCount>
                     </Heading>
                     {!workshopItems.length ? (
                         <Muted style={{ marginTop: '.8rem' }}>
-                            Selecione mods do catálogo para preparar a configuração.
+                            {translateUiText('Selecione mods do catálogo para preparar a configuração.')}
                         </Muted>
                     ) : (
                         <SideList>
@@ -644,12 +664,14 @@ export default () => {
                                         )}
                                         <div>
                                             <strong>{item?.name || `Workshop item ${id}`}</strong>
-                                            <small>Workshop ID: {id}</small>
+                                            <small>
+                                                {translateUiText('Workshop ID:')} {id}
+                                            </small>
                                         </div>
                                         <Can action='integration.workshop-update'>
                                             <button
                                                 type='button'
-                                                aria-label={`Remover ${id}`}
+                                                aria-label={translateUiText('Remover {{id}}', { id })}
                                                 disabled={saving}
                                                 onClick={() => remove(id)}
                                             >
@@ -663,7 +685,7 @@ export default () => {
                     )}
                     <div style={{ borderTop: '1px solid var(--hts-border)', paddingTop: '.7rem' }}>
                         <Heading>
-                            <h2>Mod IDs do servidor</h2>
+                            <h2>{translateUiText('Mod IDs do servidor')}</h2>
                             <AddedCount>{mods.length}</AddedCount>
                         </Heading>
                         <InlineChips>
@@ -673,7 +695,7 @@ export default () => {
                                     <Can action='integration.workshop-update'>
                                         <button
                                             type='button'
-                                            aria-label={`Remover Mod ID ${id}`}
+                                            aria-label={translateUiText('Remover Mod ID {{id}}', { id })}
                                             onClick={() =>
                                                 setMods((current) => current.filter((value) => value !== id))
                                             }
@@ -686,17 +708,17 @@ export default () => {
                         </InlineChips>
                         <Can action='integration.workshop-update'>
                             <SubtleButton type='button' onClick={() => setShowManualEditor((value) => !value)}>
-                                ⚙ Gerenciar IDs manualmente
+                                {translateUiText('⚙ Gerenciar IDs manualmente')}
                             </SubtleButton>
                             {showManualEditor && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.4rem', marginTop: '.5rem' }}>
                                     <Input
                                         value={manualMod}
                                         onChange={(event) => setManualMod(event.currentTarget.value)}
-                                        placeholder='Mod ID(s), separados por ;'
+                                        placeholder={translateUiText('Mod ID(s), separados por ;')}
                                     />
                                     <Button type='button' size='xsmall' isSecondary onClick={addManualMod}>
-                                        Adicionar
+                                        {translateUiText('Adicionar')}
                                     </Button>
                                 </div>
                             )}
@@ -709,10 +731,10 @@ export default () => {
                 <StickyActions>
                     <div>
                         <strong style={{ color: 'var(--hts-ink)', fontSize: '.85rem' }}>
-                            {selectedCandidates.size} mods selecionados
+                            {selectedCandidates.size} {translateUiText('mods selecionados')}
                         </strong>
                         <p style={{ color: 'var(--hts-ink-muted)', fontSize: '.7rem' }}>
-                            Selecione no catálogo antes de adicionar à configuração
+                            {translateUiText('Selecione no catálogo antes de adicionar à configuração')}
                         </p>
                     </div>
                     <ActionGroup>
@@ -722,7 +744,7 @@ export default () => {
                             disabled={!selectedCandidates.size || saving}
                             onClick={addSelected}
                         >
-                            ⊕ Adicionar selecionados
+                            {translateUiText('⊕ Adicionar selecionados')}
                         </Button>
                         <Button
                             type='button'
@@ -731,7 +753,7 @@ export default () => {
                             isLoading={saving}
                             onClick={() => void save(false)}
                         >
-                            ▣ Salvar
+                            {translateUiText('▣ Salvar')}
                         </Button>
                         <Can action='control.restart'>
                             <Button
@@ -740,7 +762,7 @@ export default () => {
                                 isLoading={saving}
                                 onClick={() => void save(true)}
                             >
-                                ▶ Salvar e Reiniciar
+                                {translateUiText('▶ Salvar e Reiniciar')}
                             </Button>
                         </Can>
                     </ActionGroup>

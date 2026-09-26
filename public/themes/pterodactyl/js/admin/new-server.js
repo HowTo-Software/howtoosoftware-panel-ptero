@@ -19,27 +19,27 @@
 // SOFTWARE.
 $(document).ready(function() {
     $('#pNestId').select2({
-        placeholder: 'Select a Nest',
+        placeholder: window.howTooTranslate('Select a Nest'),
     }).change();
 
     $('#pEggId').select2({
-        placeholder: 'Select a Nest Egg',
+        placeholder: window.howTooTranslate('Select a Nest Egg'),
     });
 
     $('#pPackId').select2({
-        placeholder: 'Select a Service Pack',
+        placeholder: window.howTooTranslate('Select a Service Pack'),
     });
 
     $('#pNodeId').select2({
-        placeholder: 'Select a Node',
+        placeholder: window.howTooTranslate('Select a Node'),
     }).change();
 
     $('#pAllocation').select2({
-        placeholder: 'Select a Default Allocation',
+        placeholder: window.howTooTranslate('Select a Default Allocation'),
     });
 
     $('#pAllocationAdditional').select2({
-        placeholder: 'Select Additional Allocations',
+        placeholder: window.howTooTranslate('Select Additional Allocations'),
     });
 });
 
@@ -59,7 +59,7 @@ $('#pNodeId').on('change', function () {
         if (v.id == currentNode) {
             $('#pAllocation').html('').select2({
                 data: v.allocations,
-                placeholder: 'Select a Default Allocation',
+                placeholder: window.howTooTranslate('Select a Default Allocation'),
             });
 
             updateAdditionalAllocations();
@@ -93,13 +93,13 @@ $('#pEggId').on('change', function (event) {
     }
 
     if (!_.get(objectChain, 'startup', false)) {
-        $('#pStartup').val(_.get(parentChain, 'startup', 'ERROR: Startup Not Defined!'));
+        $('#pStartup').val(_.get(parentChain, 'startup', window.howTooTranslate('ERROR: Startup Not Defined!')));
     } else {
         $('#pStartup').val(_.get(objectChain, 'startup'));
     }
 
     $('#pPackId').html('').select2({
-        data: [{ id: 0, text: 'No Service Pack' }].concat(
+        data: [{ id: 0, text: window.howTooTranslate('No Service Pack') }].concat(
             $.map(_.get(objectChain, 'packs', []), function (item, i) {
                 return {
                     id: item.id,
@@ -120,14 +120,14 @@ $('#pEggId').on('change', function (event) {
     $.each(_.get(objectChain, 'variables', []), function (i, item) {
         variableIds[item.env_variable] = 'var_ref_' + item.id;
 
-        let isRequired = (item.required === 1) ? '<span class="label label-danger">Required</span> ' : '';
+        let isRequired = (item.required === 1) ? '<span class="label label-danger">' + window.howTooTranslate('Required') + '</span> ' : '';
         let dataAppend = ' \
             <div class="form-group col-sm-6"> \
                 <label for="var_ref_' + escapeHtml(item.id) + '" class="control-label">' + isRequired + escapeHtml(item.name) + '</label> \
                 <input type="text" id="var_ref_' + escapeHtml(item.id) + '" autocomplete="off" name="environment[' + escapeHtml(item.env_variable) + ']" class="form-control" value="' + escapeHtml(item.default_value) + '" /> \
                 <p class="text-muted small">' + escapeHtml(item.description) + '<br /> \
-                <strong>Access in Startup:</strong> <code>{{' + escapeHtml(item.env_variable) + '}}</code><br /> \
-                <strong>Validation Rules:</strong> <code>' + escapeHtml(item.rules) + '</code></small></p> \
+                <strong>' + window.howTooTranslate('Access in Startup:') + '</strong> <code>{{' + escapeHtml(item.env_variable) + '}}</code><br /> \
+                <strong>' + window.howTooTranslate('Validation Rules:') + '</strong> <code>' + escapeHtml(item.rules) + '</code></small></p> \
             </div> \
         ';
         $('#appendVariablesTo').append(dataAppend);
@@ -160,7 +160,7 @@ function updateAdditionalAllocations() {
 
             $('#pAllocationAdditional').html('').select2({
                 data: allocations,
-                placeholder: 'Select Additional Allocations',
+                placeholder: window.howTooTranslate('Select Additional Allocations'),
             });
         }
     });

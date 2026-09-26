@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
 import TaskDetailsModal from '@/components/server/schedules/TaskDetailsModal';
@@ -14,7 +15,7 @@ export default ({ schedule }: Props) => {
         <>
             <TaskDetailsModal schedule={schedule} visible={visible} onModalDismissed={() => setVisible(false)} />
             <Button onClick={() => setVisible(true)} className={'flex-1'}>
-                New Task
+                {translateUiText('New Task')}
             </Button>
         </>
     );

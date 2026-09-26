@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import styled, { keyframes } from 'styled-components/macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -311,26 +312,28 @@ export default () => {
     };
 
     return (
-        <ServerContentBlock title={'AI Assistant'} showFlashKey={'howtoo:assistant'}>
+        <ServerContentBlock title={translateUiText('AI Assistant')} showFlashKey={'howtoo:assistant'}>
             <Chat>
                 <Header>
                     <div>
-                        <h1>AI Assistant</h1>
+                        <h1>{translateUiText('AI Assistant')}</h1>
                         <p>
-                            Server: {server.name}
+                            {translateUiText('Server:')} {server.name}
                             <StatusDot online={serverStatus === 'running'} />
-                            {serverStatus || 'unknown'}
+                            {serverStatus || translateUiText('unknown')}
                         </p>
                         <p>
-                            Ollama
+                            {translateUiText('Ollama')}
                             <StatusDot online={server.howtoo.aiAssistant.providers.ollama} />
-                            {server.howtoo.aiAssistant.providers.ollama ? 'Available' : 'Unavailable'}
+                            {server.howtoo.aiAssistant.providers.ollama
+                                ? translateUiText('Available')
+                                : translateUiText('Unavailable')}
                         </p>
                     </div>
                     {!!messages.length && (
                         <Button size={'xsmall'} color={'grey'} isSecondary onClick={clear} type={'button'}>
                             <FontAwesomeIcon icon={faTrashAlt} className={'mr-2'} />
-                            Clear
+                            {translateUiText('Clear')}
                         </Button>
                     )}
                 </Header>
@@ -346,13 +349,15 @@ export default () => {
                     {!messages.length && (
                         <Empty>
                             {available
-                                ? 'Ask about an error, a configuration option or a panel function.'
-                                : 'No assistant provider is currently available.'}
+                                ? translateUiText('Ask about an error, a configuration option or a panel function.')
+                                : translateUiText('No assistant provider is currently available.')}
                         </Empty>
                     )}
                     {messages.map((item, index) => (
                         <MessageRow key={`${item.role}-${index}`} customer={item.role === 'user'}>
-                            <Author>{item.role === 'user' ? 'You' : 'Assistant'}</Author>
+                            <Author>
+                                {item.role === 'user' ? translateUiText('You') : translateUiText('Assistant')}
+                            </Author>
                             <MessageBody customer={item.role === 'user'}>
                                 {item.role === 'assistant' ? (
                                     <SafeMarkdown content={item.content} />
@@ -364,14 +369,14 @@ export default () => {
                     ))}
                     {loading && (
                         <MessageRow customer={false}>
-                            <Author>Assistant</Author>
+                            <Author>{translateUiText('Assistant')}</Author>
                             {draft ? (
                                 <MessageBody customer={false}>
                                     <SafeMarkdown content={draft} />
                                 </MessageBody>
                             ) : (
-                                <Thinking aria-label={'Assistant is thinking'}>
-                                    Thinking <i /> <i /> <i />
+                                <Thinking aria-label={translateUiText('Assistant is thinking')}>
+                                    {translateUiText('Thinking')} <i /> <i /> <i />
                                 </Thinking>
                             )}
                         </MessageRow>
@@ -385,7 +390,7 @@ export default () => {
                         value={message}
                         onChange={(event) => setMessage(event.currentTarget.value)}
                         onKeyDown={keyDown}
-                        placeholder={'Ask something...'}
+                        placeholder={translateUiText('Ask something...')}
                         disabled={!available}
                     />
                     <ComposerActions>
@@ -393,18 +398,18 @@ export default () => {
                             {error ? (
                                 <ErrorText>{error}</ErrorText>
                             ) : (
-                                <span>Enter to send / Shift+Enter for a new line</span>
+                                <span>{translateUiText('Enter to send / Shift+Enter for a new line')}</span>
                             )}
                         </div>
                         {loading ? (
                             <Button type={'button'} color={'red'} isSecondary size={'small'} onClick={cancel}>
                                 <FontAwesomeIcon icon={faStop} className={'mr-2'} />
-                                Stop
+                                {translateUiText('Stop')}
                             </Button>
                         ) : (
                             <Button type={'submit'} size={'small'} disabled={!message.trim() || !available}>
                                 <FontAwesomeIcon icon={faPaperPlane} className={'mr-2'} />
-                                Send
+                                {translateUiText('Send')}
                             </Button>
                         )}
                     </ComposerActions>

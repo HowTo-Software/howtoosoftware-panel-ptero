@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
@@ -32,21 +33,21 @@ const RenameServerBox = () => {
                     <FontAwesomeIcon icon={faPencilAlt} />
                 </div>
                 <div>
-                    <h2>Alterar Detalhes do Servidor</h2>
-                    <p>Atualize o nome e a descrição do seu servidor.</p>
+                    <h2>{translateUiText('Alterar Detalhes do Servidor')}</h2>
+                    <p>{translateUiText('Atualize o nome e a descrição do seu servidor.')}</p>
                 </div>
             </header>
             <SpinnerOverlay visible={isSubmitting} />
             <Form css={tw`mb-0`}>
-                <Field id={'name'} name={'name'} label={'Nome do Servidor'} type={'text'} />
+                <Field id={'name'} name={'name'} label={translateUiText('Nome do Servidor')} type={'text'} />
                 <div css={tw`mt-6`}>
-                    <Label>Descrição do Servidor</Label>
+                    <Label>{translateUiText('Descrição do Servidor')}</Label>
                     <FormikFieldWrapper name={'description'}>
                         <FormikField as={Textarea} name={'description'} rows={3} />
                     </FormikFieldWrapper>
                 </div>
                 <div css={tw`mt-6 text-right`}>
-                    <Button type={'submit'}>Salvar Alterações</Button>
+                    <Button type={'submit'}>{translateUiText('Salvar Alterações')}</Button>
                 </div>
             </Form>
         </section>

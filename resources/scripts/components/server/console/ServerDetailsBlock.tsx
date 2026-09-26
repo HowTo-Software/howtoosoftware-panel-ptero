@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     faClock,
@@ -130,7 +131,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         <div className={classNames('min-w-0', className)}>
             <StatBlock
                 icon={faWifi}
-                title={'Address'}
+                title={translateUiText('Address')}
                 copyOnClick={allocation}
                 iconColor={'#93c5fd'}
                 iconBackground={'rgba(59, 130, 246, 0.14)'}
@@ -139,7 +140,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             </StatBlock>
             <StatBlock
                 icon={faClock}
-                title={'Uptime'}
+                title={translateUiText('Uptime')}
                 color={getBackgroundColor(status === 'running' ? 0 : status !== 'offline' ? 9 : 10, 10)}
                 iconColor={status === 'offline' ? '#fca5a5' : '#86efac'}
                 iconBackground={status === 'offline' ? 'rgba(239, 68, 68, 0.14)' : 'rgba(34, 197, 94, 0.14)'}
@@ -154,33 +155,33 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             </StatBlock>
             <StatBlock
                 icon={faMicrochip}
-                title={'CPU Load'}
+                title={translateUiText('CPU Load')}
                 color={getBackgroundColor(stats.cpu, limits.cpu)}
                 iconColor={'#c4b5fd'}
                 iconBackground={'rgba(139, 92, 246, 0.14)'}
             >
                 {status === 'offline' ? (
-                    <span className={'text-gray-400'}>Offline</span>
+                    <span className={'text-gray-400'}>{translateUiText('Offline')}</span>
                 ) : (
                     <Limit limit={textLimits.cpu}>{stats.cpu.toFixed(2)}%</Limit>
                 )}
             </StatBlock>
             <StatBlock
                 icon={faMemory}
-                title={'Memory'}
+                title={translateUiText('Memory')}
                 color={getBackgroundColor(stats.memory / 1024, limits.memory * 1024)}
                 iconColor={'#67e8f9'}
                 iconBackground={'rgba(6, 182, 212, 0.14)'}
             >
                 {status === 'offline' ? (
-                    <span className={'text-gray-400'}>Offline</span>
+                    <span className={'text-gray-400'}>{translateUiText('Offline')}</span>
                 ) : (
                     <Limit limit={textLimits.memory}>{bytesToString(stats.memory)}</Limit>
                 )}
             </StatBlock>
             <StatBlock
                 icon={faHdd}
-                title={'Disk'}
+                title={translateUiText('Disk')}
                 color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}
                 iconColor={'#fcd34d'}
                 iconBackground={'rgba(245, 158, 11, 0.14)'}
@@ -189,19 +190,27 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
             </StatBlock>
             <StatBlock
                 icon={faCloudDownloadAlt}
-                title={'Network (Inbound)'}
+                title={translateUiText('Network (Inbound)')}
                 iconColor={'#6ee7b7'}
                 iconBackground={'rgba(16, 185, 129, 0.14)'}
             >
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.rx)}
+                {status === 'offline' ? (
+                    <span className={'text-gray-400'}>{translateUiText('Offline')}</span>
+                ) : (
+                    bytesToString(stats.rx)
+                )}
             </StatBlock>
             <StatBlock
                 icon={faCloudUploadAlt}
-                title={'Network (Outbound)'}
+                title={translateUiText('Network (Outbound)')}
                 iconColor={'#d8b4fe'}
                 iconBackground={'rgba(168, 85, 247, 0.14)'}
             >
-                {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.tx)}
+                {status === 'offline' ? (
+                    <span className={'text-gray-400'}>{translateUiText('Offline')}</span>
+                ) : (
+                    bytesToString(stats.tx)
+                )}
             </StatBlock>
         </div>
     );

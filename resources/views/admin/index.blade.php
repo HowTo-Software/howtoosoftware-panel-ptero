@@ -124,7 +124,7 @@
                 @if ($version->isLatestPanel())
                     {!! __('You are running Pterodactyl Panel version :version. Your panel is up-to-date!', ['version' => '<code>' . e(config('app.version')) . '</code>']) !!}
                 @else
-                    Your panel is <strong>not up-to-date!</strong> The latest version is <a href="https://github.com/Pterodactyl/Panel/releases/v{{ $version->getPanel() }}" target="_blank"><code>{{ $version->getPanel() }}</code></a> and you are currently running version <code>{{ config('app.version') }}</code>. You can find instructions on how to update your panel <a href="https://pterodactyl.io/panel/1.0/updating.html">here</a>.
+                    {{ __('Your panel is') }} <strong>{{ __('not up-to-date!') }}</strong> {{ __('The latest version is') }} <a href="https://github.com/Pterodactyl/Panel/releases/v{{ $version->getPanel() }}" target="_blank"><code>{{ $version->getPanel() }}</code></a> {{ __('and you are currently running version') }} <code>{{ config('app.version') }}</code>. {{ __('You can find instructions on how to update your panel') }} <a href="https://pterodactyl.io/panel/1.0/updating.html">{{ __('here') }}</a>.
                 @endif
             </div>
         </div>
@@ -139,7 +139,7 @@
     </div>
     <div class="clearfix visible-xs-block">&nbsp;</div>
     <div class="col-xs-6 col-sm-3 text-center">
-        <a href="https://github.com/pterodactyl/panel"><button class="btn btn-primary" style="width:100%;"><i class="fa fa-fw fa-support"></i> GitHub</button></a>
+        <a href="https://github.com/pterodactyl/panel"><button class="btn btn-primary" style="width:100%;"><i class="fa fa-fw fa-support"></i> {{ __('GitHub') }}</button></a>
     </div>
     <div class="col-xs-6 col-sm-3 text-center">
         <a href="{{ $version->getDonations() }}"><button class="btn btn-success" style="width:100%;"><i class="fa fa-fw fa-money"></i> {{ __('Support the Project') }}</button></a>

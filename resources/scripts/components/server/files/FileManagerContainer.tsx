@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useCallback, useEffect, useState } from 'react';
 import { httpErrorToHuman } from '@/api/http';
 import { CSSTransition } from 'react-transition-group';
@@ -74,13 +75,17 @@ export default () => {
     const visibleFiles = sortedFiles.filter((file) => file.name.toLowerCase().includes(filter.trim().toLowerCase()));
 
     return (
-        <ServerContentBlock title={'Server Files'} showFlashKey={'files'} className={'file-manager-content-wide'}>
+        <ServerContentBlock
+            title={translateUiText('Server Files')}
+            showFlashKey={'files'}
+            className={'file-manager-content-wide'}
+        >
             <ErrorBoundary>
                 <div className={styles.file_page}>
                     <header className={styles.file_page_header}>
                         <div className={styles.file_page_title}>
-                            <h1>Server Files</h1>
-                            <p>Browse, manage, and edit your server files.</p>
+                            <h1>{translateUiText('Server Files')}</h1>
+                            <p>{translateUiText('Browse, manage, and edit your server files.')}</p>
                         </div>
                         <Can action={'file.create'}>
                             <div className={styles.file_toolbar}>
@@ -88,18 +93,18 @@ export default () => {
                                 <UploadButton />
                                 <NewDirectoryButton />
                                 <NavLink to={`/server/${id}/files/new${window.location.hash}`}>
-                                    <Button>New File</Button>
+                                    <Button>{translateUiText('New File')}</Button>
                                 </NavLink>
                             </div>
                         </Can>
                     </header>
 
                     <div className={styles.file_workspace}>
-                        <section className={styles.explorer_panel} aria-label={'File explorer'}>
+                        <section className={styles.explorer_panel} aria-label={translateUiText('File explorer')}>
                             <div className={styles.explorer_header}>
-                                <strong>File Explorer</strong>
+                                <strong>{translateUiText('File Explorer')}</strong>
                                 <span className={styles.explorer_count}>
-                                    {files ? `${files.length} items` : 'Loading'}
+                                    {files ? `${files.length} items` : translateUiText('Loading')}
                                 </span>
                             </div>
                             <div className={styles.explorer_path}>
@@ -114,13 +119,13 @@ export default () => {
                                 />
                             </div>
                             <label className={styles.explorer_search}>
-                                <span className={'sr-only'}>Filter files in this folder</span>
+                                <span className={'sr-only'}>{translateUiText('Filter files in this folder')}</span>
                                 <span aria-hidden={'true'}>⌕</span>
                                 <input
                                     type={'search'}
                                     value={filter}
                                     onChange={(event) => setFilter(event.currentTarget.value)}
-                                    placeholder={'Filter this folder…'}
+                                    placeholder={translateUiText('Filter this folder…')}
                                 />
                             </label>
                             <div className={styles.file_list}>
@@ -132,7 +137,9 @@ export default () => {
                                             <div
                                                 className={'mb-2 rounded bg-yellow-900/50 p-2 text-xs text-yellow-200'}
                                             >
-                                                This folder has more than 250 items; only the first 250 are shown.
+                                                {translateUiText(
+                                                    'This folder has more than 250 items; only the first 250 are shown.'
+                                                )}
                                             </div>
                                         )}
                                         {visibleFiles.length > 0 ? (
@@ -149,7 +156,9 @@ export default () => {
                                             </CSSTransition>
                                         ) : (
                                             <div className={styles.explorer_empty}>
-                                                {files.length === 0 ? 'This folder is empty.' : 'No matching files.'}
+                                                {files.length === 0
+                                                    ? translateUiText('This folder is empty.')
+                                                    : translateUiText('No matching files.')}
                                             </div>
                                         )}
                                     </>

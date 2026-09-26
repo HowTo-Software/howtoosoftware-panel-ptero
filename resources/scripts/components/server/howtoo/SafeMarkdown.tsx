@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
 import ReactMarkdown from 'react-markdown';
@@ -62,9 +63,9 @@ const CodeBlock = ({ children }: any) => {
 
     return (
         <CodeFrame>
-            <CopyCode type={'button'} onClick={copyCode} aria-label={'Copy code'}>
+            <CopyCode type={'button'} onClick={copyCode} aria-label={translateUiText('Copy code')}>
                 <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? translateUiText('Copied') : translateUiText('Copy')}
             </CopyCode>
             {children}
         </CodeFrame>

@@ -1,3 +1,5 @@
+import { translateUiText } from '@/i18n/uiTranslations';
+import { getBrowserLocale } from '@/i18n/locale';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/macro';
 import Button from '@/components/elements/Button';
@@ -170,23 +172,23 @@ export function WorkshopFilters({
     const [showMore, setShowMore] = useState(false);
     return (
         <>
-            <Tabs aria-label='Workshop catalog'>
+            <Tabs aria-label={translateUiText('Workshop catalog')}>
                 {(
                     [
-                        ['trending', '♨  Mods em alta'],
-                        ['most_subscribed', '♟  Mais inscritos'],
-                        ['recent', '◷  Atualizados recentemente'],
+                        ['trending', 'Mods em alta'],
+                        ['most_subscribed', 'Mais inscritos'],
+                        ['recent', 'Atualizados recentemente'],
                     ] as [WorkshopBrowseMode, string][]
                 ).map(([value, label]) => (
                     <Tab key={value} type='button' $active={mode === value} onClick={() => onMode(value)}>
-                        {label}
+                        {translateUiText(label)}
                     </Tab>
                 ))}
                 <Tab type='button' $active={mode === 'installed'} onClick={() => onMode('installed')}>
-                    ▣ Instalados
+                    {translateUiText('▣ Instalados')}
                 </Tab>
             </Tabs>
-            <FilterRow aria-label='Workshop tags'>
+            <FilterRow aria-label={translateUiText('Workshop tags')}>
                 <Filter
                     type='button'
                     $active={!build && selectedTags.length === 0}
@@ -195,7 +197,7 @@ export function WorkshopFilters({
                         selectedTags.forEach(onToggleTag);
                     }}
                 >
-                    Todos
+                    {translateUiText('Todos')}
                 </Filter>
                 {['Build 42', 'Build 41'].map((value) => (
                     <Filter
@@ -204,7 +206,7 @@ export function WorkshopFilters({
                         $active={build === value}
                         onClick={() => onBuild(build === value ? null : value)}
                     >
-                        {value}
+                        {translateUiText(value)}
                     </Filter>
                 ))}
                 {categories.slice(0, 7).map((tag) => (
@@ -214,12 +216,12 @@ export function WorkshopFilters({
                         $active={selectedTags.includes(tag)}
                         onClick={() => onToggleTag(tag)}
                     >
-                        {tag}
+                        {translateUiText(tag)}
                     </Filter>
                 ))}
                 <MoreFilters>
                     <Filter type='button' $active={showMore} onClick={() => setShowMore((value) => !value)}>
-                        Mais⌄
+                        {translateUiText('Mais⌄')}
                     </Filter>
                     {showMore && (
                         <div>
@@ -230,7 +232,7 @@ export function WorkshopFilters({
                                     $active={selectedTags.includes(tag)}
                                     onClick={() => onToggleTag(tag)}
                                 >
-                                    {tag}
+                                    {translateUiText(tag)}
                                 </Filter>
                             ))}
                         </div>
@@ -241,10 +243,10 @@ export function WorkshopFilters({
                 <SearchInput
                     value={query}
                     onChange={(event) => onQuery(event.currentTarget.value)}
-                    placeholder='Buscar mods por nome, Workshop ID ou URL do Steam Workshop...'
+                    placeholder={translateUiText('Buscar mods por nome, Workshop ID ou URL do Steam Workshop...')}
                 />
                 <Button type='submit' isLoading={searching} disabled={searching || query.trim().length < 2}>
-                    Buscar
+                    {translateUiText('Buscar')}
                 </Button>
             </SearchRow>
         </>
@@ -397,7 +399,7 @@ export function WorkshopCards({
     if (!items.length)
         return (
             <p style={{ marginTop: '1rem', color: 'var(--hts-ink-muted)', fontSize: '.85rem' }}>
-                {emptyMessage || 'Nenhum mod encontrado com estes filtros.'}
+                {emptyMessage || translateUiText('Nenhum mod encontrado com estes filtros.')}
             </p>
         );
     return (
@@ -407,8 +409,16 @@ export function WorkshopCards({
                 const rating = item.score === null ? null : `${(item.score * 5).toFixed(1)} / 5`;
                 return (
                     <ModCard key={item.workshopId} $selected={selected.has(item.workshopId)}>
-                        <Preview type='button' onClick={() => onOpen(item)} aria-label={`Detalhes de ${item.name}`}>
-                            {item.image ? <img src={item.image} alt='' loading='lazy' /> : <span>PROJECT ZOMBOID</span>}
+                        <Preview
+                            type='button'
+                            onClick={() => onOpen(item)}
+                            aria-label={translateUiText('Detalhes de {{name}}', { name: item.name })}
+                        >
+                            {item.image ? (
+                                <img src={item.image} alt='' loading='lazy' />
+                            ) : (
+                                <span>{translateUiText('PROJECT ZOMBOID')}</span>
+                            )}
                         </Preview>
                         <CardBody>
                             <button
@@ -418,8 +428,10 @@ export function WorkshopCards({
                             >
                                 <h3>{item.name}</h3>
                             </button>
-                            <p>Workshop ID: {item.workshopId}</p>
-                            <p>{item.description || 'Sem descrição disponível.'}</p>
+                            <p>
+                                {translateUiText('Workshop ID:')} {item.workshopId}
+                            </p>
+                            <p>{item.description || translateUiText('Sem descrição disponível.')}</p>
                             <Tags>
                                 {item.tags.slice(0, 3).map((tag) => (
                                     <span key={tag}>{tag}</span>
@@ -429,24 +441,34 @@ export function WorkshopCards({
                                 <Input
                                     value={manualIds[item.workshopId] || ''}
                                     onChange={(event) => onManualIdChange(item.workshopId, event.currentTarget.value)}
-                                    aria-label={`Mod IDs para ${item.name}`}
-                                    placeholder='Mod IDs exatos, separados por ;'
+                                    aria-label={translateUiText('Mod IDs para {{name}}', { name: item.name })}
+                                    placeholder={translateUiText('Mod IDs exatos, separados por ;')}
                                 />
                             )}
                             <CardFooter>
                                 <span>
                                     {rating ? `★ ${rating} · ` : ''}
                                     {item.subscriptions === null
-                                        ? 'Steam Workshop'
-                                        : `${item.subscriptions.toLocaleString()} inscritos`}
+                                        ? translateUiText('Steam Workshop')
+                                        : `${item.subscriptions.toLocaleString(
+                                              getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US'
+                                          )} ${translateUiText('subscribers')}`}
                                 </span>
                                 <Can action='integration.workshop-update'>
                                     <button
                                         type='button'
                                         onClick={() => onSelect(item)}
                                         disabled={isConfigured}
-                                        aria-label={isConfigured ? 'Já configurado' : 'Selecionar mod'}
-                                        title={isConfigured ? 'Já está configurado' : 'Selecionar mod'}
+                                        aria-label={
+                                            isConfigured
+                                                ? translateUiText('Já configurado')
+                                                : translateUiText('Selecionar mod')
+                                        }
+                                        title={
+                                            isConfigured
+                                                ? translateUiText('Já está configurado')
+                                                : translateUiText('Selecionar mod')
+                                        }
                                     >
                                         {isConfigured ? '✓' : selected.has(item.workshopId) ? '✓' : '+'}
                                     </button>
@@ -462,7 +484,7 @@ export function WorkshopCards({
 
 export function WorkshopSkeletonGrid() {
     return (
-        <ModGrid aria-label='Carregando mods'>
+        <ModGrid aria-label={translateUiText('Carregando mods')}>
             {Array.from({ length: 8 }, (_, index) => (
                 <div
                     key={index}
@@ -545,21 +567,30 @@ export function WorkshopDetails({
         >
             <Dialog role='dialog' aria-modal='true' aria-labelledby='workshop-modal-title'>
                 <Button type='button' isSecondary onClick={onClose}>
-                    Fechar
+                    {translateUiText('Fechar')}
                 </Button>
                 {item.image && <img src={item.image} alt='' />}
                 <h2 id='workshop-modal-title'>{item.name}</h2>
-                <p>Workshop ID: {item.workshopId}</p>
+                <p>
+                    {translateUiText('Workshop ID:')} {item.workshopId}
+                </p>
                 <Tags>
                     {item.tags.map((tag) => (
                         <span key={tag}>{tag}</span>
                     ))}
                 </Tags>
-                <p>{item.description || 'Sem descrição disponível.'}</p>
-                <p>Mod IDs: {item.modIds.length ? item.modIds.join('; ') : 'Será verificado ao selecionar.'}</p>
+                <p>{item.description || translateUiText('Sem descrição disponível.')}</p>
                 <p>
-                    Atualizado em:{' '}
-                    {item.updatedAt ? new Date(item.updatedAt * 1000).toLocaleDateString() : 'Não informado'}
+                    {translateUiText('Mod IDs:')}{' '}
+                    {item.modIds.length ? item.modIds.join('; ') : translateUiText('Será verificado ao selecionar.')}
+                </p>
+                <p>
+                    {translateUiText('Atualizado em:')}{' '}
+                    {item.updatedAt
+                        ? new Date(item.updatedAt * 1000).toLocaleDateString(
+                              getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US'
+                          )
+                        : translateUiText('Não informado')}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.5rem', marginTop: '1rem' }}>
                     <a
@@ -569,11 +600,13 @@ export function WorkshopDetails({
                         target='_blank'
                         rel='noreferrer'
                     >
-                        Abrir no Steam ↗
+                        {translateUiText('Abrir no Steam ↗')}
                     </a>
                     <Can action='integration.workshop-update'>
                         <Button type='button' disabled={configured} onClick={() => onSelect(item)}>
-                            {configured ? 'Já configurado' : 'Selecionar para o servidor'}
+                            {configured
+                                ? translateUiText('Já configurado')
+                                : translateUiText('Selecionar para o servidor')}
                         </Button>
                     </Can>
                 </div>

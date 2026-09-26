@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import Fade from '@/components/elements/Fade';
 import Portal from '@/components/elements/Portal';
@@ -53,7 +54,7 @@ const CopyOnClick = ({ text, showInNotification = true, children }: CopyOnClickP
                                 <p>
                                     {showInNotification
                                         ? `Copied "${String(text)}" to clipboard.`
-                                        : 'Copied text to clipboard.'}
+                                        : translateUiText('Copied text to clipboard.')}
                                 </p>
                             </div>
                         </div>

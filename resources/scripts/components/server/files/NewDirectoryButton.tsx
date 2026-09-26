@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect, useState } from 'react';
 import { ServerContext } from '@/state/server';
 import { Form, Formik, FormikHelpers } from 'formik';
@@ -21,7 +22,7 @@ interface Values {
 }
 
 const schema = object().shape({
-    directoryName: string().required('A valid directory name must be provided.'),
+    directoryName: string().required(translateUiText('A valid directory name must be provided.')),
 });
 
 const displayNameForDirectory = (name: string): string =>
@@ -49,7 +50,7 @@ const generateDirectoryData = (name: string): FileObject => {
 };
 
 const NewDirectoryDialog = asDialog({
-    title: 'Create Directory',
+    title: translateUiText('Create Directory'),
 })(() => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const directory = ServerContext.useStoreState((state) => state.files.directory);
@@ -80,9 +81,12 @@ const NewDirectoryDialog = asDialog({
                 <>
                     <FlashMessageRender key={'files:directory-modal'} />
                     <Form css={tw`m-0`}>
-                        <Field autoFocus id={'directoryName'} name={'directoryName'} label={'Name'} />
+                        <Field autoFocus id={'directoryName'} name={'directoryName'} label={translateUiText('Name')} />
                         <p css={tw`mt-2 text-sm md:text-base break-all`}>
-                            <span css={tw`text-neutral-200`}>This directory will be created as&nbsp;</span>
+                            <span css={tw`text-neutral-200`}>
+                                {translateUiText('This directory will be created as')}
+                                {' '}
+                            </span>
                             <Code>
                                 /home/container/
                                 <span css={tw`text-cyan-200`}>
@@ -93,10 +97,10 @@ const NewDirectoryDialog = asDialog({
                     </Form>
                     <Dialog.Footer>
                         <Button.Text className={'w-full sm:w-auto'} onClick={close}>
-                            Cancel
+                            {translateUiText('Cancel')}
                         </Button.Text>
                         <Button className={'w-full sm:w-auto'} onClick={submitForm}>
-                            Create
+                            {translateUiText('Create')}
                         </Button>
                     </Dialog.Footer>
                 </>
@@ -112,7 +116,7 @@ export default ({ className }: WithClassname) => {
         <>
             <NewDirectoryDialog open={open} onClose={setOpen.bind(this, false)} />
             <Button.Text onClick={setOpen.bind(this, true)} className={className}>
-                Create Directory
+                {translateUiText('Create Directory')}
             </Button.Text>
         </>
     );

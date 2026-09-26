@@ -4,6 +4,7 @@ return [
     'exceptions' => [
         'no_new_default_allocation' => 'Você está tentando remover a alocação padrão deste servidor, mas não há outra alocação disponível.',
         'marked_as_failed' => 'Este servidor foi marcado como falho em uma instalação anterior. O status atual não pode ser alternado nesse estado.',
+        'skipping_install_script' => 'Este servidor está configurado para ignorar o script de instalação do Egg. Para reinstalá-lo, desative essa opção.',
         'bad_variable' => 'Houve um erro de validação na variável :name.',
         'daemon_exception' => 'Houve uma exceção ao comunicar com o daemon, resultando em uma resposta HTTP/:code. A exceção foi registrada. (request id: :request_id)',
         'default_allocation_not_found' => 'A alocação padrão solicitada não foi encontrada nas alocações deste servidor.',

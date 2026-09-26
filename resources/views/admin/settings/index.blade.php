@@ -2,14 +2,14 @@
 @include('partials/admin.settings.nav', ['activeTab' => 'basic'])
 
 @section('title')
-    Settings
+    {{ __('Settings') }}
 @endsection
 
 @section('content-header')
-    <h1>Panel Settings<small>Configure Pterodactyl to your liking.</small></h1>
+    <h1>{{ __('Panel Settings') }}<small>{{ __('Configure Pterodactyl to your liking.') }}</small></h1>
     <ol class="breadcrumb">
-        <li><a href="{{ route('admin.index') }}">Admin</a></li>
-        <li class="active">Settings</li>
+        <li><a href="{{ route('admin.index') }}">{{ __('Admin') }}</a></li>
+        <li class="active">{{ __('Settings') }}</li>
     </ol>
 @endsection
 
@@ -19,54 +19,54 @@
         <div class="col-xs-12">
             <div class="box">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Panel Settings</h3>
+                    <h3 class="box-title">{{ __('Panel Settings') }}</h3>
                 </div>
                 <form action="{{ route('admin.settings') }}" method="POST">
                     <div class="box-body">
                         <div class="row">
                             <div class="form-group col-md-4">
-                                <label class="control-label">Company Name</label>
+                                <label class="control-label">{{ __('Company Name') }}</label>
                                 <div>
                                     <input type="text" class="form-control" name="app:name" value="{{ old('app:name', config('app.name')) }}" />
-                                    <p class="text-muted"><small>This is the name that is used throughout the panel and in emails sent to clients.</small></p>
+                                    <p class="text-muted"><small>{{ __('This is the name that is used throughout the panel and in emails sent to clients.') }}</small></p>
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label">Require 2-Factor Authentication</label>
+                                <label class="control-label">{{ __('Require 2-Factor Authentication') }}</label>
                                 <div>
                                     <div class="btn-group" data-toggle="buttons">
                                         @php
                                             $level = old('pterodactyl:auth:2fa_required', config('pterodactyl.auth.2fa_required'));
                                         @endphp
                                         <label class="btn btn-primary @if ($level == 0) active @endif">
-                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="0" @if ($level == 0) checked @endif> Not Required
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="0" @if ($level == 0) checked @endif> {{ __('Not Required') }}
                                         </label>
                                         <label class="btn btn-primary @if ($level == 1) active @endif">
-                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="1" @if ($level == 1) checked @endif> Admin Only
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="1" @if ($level == 1) checked @endif> {{ __('Admin Only') }}
                                         </label>
                                         <label class="btn btn-primary @if ($level == 2) active @endif">
-                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="2" @if ($level == 2) checked @endif> All Users
+                                            <input type="radio" name="pterodactyl:auth:2fa_required" autocomplete="off" value="2" @if ($level == 2) checked @endif> {{ __('All Users') }}
                                         </label>
                                     </div>
-                                    <p class="text-muted"><small>If enabled, any account falling into the selected grouping will be required to have 2-Factor authentication enabled to use the Panel.</small></p>
+                                    <p class="text-muted"><small>{{ __('If enabled, any account falling into the selected grouping will be required to have 2-Factor authentication enabled to use the Panel.') }}</small></p>
                                 </div>
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="control-label">Default Language</label>
+                                <label class="control-label">{{ __('Default Language') }}</label>
                                 <div>
                                     <select name="app:locale" class="form-control">
                                         @foreach($languages as $key => $value)
                                             <option value="{{ $key }}" @if(config('app.locale') === $key) selected @endif>{{ $value }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="text-muted"><small>The default language to use when rendering UI components.</small></p>
+                                    <p class="text-muted"><small>{{ __('The default language to use when rendering UI components.') }}</small></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="box-footer">
                         {!! csrf_field() !!}
-                        <button type="submit" name="_method" value="PATCH" class="btn btn-sm btn-primary pull-right">Save</button>
+                        <button type="submit" name="_method" value="PATCH" class="btn btn-sm btn-primary pull-right">{{ __('Save') }}</button>
                     </div>
                 </form>
             </div>

@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { memo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -136,12 +137,14 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
             <Dialog.Confirm
                 open={showConfirmation}
                 onClose={() => setShowConfirmation(false)}
-                title={`Delete ${file.isFile ? 'File' : 'Directory'}`}
-                confirm={'Delete'}
+                title={translateUiText('Delete {{type}}', {
+                    type: translateUiText(file.isFile ? 'File' : 'Directory'),
+                })}
+                confirm={translateUiText('Delete')}
                 onConfirmed={doDeletion}
             >
-                You will not be able to recover the contents of&nbsp;
-                <span className={'font-semibold text-gray-50'}>{file.name}</span> once deleted.
+                {translateUiText('You will not be able to recover the contents of')}
+                <span className={'font-semibold text-gray-50'}>{file.name}</span> {translateUiText('once deleted.')}
             </Dialog.Confirm>
             <DropdownMenu
                 ref={onClickRef}
@@ -149,7 +152,7 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                     <div css={tw`px-3 py-2 hover:text-white`}>
                         <button
                             type={'button'}
-                            aria-label={`File actions for ${file.name}`}
+                            aria-label={translateUiText('File actions for {{name}}', { name: file.name })}
                             css={tw`flex items-center justify-center rounded bg-transparent text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-400`}
                             onClick={onClick}
                         >
@@ -178,13 +181,13 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                 )}
             >
                 <Can action={'file.update'}>
-                    <Row onClick={() => setModal('rename')} icon={faPencilAlt} title={'Rename'} />
-                    <Row onClick={() => setModal('move')} icon={faLevelUpAlt} title={'Move'} />
-                    <Row onClick={() => setModal('chmod')} icon={faFileCode} title={'Permissions'} />
+                    <Row onClick={() => setModal('rename')} icon={faPencilAlt} title={translateUiText('Rename')} />
+                    <Row onClick={() => setModal('move')} icon={faLevelUpAlt} title={translateUiText('Move')} />
+                    <Row onClick={() => setModal('chmod')} icon={faFileCode} title={translateUiText('Permissions')} />
                 </Can>
                 {file.isFile && (
                     <Can action={'file.create'}>
-                        <Row onClick={doCopy} icon={faCopy} title={'Copy'} />
+                        <Row onClick={doCopy} icon={faCopy} title={translateUiText('Copy')} />
                     </Can>
                 )}
                 {file.isArchiveType() ? (
@@ -192,17 +195,26 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                         <Row
                             onClick={doUnarchive}
                             icon={faBoxOpen}
-                            title={file.name.toLowerCase().endsWith('.zip') ? 'Extract ZIP' : 'Unarchive'}
+                            title={
+                                file.name.toLowerCase().endsWith('.zip')
+                                    ? translateUiText('Extract ZIP')
+                                    : translateUiText('Unarchive')
+                            }
                         />
                     </Can>
                 ) : (
                     <Can action={'file.archive'}>
-                        <Row onClick={doArchive} icon={faFileArchive} title={'Archive'} />
+                        <Row onClick={doArchive} icon={faFileArchive} title={translateUiText('Archive')} />
                     </Can>
                 )}
-                {file.isFile && <Row onClick={doDownload} icon={faFileDownload} title={'Download'} />}
+                {file.isFile && <Row onClick={doDownload} icon={faFileDownload} title={translateUiText('Download')} />}
                 <Can action={'file.delete'}>
-                    <Row onClick={() => setShowConfirmation(true)} icon={faTrashAlt} title={'Delete'} $danger />
+                    <Row
+                        onClick={() => setShowConfirmation(true)}
+                        icon={faTrashAlt}
+                        title={translateUiText('Delete')}
+                        $danger
+                    />
                 </Can>
             </DropdownMenu>
         </>

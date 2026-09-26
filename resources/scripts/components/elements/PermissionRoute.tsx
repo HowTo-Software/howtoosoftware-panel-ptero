@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { RouteProps } from 'react-router';
@@ -18,7 +19,10 @@ export default ({ permission, children, ...props }: Props) => (
                 matchAny
                 action={permission}
                 renderOnError={
-                    <ServerError title={'Access Denied'} message={'You do not have permission to access this page.'} />
+                    <ServerError
+                        title={translateUiText('Access Denied')}
+                        message={translateUiText('You do not have permission to access this page.')}
+                    />
                 }
             >
                 {children}

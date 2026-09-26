@@ -15,6 +15,9 @@ return [
         ],
     ],
     'user' => [
+        'user' => [
+            'create' => 'Criou um novo usuário :email',
+        ],
         'account' => [
             'email-changed' => 'Alterou o email de :old para :new',
             'password-changed' => 'Alterou a senha',

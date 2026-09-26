@@ -1,4 +1,5 @@
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
+import { translateUiText } from '@/i18n/uiTranslations';
 
 export type ScheduleAction = 'restart' | 'start' | 'stop' | 'command' | 'backup' | 'kill';
 
@@ -95,16 +96,23 @@ export const toggleWeekday = (selected: 'all' | number[], day: number): 'all' | 
 const pad = (value: number) => String(value).padStart(2, '0');
 
 export const frequencyLabel = (frequency: ScheduleFrequency): string => {
-    if (frequency.type === 'interval') return `Every ${frequency.minutes} minutes`;
-    if (frequency.type === 'hourly') return `Hourly at minute ${pad(frequency.minute)}`;
-    if (frequency.type === 'custom') return 'Custom frequency (kept as-is)';
+    if (frequency.type === 'interval')
+        return `${translateUiText('Every')} ${frequency.minutes} ${translateUiText(
+            frequency.minutes === 1 ? 'minute' : 'minutes'
+        )}`;
+    if (frequency.type === 'hourly') return `${translateUiText('Hourly at minute')} ${pad(frequency.minute)}`;
+    if (frequency.type === 'custom') return translateUiText('Custom frequency (kept as-is)');
     const weekdays =
         frequency.weekdays === 'all'
-            ? 'Every day'
+            ? translateUiText('Every day')
             : frequency.weekdays
-                  .map((day) => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day])
+                  .map((day) =>
+                      translateUiText(
+                          ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
+                      )
+                  )
                   .join(', ');
-    return `${weekdays} at ${pad(frequency.hour)}:${pad(frequency.minute)}`;
+    return `${weekdays} ${translateUiText('at')} ${pad(frequency.hour)}:${pad(frequency.minute)}`;
 };
 
 export const getScheduleAction = (schedule?: Schedule): { action: ScheduleAction; payload: string } => {

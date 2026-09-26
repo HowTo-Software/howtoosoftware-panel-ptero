@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import tw from 'twin.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -28,12 +29,13 @@ export default ({ name, fingerprint }: { name: string; fingerprint: string }) =>
         <>
             <Dialog.Confirm
                 open={visible}
-                title={'Delete SSH Key'}
-                confirm={'Delete Key'}
+                title={translateUiText('Delete SSH Key')}
+                confirm={translateUiText('Delete Key')}
                 onConfirmed={onClick}
                 onClose={() => setVisible(false)}
             >
-                Removing the <Code>{name}</Code> SSH key will invalidate its usage across the Panel.
+                {translateUiText('Removing the')} <Code>{name}</Code>{' '}
+                {translateUiText('SSH key will invalidate its usage across the Panel.')}
             </Dialog.Confirm>
             <button css={tw`ml-4 p-2 text-sm`} onClick={() => setVisible(true)}>
                 <FontAwesomeIcon

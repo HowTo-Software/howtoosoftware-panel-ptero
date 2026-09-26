@@ -1,3 +1,5 @@
+import { translateUiText } from '@/i18n/uiTranslations';
+import { getBrowserLocale } from '@/i18n/locale';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileAlt, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -53,9 +55,9 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
     }, [saveActive]);
 
     return (
-        <section className={styles.editor_panel} aria-label={'File editor'}>
+        <section className={styles.editor_panel} aria-label={translateUiText('File editor')}>
             {files.length > 0 ? (
-                <div className={styles.editor_tabs} role={'tablist'} aria-label={'Open files'}>
+                <div className={styles.editor_tabs} role={'tablist'} aria-label={translateUiText('Open files')}>
                     {files.map((file) => (
                         <div
                             key={file.path}
@@ -74,14 +76,16 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
                             >
                                 <FontAwesomeIcon icon={faFileAlt} />
                                 <span>{file.name}</span>
-                                {isDirty(file) && <i className={styles.dirty_dot} aria-label={'Unsaved changes'} />}
+                                {isDirty(file) && (
+                                    <i className={styles.dirty_dot} aria-label={translateUiText('Unsaved changes')} />
+                                )}
                             </button>
                             <button
                                 type={'button'}
                                 className={styles.close_tab}
                                 onClick={() => closeFile(file.path)}
-                                aria-label={`Close ${file.name}`}
-                                title={'Close file'}
+                                aria-label={translateUiText('Close {{name}}', { name: file.name })}
+                                title={translateUiText('Close file')}
                                 disabled={file.status === 'loading' || file.status === 'saving'}
                             >
                                 <FontAwesomeIcon icon={faTimes} />
@@ -90,16 +94,16 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
                     ))}
                 </div>
             ) : (
-                <div className={styles.editor_tabs_empty}>No files open</div>
+                <div className={styles.editor_tabs_empty}>{translateUiText('No files open')}</div>
             )}
 
             {activeFile ? (
                 <>
                     <div className={styles.editor_toolbar}>
                         <div className={styles.editor_breadcrumb} title={activeFile.path}>
-                            <span>home</span>
+                            <span>{translateUiText('home')}</span>
                             <span className={styles.path_separator}>›</span>
-                            <span>container</span>
+                            <span>{translateUiText('container')}</span>
                             {activeFile.path
                                 .split('/')
                                 .filter(Boolean)
@@ -113,7 +117,7 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
                                 ))}
                         </div>
                         <label className={styles.language_picker}>
-                            <span className={'sr-only'}>Editor language</span>
+                            <span className={'sr-only'}>{translateUiText('Editor language')}</span>
                             <select value={mode} onChange={(event) => setMode(event.currentTarget.value)}>
                                 {modes.map((item) => (
                                     <option key={`${item.name}_${item.mime}`} value={item.mime}>
@@ -139,13 +143,15 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
                             readOnly={!canUpdate || activeFile.status !== 'ready'}
                         />
                         {activeFile.status === 'loading' && (
-                            <div className={styles.editor_overlay}>Loading {activeFile.name}…</div>
+                            <div className={styles.editor_overlay}>
+                                {translateUiText('Loading')} {activeFile.name}…
+                            </div>
                         )}
                         {activeFile.status === 'error' && (
                             <div className={styles.editor_overlay} role={'alert'}>
-                                <p>{activeFile.error || 'Unable to load this file.'}</p>
+                                <p>{activeFile.error || translateUiText('Unable to load this file.')}</p>
                                 <button type={'button'} onClick={() => retryFile(activeFile.path)}>
-                                    Try again
+                                    {translateUiText('Try again')}
                                 </button>
                             </div>
                         )}
@@ -153,21 +159,24 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
 
                     <footer className={styles.editor_statusbar}>
                         <div className={styles.editor_status_left}>
-                            <span>UTF-8</span>
-                            <span>LF</span>
+                            <span>{translateUiText('UTF-8')}</span>
+                            <span>{translateUiText('LF')}</span>
                             <span>{mode.toUpperCase().split('/').pop()}</span>
                         </div>
                         <div className={styles.editor_status_right}>
                             {activeFile.status === 'saving' ? (
-                                <span>Saving…</span>
+                                <span>{translateUiText('Saving…')}</span>
                             ) : activeFile.error ? (
                                 <span className={styles.error_status}>{activeFile.error}</span>
                             ) : isDirty(activeFile) ? (
-                                <span className={styles.dirty_status}>Unsaved changes</span>
+                                <span className={styles.dirty_status}>{translateUiText('Unsaved changes')}</span>
                             ) : (
-                                <span>Saved</span>
+                                <span>{translateUiText('Saved')}</span>
                             )}
-                            <span>Modified {activeFile.modifiedAt.toLocaleString()}</span>
+                            <span>
+                                {translateUiText('Modified')}{' '}
+                                {activeFile.modifiedAt.toLocaleString(getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US')}
+                            </span>
                             {canUpdate && (
                                 <button
                                     type={'button'}
@@ -176,7 +185,7 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
                                     disabled={!isDirty(activeFile) || activeFile.status === 'saving'}
                                 >
                                     <FontAwesomeIcon icon={faSave} />
-                                    Save File
+                                    {translateUiText('Save File')}
                                 </button>
                             )}
                         </div>
@@ -185,14 +194,15 @@ const MultiFileEditor = ({ files, activeFile, setActivePath, updateFile, saveFil
             ) : (
                 <div className={styles.editor_empty}>
                     <FontAwesomeIcon icon={faFileAlt} />
-                    <strong>Open a file to start editing</strong>
-                    <span>Select an editable file from the explorer.</span>
+                    <strong>{translateUiText('Open a file to start editing')}</strong>
+                    <span>{translateUiText('Select an editable file from the explorer.')}</span>
                 </div>
             )}
             {canUpdate && dirtyFiles.length > 1 && (
                 <button type={'button'} className={styles.save_all_button} onClick={saveAll}>
                     <FontAwesomeIcon icon={faSave} />
-                    Save all ({dirtyFiles.length})
+                    {translateUiText('Save all (')}
+                    {dirtyFiles.length})
                 </button>
             )}
         </section>
