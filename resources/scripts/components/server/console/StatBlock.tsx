@@ -31,7 +31,7 @@ export default ({
 
     return (
         <CopyOnClick text={copyOnClick}>
-            <div className={classNames(styles.stat_block, 'bg-gray-600', className)}>
+            <div className={classNames(styles.stat_block, className)}>
                 <div className={classNames(styles.status_bar, color || 'bg-gray-700')} />
                 <div
                     className={classNames(styles.icon, !iconBackground && (color || 'bg-gray-700'))}
@@ -43,11 +43,17 @@ export default ({
                         style={iconColor ? { color: iconColor } : undefined}
                     />
                 </div>
-                <div className={'flex flex-col justify-center overflow-hidden w-full'}>
-                    <p className={'font-header font-medium leading-tight text-xs md:text-sm text-gray-200'}>{title}</p>
+                <div className={'flex min-w-0 flex-col justify-center overflow-hidden w-full'}>
+                    <p
+                        className={
+                            'font-header font-medium leading-tight text-[10px] uppercase tracking-wide text-gray-400'
+                        }
+                    >
+                        {title}
+                    </p>
                     <div
                         ref={ref}
-                        className={'h-[1.75rem] w-full font-semibold text-gray-50 truncate'}
+                        className={'h-[1.2rem] w-full font-semibold leading-[1.2rem] text-gray-50 truncate'}
                         style={{ fontSize }}
                     >
                         {children}

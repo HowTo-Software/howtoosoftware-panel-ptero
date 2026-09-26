@@ -26,32 +26,38 @@ import routes from '@/routers/routes';
 
 const Sidebar = styled.aside`
     position: sticky;
-    top: 3.5rem;
+    top: 3.25rem;
     align-self: start;
-    width: 15.5rem;
-    height: calc(100vh - 3.5rem);
+    width: 13.25rem;
+    height: calc(100vh - 3.25rem);
     overflow-y: auto;
-    border-right: 1px solid var(--hts-border);
-    background: var(--hts-surface-soft);
-    padding: 1rem 0.75rem 1.5rem;
+    border-right: 1px solid rgba(111, 129, 182, 0.14);
+    background: linear-gradient(180deg, rgba(20, 25, 44, 0.98), rgba(14, 18, 33, 0.98));
+    padding: 0.7rem 0.55rem 1rem;
 
     @media (max-width: 768px) {
         position: static;
         width: 100%;
         height: auto;
         overflow-x: auto;
+        scrollbar-width: none;
         border-right: 0;
         border-bottom: 1px solid var(--hts-border);
-        padding: 0.75rem;
+        padding: 0.6rem;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 `;
 
 const ServerIdentity = styled.div`
-    margin-bottom: 1rem;
-    border: 1px solid var(--hts-border-blue);
-    border-radius: 0.5rem;
-    background: var(--hts-surface);
-    padding: 0.875rem;
+    margin-bottom: 0.65rem;
+    border: 1px solid rgba(127, 148, 211, 0.18);
+    border-radius: 0.65rem;
+    background: linear-gradient(145deg, rgba(31, 38, 64, 0.88), rgba(21, 27, 48, 0.95));
+    padding: 0.65rem 0.7rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 
     strong,
     span {
@@ -63,13 +69,15 @@ const ServerIdentity = styled.div`
 
     strong {
         color: var(--hts-ink);
-        font-size: 0.875rem;
+        font-size: 0.78rem;
+        line-height: 1rem;
     }
 
     span {
-        margin-top: 0.25rem;
+        margin-top: 0.2rem;
         color: var(--hts-ink-muted);
-        font-size: 0.75rem;
+        font-size: 0.66rem;
+        line-height: 0.9rem;
     }
 
     @media (max-width: 768px) {
@@ -80,35 +88,39 @@ const ServerIdentity = styled.div`
 const Navigation = styled.nav`
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.16rem;
 
     a {
         display: flex;
-        min-height: 2.5rem;
+        min-height: 2.15rem;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.58rem;
         border-left: 2px solid transparent;
-        border-radius: 0.375rem;
-        padding: 0.625rem 0.75rem;
+        border-radius: 0.45rem;
+        padding: 0.42rem 0.6rem;
         color: var(--hts-ink-soft);
-        font-size: 0.8125rem;
+        font-size: 0.74rem;
+        line-height: 1rem;
         text-decoration: none;
-        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
     }
 
     a:hover {
-        background: rgba(131, 168, 243, 0.08);
+        background: rgba(131, 168, 243, 0.07);
         color: var(--hts-ink);
+        transform: translateX(1px);
     }
 
     a.active {
         border-left-color: var(--hts-primary);
-        background: rgba(176, 105, 255, 0.12);
+        background: linear-gradient(90deg, rgba(176, 105, 255, 0.15), rgba(82, 143, 255, 0.06));
         color: var(--hts-white);
+        box-shadow: inset 0 0 0 1px rgba(176, 105, 255, 0.06);
     }
 
     svg {
-        width: 1rem;
+        width: 0.9rem;
+        font-size: 0.86rem;
         color: var(--hts-secondary);
     }
 
@@ -117,6 +129,7 @@ const Navigation = styled.nav`
         width: max-content;
 
         a {
+            min-height: 2.25rem;
             border-bottom: 2px solid transparent;
             border-left: 0;
             white-space: nowrap;

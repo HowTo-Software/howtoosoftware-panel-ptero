@@ -13,20 +13,22 @@ export interface PageContentBlockProps {
 }
 
 const ServerContentContainer = styled(ContentContainer)`
+    width: auto;
     max-width: 1200px;
-    margin-right: 1rem;
-    margin-left: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+    margin: 0.75rem;
 
     @media (min-width: 769px) {
-        margin-right: 1rem;
-        margin-left: 2rem;
+        margin: 0.8rem 1rem;
     }
 
-    @media (min-width: 640px) {
-        margin-top: 1.25rem;
-        margin-bottom: 1.25rem;
+    @media (min-width: 1440px) {
+        margin-right: 1.25rem;
+        margin-left: 1.25rem;
+    }
+
+    &.console-content-wide,
+    &.file-manager-content-wide {
+        max-width: 1600px;
     }
 `;
 

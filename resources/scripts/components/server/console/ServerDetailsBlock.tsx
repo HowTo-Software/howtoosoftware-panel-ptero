@@ -89,7 +89,7 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     });
 
     return (
-        <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
+        <div className={classNames('min-w-0', className)}>
             <StatBlock
                 icon={faWifi}
                 title={'Address'}

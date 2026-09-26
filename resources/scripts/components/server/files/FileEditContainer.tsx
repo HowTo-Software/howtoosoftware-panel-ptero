@@ -20,6 +20,7 @@ import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { encodePathSegments, hashToPath } from '@/helpers';
 import { dirname } from 'pathe';
 import CodemirrorEditor from '@/components/elements/CodemirrorEditor';
+import { usePermissions } from '@/plugins/usePermissions';
 
 const getNewFileDraftKey = (uuid: string, directory: string) => `pterodactyl:new-file:${uuid}:${directory}`;
 
@@ -38,6 +39,9 @@ export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const setDirectory = ServerContext.useStoreActions((actions) => actions.files.setDirectory);
     const { addError, clearFlashes } = useFlash();
+    const [canUpdate] = usePermissions(['file.update']);
+    const [canCreate] = usePermissions(['file.create']);
+    const canWrite = action === 'edit' ? canUpdate : canCreate;
 
     const filePath = hashToPath(hash);
     const directory = action === 'new' ? filePath : dirname(filePath);
@@ -150,6 +154,7 @@ export default () => {
                 <SpinnerOverlay visible={loading} />
                 <CodemirrorEditor
                     mode={mode}
+                    readOnly={!canWrite}
                     filename={hash.replace(/^#/, '')}
                     onModeChanged={setMode}
                     initialContent={content}
@@ -158,8 +163,8 @@ export default () => {
                     }}
                     onContentSaved={() => {
                         if (action !== 'edit') {
-                            setModalVisible(true);
-                        } else {
+                            if (canCreate) setModalVisible(true);
+                        } else if (canUpdate) {
                             save();
                         }
                     }}
