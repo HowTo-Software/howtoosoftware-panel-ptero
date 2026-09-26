@@ -26,6 +26,7 @@ use Pterodactyl\Exceptions\Http\Server\ServerStateConflictException;
  * @property string $name
  * @property string $description
  * @property string|null $cover_image
+ * @property string|null $icon_image
  * @property string|null $status
  * @property bool $skip_scripts
  * @property int $owner_id

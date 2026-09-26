@@ -4,16 +4,20 @@ import { faImage, faTrashAlt, faUpload } from '@fortawesome/free-solid-svg-icons
 import { ServerContext } from '@/state/server';
 import { Button } from '@/components/elements/button/index';
 import { httpErrorToHuman } from '@/api/http';
-import { deleteServerCover, uploadServerCover } from '@/api/server/serverCover';
+import { deleteServerCover, deleteServerIcon, uploadServerCover, uploadServerIcon } from '@/api/server/serverCover';
 import styles from './settings.module.css';
 
 const ServerCoverBox = () => {
     const server = ServerContext.useStoreState((state) => state.server.data!);
     const setServer = ServerContext.useStoreActions((actions) => actions.server.setServer);
     const input = useRef<HTMLInputElement>(null);
+    const iconInput = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
+    const [iconBusy, setIconBusy] = useState(false);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
+    const [iconError, setIconError] = useState('');
+    const [iconNotice, setIconNotice] = useState('');
 
     const upload = async (event: ChangeEvent<HTMLInputElement>) => {
         const image = event.currentTarget.files?.[0];
@@ -31,6 +35,40 @@ const ServerCoverBox = () => {
             setError(httpErrorToHuman(requestError));
         } finally {
             setBusy(false);
+        }
+    };
+
+    const uploadIcon = async (event: ChangeEvent<HTMLInputElement>) => {
+        const image = event.currentTarget.files?.[0];
+        event.currentTarget.value = '';
+        if (!image) return;
+
+        setIconError('');
+        setIconNotice('');
+        setIconBusy(true);
+        try {
+            const iconImageUrl = await uploadServerIcon(server.uuid, image);
+            setServer({ ...server, iconImageUrl });
+            setIconNotice('Ícone personalizado atualizado.');
+        } catch (requestError) {
+            setIconError(httpErrorToHuman(requestError));
+        } finally {
+            setIconBusy(false);
+        }
+    };
+
+    const removeIcon = async () => {
+        setIconError('');
+        setIconNotice('');
+        setIconBusy(true);
+        try {
+            await deleteServerIcon(server.uuid);
+            setServer({ ...server, iconImageUrl: null });
+            setIconNotice('Ícone personalizado removido. O ícone do jogo será usado.');
+        } catch (requestError) {
+            setIconError(httpErrorToHuman(requestError));
+        } finally {
+            setIconBusy(false);
         }
     };
 
@@ -104,6 +142,64 @@ const ServerCoverBox = () => {
             {notice && (
                 <p className={styles.coverNotice} role={'status'}>
                     {notice}
+                </p>
+            )}
+
+            <hr className={styles.coverDivider} />
+            <header className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                    <FontAwesomeIcon icon={faImage} />
+                </div>
+                <div>
+                    <h2>Ícone do Servidor</h2>
+                    <p>Personalize o ícone pequeno do card. A foto de fundo não será alterada.</p>
+                </div>
+            </header>
+            <div className={`${styles.coverPreview} ${styles.iconPreview}`}>
+                {server.iconImageUrl ? (
+                    <img src={server.iconImageUrl} alt={`Ícone de ${server.name}`} />
+                ) : (
+                    <span>Ícone padrão do jogo</span>
+                )}
+            </div>
+            <p className={styles.coverHelp}>Use JPG, PNG ou WebP com exatamente 256 x 256 pixels (máximo 5 MB).</p>
+            <input
+                ref={iconInput}
+                className={styles.coverInput}
+                type={'file'}
+                accept={'image/jpeg,image/png,image/webp'}
+                onChange={uploadIcon}
+                disabled={iconBusy}
+                aria-label={'Selecionar ícone do servidor'}
+            />
+            <div className={styles.coverActions}>
+                <Button
+                    type={'button'}
+                    variant={Button.Variants.Secondary}
+                    onClick={() => iconInput.current?.click()}
+                    disabled={iconBusy}
+                >
+                    <FontAwesomeIcon icon={faUpload} /> {iconBusy ? 'Enviando...' : 'Escolher ícone'}
+                </Button>
+                {server.iconImageUrl && (
+                    <button
+                        type={'button'}
+                        className={styles.removeCoverButton}
+                        onClick={removeIcon}
+                        disabled={iconBusy}
+                    >
+                        <FontAwesomeIcon icon={faTrashAlt} /> Remover ícone
+                    </button>
+                )}
+            </div>
+            {iconError && (
+                <p className={styles.coverError} role={'alert'}>
+                    {iconError}
+                </p>
+            )}
+            {iconNotice && (
+                <p className={styles.coverNotice} role={'status'}>
+                    {iconNotice}
                 </p>
             )}
         </section>

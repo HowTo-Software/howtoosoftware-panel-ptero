@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\StoreServerCoverRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\DeleteServerCoverRequest;
+use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\StoreServerIconRequest;
 
 class ServerCoverController extends ClientApiController
 {
@@ -43,6 +44,31 @@ class ServerCoverController extends ClientApiController
         return new JsonResponse(['cover_image_url' => null]);
     }
 
+    public function showIcon(Server $server): BinaryFileResponse
+    {
+        $path = $server->icon_image;
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+
+        return response()->file(Storage::disk('local')->path($path), [
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function storeIcon(StoreServerIconRequest $request, Server $server): JsonResponse
+    {
+        $this->covers->storeIcon($server, $request->file('icon'));
+
+        return new JsonResponse(['icon_image_url' => $this->iconUrl($server)]);
+    }
+
+    public function destroyIcon(DeleteServerCoverRequest $request, Server $server): JsonResponse
+    {
+        $this->covers->deleteIcon($server);
+
+        return new JsonResponse(['icon_image_url' => null]);
+    }
+
     private function url(Server $server): ?string
     {
         if (!$server->cover_image) {
@@ -51,5 +77,15 @@ class ServerCoverController extends ClientApiController
 
         return route('api:client:server.settings.cover', ['server' => $server->uuid])
             . '?v=' . substr(hash('sha256', $server->cover_image), 0, 12);
+    }
+
+    private function iconUrl(Server $server): ?string
+    {
+        if (!$server->icon_image) {
+            return null;
+        }
+
+        return route('api:client:server.settings.icon', ['server' => $server->uuid])
+            . '?v=' . substr(hash('sha256', $server->icon_image), 0, 12);
     }
 }

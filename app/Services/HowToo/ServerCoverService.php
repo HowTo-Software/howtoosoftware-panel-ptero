@@ -13,7 +13,17 @@ final class ServerCoverService
 {
     public function store(Server $server, UploadedFile $image): void
     {
-        $directory = 'server-covers/' . $server->uuid;
+        $this->storeImage($server, $image, 'cover_image', 'server-covers');
+    }
+
+    public function storeIcon(Server $server, UploadedFile $image): void
+    {
+        $this->storeImage($server, $image, 'icon_image', 'server-icons');
+    }
+
+    private function storeImage(Server $server, UploadedFile $image, string $field, string $directory): void
+    {
+        $directory .= '/' . $server->uuid;
         $filename = Str::uuid() . '.' . $image->extension();
         $path = $image->storeAs($directory, $filename, 'local');
 
@@ -21,9 +31,9 @@ final class ServerCoverService
             throw new RuntimeException('The server cover image could not be stored.');
         }
 
-        $previous = $server->cover_image;
+        $previous = $server->{$field};
         try {
-            $server->forceFill(['cover_image' => $path])->saveOrFail();
+            $server->forceFill([$field => $path])->saveOrFail();
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($path);
             throw $exception;
@@ -36,12 +46,22 @@ final class ServerCoverService
 
     public function delete(Server $server): void
     {
-        $previous = $server->cover_image;
+        $this->deleteImage($server, 'cover_image');
+    }
+
+    public function deleteIcon(Server $server): void
+    {
+        $this->deleteImage($server, 'icon_image');
+    }
+
+    private function deleteImage(Server $server, string $field): void
+    {
+        $previous = $server->{$field};
         if (!$previous) {
             return;
         }
 
-        $server->forceFill(['cover_image' => null])->saveOrFail();
+        $server->forceFill([$field => null])->saveOrFail();
         Storage::disk('local')->delete($previous);
     }
 }

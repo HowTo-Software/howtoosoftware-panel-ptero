@@ -152,6 +152,12 @@ Route::group([
             ->middleware('throttle:10,1');
         Route::delete('/cover', [Client\Servers\HowToo\ServerCoverController::class, 'destroy'])
             ->middleware('throttle:10,1');
+        Route::get('/icon', [Client\Servers\HowToo\ServerCoverController::class, 'showIcon'])
+            ->name('api:client:server.settings.icon');
+        Route::post('/icon', [Client\Servers\HowToo\ServerCoverController::class, 'storeIcon'])
+            ->middleware('throttle:10,1');
+        Route::delete('/icon', [Client\Servers\HowToo\ServerCoverController::class, 'destroyIcon'])
+            ->middleware('throttle:10,1');
         Route::post('/rename', [Client\Servers\SettingsController::class, 'rename']);
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
         Route::post('/project-zomboid/wipe', [Client\Servers\SettingsController::class, 'wipeProjectZomboid'])

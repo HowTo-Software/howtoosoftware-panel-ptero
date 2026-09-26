@@ -16,6 +16,9 @@
 .coverCard { min-width: 0; }
 .coverPreview { display: flex; aspect-ratio: 12 / 7; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #2b4275; border-radius: .65rem; background: linear-gradient(145deg, #18264a, #0a1024); color: #98a9d0; font-size: .85rem; }
 .coverPreview img { width: 100%; height: 100%; object-fit: cover; }
+.iconPreview { width: 128px; aspect-ratio: 1; }
+.iconPreview img { object-fit: contain; }
+.coverDivider { margin: 1.5rem 0; border: 0; border-top: 1px solid #2b3554; }
 .coverHelp { margin: .65rem 0; color: #aab9dc; font-size: .78rem; line-height: 1.45; }
 .coverInput { display: none; }
 .coverActions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }

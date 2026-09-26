@@ -45,6 +45,10 @@ class ServerObserver
         if ($server->cover_image) {
             Storage::disk('local')->delete($server->cover_image);
         }
+
+        if ($server->icon_image) {
+            Storage::disk('local')->delete($server->icon_image);
+        }
     }
 
     /**
