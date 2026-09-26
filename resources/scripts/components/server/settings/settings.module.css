@@ -14,10 +14,11 @@
 .column { display: flex; min-width: 0; flex-direction: column; gap: 1.2rem; }
 .card { padding: 1rem 1.15rem; border: 1px solid #2b4275; border-radius: .85rem; background: linear-gradient(145deg, #111b39 0%, #0b1228 100%); box-shadow: 0 12px 28px rgb(0 0 0 / 12%); }
 .editCard, .reinstallCard { position: relative; }
-.editCard input, .editCard textarea { width: 100%; border: 1px solid #344a7a; border-radius: .45rem; background: #172344; color: #e5edff; }
+.editCard input, .editCard textarea { width: 100%; border: 1px solid #344a7a !important; border-radius: .45rem; background: #111a34 !important; color: #e5edff !important; }
 .editCard input { min-height: 2.7rem; padding: .55rem .7rem; }
 .editCard textarea { min-height: 5rem; padding: .6rem .7rem; resize: vertical; }
-.editCard input:focus, .editCard textarea:focus { border-color: #8875ff; outline: 2px solid rgb(136 117 255 / 16%); }
+.editCard input:focus, .editCard textarea:focus { border-color: #8875ff !important; outline: 2px solid rgb(136 117 255 / 16%); }
+.editCard input::placeholder, .editCard textarea::placeholder { color: #8e9bbb; opacity: 1; }
 .editCard button[type='submit'] { min-height: 2.5rem; padding: .5rem .85rem; border-radius: .45rem; background: #426cf0; color: white; font-weight: 700; }
 .reinstallCard { border-color: #35416d; }
 .reinstallCard button { border: 1px solid #e83e58; border-radius: .45rem; background: #361726; color: #ff8797; }
