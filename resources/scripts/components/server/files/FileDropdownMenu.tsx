@@ -35,20 +35,24 @@ import { Dialog } from '@/components/elements/dialog';
 
 type ModalType = 'rename' | 'move' | 'chmod';
 
-const StyledRow = styled.div<{ $danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded`};
-    ${(props) =>
-        props.$danger ? tw`hover:bg-red-100 hover:text-red-700` : tw`hover:bg-neutral-100 hover:text-neutral-700`};
+const StyledRow = styled.button<{ $danger?: boolean }>`
+    ${tw`p-2 flex items-center rounded cursor-pointer text-gray-300`};
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    transition: 150ms all ease;
+    ${(props) => (props.$danger ? tw`hover:bg-red-900 hover:text-red-200` : tw`hover:bg-gray-800 hover:text-white`)};
 `;
 
-interface RowProps extends React.HTMLAttributes<HTMLDivElement> {
+interface RowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon: IconDefinition;
     title: string;
     $danger?: boolean;
 }
 
-const Row = ({ icon, title, ...props }: RowProps) => (
-    <StyledRow {...props}>
+const Row = ({ icon, title, $danger, ...props }: RowProps) => (
+    <StyledRow type={'button'} $danger={$danger} {...props}>
         <FontAwesomeIcon icon={icon} css={tw`text-xs`} fixedWidth />
         <span css={tw`ml-2`}>{title}</span>
     </StyledRow>
@@ -65,9 +69,9 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
     const { clearAndAddHttpError, clearFlashes } = useFlash();
     const directory = ServerContext.useStoreState((state) => state.files.directory);
 
-    useEventListener(`pterodactyl:files:ctx:${file.key}`, (e: CustomEvent) => {
+    useEventListener(`pterodactyl:files:ctx:${file.key}`, (e: CustomEvent<{ x: number; y: number }>) => {
         if (onClickRef.current) {
-            onClickRef.current.triggerMenu(e.detail);
+            onClickRef.current.triggerMenu(e.detail.x, e.detail.y);
         }
     });
 
@@ -142,8 +146,15 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
             <DropdownMenu
                 ref={onClickRef}
                 renderToggle={(onClick) => (
-                    <div css={tw`px-4 py-2 hover:text-white`} onClick={onClick}>
-                        <FontAwesomeIcon icon={faEllipsisH} />
+                    <div css={tw`px-3 py-2 hover:text-white`}>
+                        <button
+                            type={'button'}
+                            aria-label={`File actions for ${file.name}`}
+                            css={tw`flex items-center justify-center rounded bg-transparent text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                            onClick={onClick}
+                        >
+                            <FontAwesomeIcon icon={faEllipsisH} />
+                        </button>
                         {modal ? (
                             modal === 'chmod' ? (
                                 <ChmodFileModal
@@ -178,7 +189,11 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                 )}
                 {file.isArchiveType() ? (
                     <Can action={'file.create'}>
-                        <Row onClick={doUnarchive} icon={faBoxOpen} title={'Unarchive'} />
+                        <Row
+                            onClick={doUnarchive}
+                            icon={faBoxOpen}
+                            title={file.name.toLowerCase().endsWith('.zip') ? 'Extract ZIP' : 'Unarchive'}
+                        />
                     </Can>
                 ) : (
                     <Can action={'file.archive'}>

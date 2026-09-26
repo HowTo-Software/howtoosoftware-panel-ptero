@@ -26,22 +26,24 @@ export const rawDataToFileObject = (data: FractalResponseData): FileObject => ({
 
     isArchiveType: function () {
         return (
-            this.isFile &&
-            [
-                'application/vnd.rar', // .rar
-                'application/x-rar-compressed', // .rar (2)
-                'application/x-tar', // .tar
-                'application/x-br', // .tar.br
-                'application/x-bzip2', // .tar.bz2, .bz2
-                'application/gzip', // .tar.gz, .gz
-                'application/x-gzip',
-                'application/x-lzip', // .tar.lz4, .lz4 (not sure if this mime type is correct)
-                'application/x-sz', // .tar.sz, .sz (not sure if this mime type is correct)
-                'application/x-xz', // .tar.xz, .xz
-                'application/zstd', // .tar.zst, .zst
-                'application/zip', // .zip
-                'application/x-7z-compressed', // .7z
-            ].indexOf(this.mimetype) >= 0
+            (this.isFile &&
+                [
+                    'application/vnd.rar', // .rar
+                    'application/x-rar-compressed', // .rar (2)
+                    'application/x-tar', // .tar
+                    'application/x-br', // .tar.br
+                    'application/x-bzip2', // .tar.bz2, .bz2
+                    'application/gzip', // .tar.gz, .gz
+                    'application/x-gzip',
+                    'application/x-lzip', // .tar.lz4, .lz4 (not sure if this mime type is correct)
+                    'application/x-sz', // .tar.sz, .sz (not sure if this mime type is correct)
+                    'application/x-xz', // .tar.xz, .xz
+                    'application/zstd', // .tar.zst, .zst
+                    'application/zip', // .zip
+                    'application/x-zip-compressed', // .zip on some servers
+                    'application/x-7z-compressed', // .7z
+                ].indexOf(this.mimetype) >= 0) ||
+            (this.isFile && this.name.toLowerCase().endsWith('.zip'))
         );
     },
 
