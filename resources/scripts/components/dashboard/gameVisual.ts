@@ -47,7 +47,9 @@ const detectIn = (value: string): GameVisualKey | undefined => {
     const text = normalize(value);
     if (/project[\s-]*zomboid|\bzomboid\b/.test(text)) return 'zomboid';
     if (/counter[\s-]*strike\s*2|\bcs2\b/.test(text)) return 'cs';
-    if (/\bminecraft\b|\bpaper\b|\bspigot\b|\bpurpur\b|\bfabric\b/.test(text)) return 'minecraft';
+    if (/\bminecraft\b|\bbedrock\b|\bpocketmine\b|\bnukkit\b|\bpaper\b|\bspigot\b|\bpurpur\b|\bfabric\b/.test(text)) {
+        return 'minecraft';
+    }
     if (/\bark\b|ark[:\s-]+survival|survival evolved|survival ascended/.test(text)) return 'ark';
     if (/\bterraria\b/.test(text)) return 'terraria';
 

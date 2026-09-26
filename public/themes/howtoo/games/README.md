@@ -4,7 +4,7 @@ Add the game artwork here. Each key uses two PNG files: `1` is the small card ic
 
 | Game | Icon | Background |
 | --- | --- | --- |
-| Minecraft | `Mine1.png` | `Mine2.png` |
+| Minecraft Java and Bedrock | `Mine1.png` | `Mine2.png` |
 | Project Zomboid | `Zomboid1.png` | `Zomboid2.png` |
 | ARK | `Ark1.png` | `Ark2.png` |
 | Terraria | `Terraria1.png` | `Terraria2.png` |
