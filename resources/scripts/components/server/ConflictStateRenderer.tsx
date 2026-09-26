@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React from 'react';
 import { ServerContext } from '@/state/server';
 import ScreenBlock from '@/components/elements/ScreenBlock';
@@ -14,30 +15,32 @@ export default () => {
 
     return status === 'installing' || status === 'install_failed' || status === 'reinstall_failed' ? (
         <ScreenBlock
-            title={'Running Installer'}
+            title={translateUiText('Running Installer')}
             image={ServerInstallSvg}
-            message={'Your server should be ready soon, please try again in a few minutes.'}
+            message={translateUiText('Your server should be ready soon, please try again in a few minutes.')}
         />
     ) : status === 'suspended' ? (
         <ScreenBlock
-            title={'Server Suspended'}
+            title={translateUiText('Server Suspended')}
             image={ServerErrorSvg}
-            message={'This server is suspended and cannot be accessed.'}
+            message={translateUiText('This server is suspended and cannot be accessed.')}
         />
     ) : isNodeUnderMaintenance ? (
         <ScreenBlock
-            title={'Node under Maintenance'}
+            title={translateUiText('Node under Maintenance')}
             image={ServerErrorSvg}
-            message={'The node of this server is currently under maintenance.'}
+            message={translateUiText('The node of this server is currently under maintenance.')}
         />
     ) : (
         <ScreenBlock
-            title={isTransferring ? 'Transferring' : 'Restoring from Backup'}
+            title={isTransferring ? translateUiText('Transferring') : translateUiText('Restoring from Backup')}
             image={ServerRestoreSvg}
             message={
                 isTransferring
-                    ? 'Your server is being transferred to a new node, please check back later.'
-                    : 'Your server is currently being restored from a backup, please check back in a few minutes.'
+                    ? translateUiText('Your server is being transferred to a new node, please check back later.')
+                    : translateUiText(
+                          'Your server is currently being restored from a backup, please check back in a few minutes.'
+                      )
             }
         />
     );

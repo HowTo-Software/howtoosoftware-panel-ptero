@@ -1,3 +1,5 @@
+import { translateUiText } from '@/i18n/uiTranslations';
+import { getBrowserLocale } from '@/i18n/locale';
 import React, { useEffect, useState } from 'react';
 import getServerSchedules from '@/api/server/schedules/getServerSchedules';
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
@@ -15,13 +17,14 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { frequencyLabel, fromCronFields, getScheduleAction } from '@/components/server/schedules/scheduleDraft';
 
 const formatRunDate = (date: Date | null, timezone: string): string => {
-    if (!date) return 'Not scheduled';
+    if (!date) return translateUiText('Not scheduled');
     try {
-        return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short', timeZone: timezone }).format(
+        const locale = getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US';
+        return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: timezone }).format(
             date
         );
     } catch {
-        return date.toLocaleString();
+        return date.toLocaleString(getBrowserLocale() === 'pt' ? 'pt-BR' : 'en-US');
     }
 };
 
@@ -42,7 +45,9 @@ const ScheduleCard = ({ schedule, onOpen, onEdit }: { schedule: Schedule; onOpen
                             </button>
                         </h3>
                         {schedule.isProcessing ? (
-                            <span css={tw`rounded-full bg-blue-900 px-2 py-1 text-xs text-blue-200`}>Running</span>
+                            <span css={tw`rounded-full bg-blue-900 px-2 py-1 text-xs text-blue-200`}>
+                                {translateUiText('Running')}
+                            </span>
                         ) : (
                             <span
                                 css={[
@@ -52,33 +57,34 @@ const ScheduleCard = ({ schedule, onOpen, onEdit }: { schedule: Schedule; onOpen
                                         : tw`bg-neutral-700 text-neutral-300`,
                                 ]}
                             >
-                                {schedule.isActive ? 'Enabled' : 'Disabled'}
+                                {schedule.isActive ? translateUiText('Enabled') : translateUiText('Disabled')}
                             </span>
                         )}
                     </div>
                     <p css={tw`mt-2 text-sm text-neutral-300`}>
                         {schedule.tasks.length === 0
-                            ? 'No action configured'
+                            ? translateUiText('No action configured')
                             : `${
                                   action === 'kill' ? 'Force stop' : action[0].toUpperCase() + action.slice(1)
                               } · ${period}`}
                     </p>
                     <p css={tw`mt-2 text-xs text-neutral-400`}>
-                        Next run{' '}
+                        {translateUiText('Next run')}{' '}
                         <span css={tw`text-neutral-200`}>{formatRunDate(schedule.nextRunAt, schedule.timezone)}</span>
                         <span css={tw`mx-2 text-neutral-600`}>·</span>
-                        {schedule.tasks.length} {schedule.tasks.length === 1 ? 'task' : 'tasks'}
+                        {schedule.tasks.length}{' '}
+                        {schedule.tasks.length === 1 ? translateUiText('task') : translateUiText('tasks')}
                     </p>
                 </div>
                 <Can action={'schedule.update'}>
                     <button
                         type={'button'}
-                        aria-label={`Edit ${schedule.name}`}
-                        title={'Edit schedule'}
+                        aria-label={translateUiText('Edit {{name}}', { name: schedule.name })}
+                        title={translateUiText('Edit schedule')}
                         onClick={onEdit}
                         css={tw`flex-shrink-0 rounded-lg border border-neutral-600 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-purple-400 hover:text-white`}
                     >
-                        Edit
+                        {translateUiText('Edit')}
                     </button>
                 </Can>
             </div>
@@ -118,20 +124,24 @@ export default () => {
     };
 
     return (
-        <ServerContentBlock title={'Schedules'}>
+        <ServerContentBlock title={translateUiText('Schedules')}>
             <FlashMessageRender byKey={'schedules'} css={tw`mb-4`} />
             <div css={tw`mx-auto w-full`} style={{ maxWidth: 1320 }}>
                 <div css={tw`mb-5 flex flex-wrap items-end justify-between gap-4`}>
                     <div>
-                        <p css={tw`text-xs uppercase tracking-widest text-purple-300`}>Automation</p>
-                        <h2 css={tw`mt-1 text-2xl font-semibold text-neutral-100`}>Server schedules</h2>
+                        <p css={tw`text-xs uppercase tracking-widest text-purple-300`}>
+                            {translateUiText('Automation')}
+                        </p>
+                        <h2 css={tw`mt-1 text-2xl font-semibold text-neutral-100`}>
+                            {translateUiText('Server schedules')}
+                        </h2>
                         <p css={tw`mt-1 text-sm text-neutral-400`}>
-                            Automate power actions, console commands, and backups.
+                            {translateUiText('Automate power actions, console commands, and backups.')}
                         </p>
                     </div>
                     <Can action={'schedule.create'}>
                         <Button type={'button'} onClick={create}>
-                            + Create schedule
+                            {translateUiText('+ Create schedule')}
                         </Button>
                     </Can>
                 </div>
@@ -140,13 +150,15 @@ export default () => {
                     <Spinner size={'large'} centered />
                 ) : schedules.length === 0 ? (
                     <div css={tw`rounded-xl border border-dashed border-neutral-600 bg-neutral-800 p-10 text-center`}>
-                        <h3 css={tw`text-lg font-semibold text-neutral-100`}>No schedules yet</h3>
+                        <h3 css={tw`text-lg font-semibold text-neutral-100`}>{translateUiText('No schedules yet')}</h3>
                         <p css={tw`mx-auto mt-2 max-w-lg text-sm text-neutral-400`}>
-                            Create a schedule to run a server action automatically at a time that works for you.
+                            {translateUiText(
+                                'Create a schedule to run a server action automatically at a time that works for you.'
+                            )}
                         </p>
                         <Can action={'schedule.create'}>
                             <Button type={'button'} className={'mt-5'} onClick={create}>
-                                Create your first schedule
+                                {translateUiText('Create your first schedule')}
                             </Button>
                         </Can>
                     </div>

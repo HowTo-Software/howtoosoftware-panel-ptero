@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/elements/button/index';
 import Can from '@/components/elements/Can';
@@ -42,11 +43,11 @@ export default ({ className }: PowerButtonProps) => {
                 open={open}
                 hideCloseIcon
                 onClose={() => setOpen(false)}
-                title={'Forcibly Stop Process'}
-                confirm={'Continue'}
+                title={translateUiText('Forcibly Stop Process')}
+                confirm={translateUiText('Continue')}
                 onConfirmed={onButtonClick.bind(this, 'kill-confirmed')}
             >
-                Forcibly stopping a server can lead to data corruption.
+                {translateUiText('Forcibly stopping a server can lead to data corruption.')}
             </Dialog.Confirm>
             <Can action={'control.start'}>
                 <Button
@@ -54,12 +55,12 @@ export default ({ className }: PowerButtonProps) => {
                     disabled={status !== 'offline'}
                     onClick={onButtonClick.bind(this, 'start')}
                 >
-                    Start
+                    {translateUiText('Start')}
                 </Button>
             </Can>
             <Can action={'control.restart'}>
                 <Button.Text className={'flex-1'} disabled={!status} onClick={onButtonClick.bind(this, 'restart')}>
-                    Restart
+                    {translateUiText('Restart')}
                 </Button.Text>
             </Can>
             <Can action={'control.stop'}>
@@ -68,7 +69,7 @@ export default ({ className }: PowerButtonProps) => {
                     disabled={status === 'offline'}
                     onClick={onButtonClick.bind(this, killable ? 'kill' : 'stop')}
                 >
-                    {killable ? 'Kill' : 'Stop'}
+                    {killable ? translateUiText('Kill') : translateUiText('Stop')}
                 </Button.Danger>
             </Can>
         </div>

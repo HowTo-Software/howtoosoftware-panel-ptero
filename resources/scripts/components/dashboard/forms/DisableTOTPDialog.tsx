@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect, useState } from 'react';
 import asDialog from '@/hoc/asDialog';
 import { Dialog, DialogWrapperContext } from '@/components/elements/dialog';
@@ -41,7 +42,7 @@ const DisableTOTPDialog = () => {
         <form id={'disable-totp-form'} className={'mt-6'} onSubmit={submit}>
             <FlashMessageRender byKey={'account:two-step'} className={'-mt-2 mb-6'} />
             <label className={'block pb-1'} htmlFor={'totp-password'}>
-                Password
+                {translateUiText('Password')}
             </label>
             <Input.Text
                 id={'totp-password'}
@@ -51,14 +52,14 @@ const DisableTOTPDialog = () => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.currentTarget.value)}
             />
             <Dialog.Footer>
-                <Button.Text onClick={close}>Cancel</Button.Text>
+                <Button.Text onClick={close}>{translateUiText('Cancel')}</Button.Text>
                 <Tooltip
                     delay={100}
                     disabled={password.length > 0}
-                    content={'You must enter your account password to continue.'}
+                    content={translateUiText('You must enter your account password to continue.')}
                 >
                     <Button.Danger type={'submit'} form={'disable-totp-form'} disabled={submitting || !password.length}>
-                        Disable
+                        {translateUiText('Disable')}
                     </Button.Danger>
                 </Tooltip>
             </Dialog.Footer>
@@ -67,6 +68,6 @@ const DisableTOTPDialog = () => {
 };
 
 export default asDialog({
-    title: 'Disable Two-Step Verification',
-    description: 'Disabling two-step verification will make your account less secure.',
+    title: translateUiText('Disable Two-Step Verification'),
+    description: translateUiText('Disabling two-step verification will make your account less secure.'),
 })(DisableTOTPDialog);

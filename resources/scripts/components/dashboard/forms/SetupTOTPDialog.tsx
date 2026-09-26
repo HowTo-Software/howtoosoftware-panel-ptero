@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect, useState } from 'react';
 import { Dialog, DialogWrapperContext } from '@/components/elements/dialog';
 import getTwoFactorTokenData, { TwoFactorTokenData } from '@/api/account/getTwoFactorTokenData';
@@ -70,12 +71,13 @@ const ConfigureTwoFactorForm = ({ onTokens }: Props) => {
             </div>
             <CopyOnClick text={token?.secret}>
                 <p className={'font-mono text-sm text-gray-100 text-center mt-2'}>
-                    {token?.secret.match(/.{1,4}/g)!.join(' ') || 'Loading...'}
+                    {token?.secret.match(/.{1,4}/g)!.join(' ') || translateUiText('Loading...')}
                 </p>
             </CopyOnClick>
             <p id={'totp-code-description'} className={'mt-6'}>
-                Scan the QR code above using the two-step authentication app of your choice. Then, enter the 6-digit
-                code generated into the field below.
+                {translateUiText(
+                    'Scan the QR code above using the two-step authentication app of your choice. Then, enter the 6-digit code generated into the field below.'
+                )}
             </p>
             <Input.Text
                 aria-labelledby={'totp-code-description'}
@@ -83,14 +85,14 @@ const ConfigureTwoFactorForm = ({ onTokens }: Props) => {
                 value={value}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.currentTarget.value)}
                 className={'mt-3'}
-                placeholder={'000000'}
+                placeholder={translateUiText('000000')}
                 type={'text'}
                 inputMode={'numeric'}
                 autoComplete={'one-time-code'}
                 pattern={'\\d{6}'}
             />
             <label htmlFor={'totp-password'} className={'block mt-3'}>
-                Account Password
+                {translateUiText('Account Password')}
             </label>
             <Input.Text
                 variant={Input.Text.Variants.Loose}
@@ -100,13 +102,13 @@ const ConfigureTwoFactorForm = ({ onTokens }: Props) => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.currentTarget.value)}
             />
             <Dialog.Footer>
-                <Button.Text onClick={close}>Cancel</Button.Text>
+                <Button.Text onClick={close}>{translateUiText('Cancel')}</Button.Text>
                 <Tooltip
                     disabled={password.length > 0 && value.length === 6}
                     content={
                         !token
-                            ? 'Waiting for QR code to load...'
-                            : 'You must enter the 6-digit code and your password to continue.'
+                            ? translateUiText('Waiting for QR code to load...')
+                            : translateUiText('You must enter the 6-digit code and your password to continue.')
                     }
                     delay={100}
                 >
@@ -115,7 +117,7 @@ const ConfigureTwoFactorForm = ({ onTokens }: Props) => {
                         type={'submit'}
                         form={'enable-totp-form'}
                     >
-                        Enable
+                        {translateUiText('Enable')}
                     </Button>
                 </Tooltip>
             </Dialog.Footer>
@@ -124,7 +126,8 @@ const ConfigureTwoFactorForm = ({ onTokens }: Props) => {
 };
 
 export default asDialog({
-    title: 'Enable Two-Step Verification',
-    description:
-        "Help protect your account from unauthorized access. You'll be prompted for a verification code each time you sign in.",
+    title: translateUiText('Enable Two-Step Verification'),
+    description: translateUiText(
+        "Help protect your account from unauthorized access. You'll be prompted for a verification code each time you sign in."
+    ),
 })(ConfigureTwoFactorForm);

@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import rotateDatabasePassword from '@/api/server/databases/rotateDatabasePassword';
 import { Actions, useStoreActions } from 'easy-peasy';
@@ -27,7 +28,7 @@ export default ({ databaseId, onUpdate }: { databaseId: string; onUpdate: (datab
                 console.error(error);
                 addFlash({
                     type: 'error',
-                    title: 'Error',
+                    title: translateUiText('Error'),
                     message: httpErrorToHuman(error),
                     key: 'database-connection-modal',
                 });
@@ -37,7 +38,7 @@ export default ({ databaseId, onUpdate }: { databaseId: string; onUpdate: (datab
 
     return (
         <Button isSecondary color={'primary'} css={tw`mr-2`} onClick={rotate} isLoading={loading}>
-            Rotate Password
+            {translateUiText('Rotate Password')}
         </Button>
     );
 };

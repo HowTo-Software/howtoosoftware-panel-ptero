@@ -3,7 +3,6 @@ import Icon from '@/components/elements/Icon';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import styles from './style.module.css';
-import useFitText from 'use-fit-text';
 import CopyOnClick from '@/components/elements/CopyOnClick';
 
 interface StatBlockProps {
@@ -27,8 +26,6 @@ export default ({
     className,
     children,
 }: StatBlockProps) => {
-    const { fontSize, ref } = useFitText({ minFontSize: 8, maxFontSize: 500 });
-
     return (
         <CopyOnClick text={copyOnClick}>
             <div className={classNames(styles.stat_block, className)}>
@@ -51,13 +48,7 @@ export default ({
                     >
                         {title}
                     </p>
-                    <div
-                        ref={ref}
-                        className={'h-[1.2rem] w-full font-semibold leading-[1.2rem] text-gray-50 truncate'}
-                        style={{ fontSize }}
-                    >
-                        {children}
-                    </div>
+                    <div className={'w-full truncate text-sm font-semibold leading-5 text-gray-50'}>{children}</div>
                 </div>
             </div>
         </CopyOnClick>

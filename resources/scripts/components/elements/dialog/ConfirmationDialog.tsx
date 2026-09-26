@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React from 'react';
 import { Dialog, RenderDialogProps } from './';
 import { Button } from '@/components/elements/button/index';
@@ -13,7 +14,7 @@ export default ({ confirm = 'Okay', children, onConfirmed, ...props }: Confirmat
         <Dialog {...props} description={typeof children === 'string' ? children : undefined}>
             {typeof children !== 'string' && children}
             <Dialog.Footer>
-                <Button.Text onClick={props.onClose}>Cancel</Button.Text>
+                <Button.Text onClick={props.onClose}>{translateUiText('Cancel')}</Button.Text>
                 <Button.Danger onClick={onConfirmed}>{confirm}</Button.Danger>
             </Dialog.Footer>
         </Dialog>

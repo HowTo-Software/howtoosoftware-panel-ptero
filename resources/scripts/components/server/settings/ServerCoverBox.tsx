@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { ChangeEvent, RefObject, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faTrashAlt, faUpload } from '@fortawesome/free-solid-svg-icons';
@@ -41,7 +42,7 @@ const ImageOption = ({
             <p>{description}</p>
             {(error || notice) && (
                 <span className={error ? styles.coverError : styles.coverNotice} role={error ? 'alert' : 'status'}>
-                    {error || notice}
+                    {translateUiText(error || notice)}
                 </span>
             )}
         </div>
@@ -57,7 +58,7 @@ const ImageOption = ({
         <div className={styles.imageOptionActions}>
             {hasCustomImage && (
                 <button type={'button'} className={styles.imageReset} onClick={onRemove} disabled={busy}>
-                    <FontAwesomeIcon icon={faTrashAlt} /> Restaurar padrão
+                    <FontAwesomeIcon icon={faTrashAlt} /> {translateUiText('Restaurar padrão')}
                 </button>
             )}
             <Button
@@ -66,7 +67,8 @@ const ImageOption = ({
                 onClick={() => input.current?.click()}
                 disabled={busy}
             >
-                <FontAwesomeIcon icon={faUpload} /> {busy ? 'Enviando...' : 'Enviar foto'}
+                <FontAwesomeIcon icon={faUpload} />{' '}
+                {busy ? translateUiText('Enviando...') : translateUiText('Enviar foto')}
             </Button>
         </div>
     </div>
@@ -155,13 +157,13 @@ const ServerCoverBox = () => {
     return (
         <section className={styles.imageOptions} aria-labelledby={'image-options-title'}>
             <header className={styles.imageOptionsHeading}>
-                <h2 id={'image-options-title'}>Imagens do servidor</h2>
-                <p>Personalize as imagens exibidas no card da lista de servidores.</p>
+                <h2 id={'image-options-title'}>{translateUiText('Imagens do servidor')}</h2>
+                <p>{translateUiText('Personalize as imagens exibidas no card da lista de servidores.')}</p>
             </header>
             <ImageOption
-                title={'Foto de fundo'}
-                description={'JPG, PNG ou WebP · 1200 x 700 px · até 5 MB'}
-                label={'Selecionar foto de fundo do servidor'}
+                title={translateUiText('Foto de fundo')}
+                description={translateUiText('JPG, PNG ou WebP · 1200 x 700 px · até 5 MB')}
+                label={translateUiText('Selecionar foto de fundo do servidor')}
                 input={coverInput}
                 busy={coverBusy}
                 hasCustomImage={!!server.coverImageUrl}
@@ -171,9 +173,9 @@ const ServerCoverBox = () => {
                 notice={coverNotice}
             />
             <ImageOption
-                title={'Ícone pequeno'}
-                description={'JPG, PNG ou WebP · 256 x 256 px · até 5 MB'}
-                label={'Selecionar ícone do servidor'}
+                title={translateUiText('Ícone pequeno')}
+                description={translateUiText('JPG, PNG ou WebP · 256 x 256 px · até 5 MB')}
+                label={translateUiText('Selecionar ícone do servidor')}
                 input={iconInput}
                 busy={iconBusy}
                 hasCustomImage={!!server.iconImageUrl}

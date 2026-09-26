@@ -67,6 +67,14 @@ export interface CurseForgeFile {
     releaseType: number;
     gameVersions: string[];
     downloadUrl: string | null;
+    isServerPack: boolean;
+}
+
+export type CurseForgeSort = 'downloads' | 'popular' | 'updated';
+
+export interface CurseForgeSearchPage {
+    items: CurseForgeMod[];
+    pagination: { index: number; pageSize: number; resultCount: number; totalCount: number };
 }
 
 const workshopItem = (data: any): WorkshopItem => ({
@@ -105,6 +113,7 @@ const curseForgeFile = (data: any): CurseForgeFile => ({
     releaseType: data.release_type,
     gameVersions: data.game_versions || [],
     downloadUrl: data.download_url,
+    isServerPack: data.is_server_pack ?? false,
 });
 
 export const streamAssistant = async (
@@ -279,13 +288,42 @@ export const getInstalledCurseForgeMods = async (uuid: string) => {
     return data.items as Array<{ name: string; size: number; modified_at: string | null }>;
 };
 
-export const searchCurseForge = async (uuid: string, query: string): Promise<CurseForgeMod[]> => {
-    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/curseforge/search`, { params: { query } });
-    return (data.items || []).map(curseForgeMod);
+const curseForgeSearchPage = (data: any): CurseForgeSearchPage => ({
+    items: (data.items || []).map(curseForgeMod),
+    pagination: data.pagination || { index: 0, pageSize: 20, resultCount: 0, totalCount: 0 },
+});
+
+export const searchCurseForge = async (
+    uuid: string,
+    query = '',
+    index = 0,
+    sort: CurseForgeSort = 'downloads'
+): Promise<CurseForgeSearchPage> => {
+    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/curseforge/search`, {
+        params: { query, index, sort },
+    });
+    return curseForgeSearchPage(data);
+};
+
+export const searchCurseForgeModpacks = async (
+    uuid: string,
+    query = '',
+    index = 0,
+    sort: CurseForgeSort = 'downloads'
+): Promise<CurseForgeSearchPage> => {
+    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/curseforge/modpacks/search`, {
+        params: { query, index, sort },
+    });
+    return curseForgeSearchPage(data);
 };
 
 export const getCurseForgeFiles = async (uuid: string, modId: number): Promise<CurseForgeFile[]> => {
     const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/curseforge/mods/${modId}/files`);
+    return (data.items || []).map(curseForgeFile);
+};
+
+export const getCurseForgeServerPackFiles = async (uuid: string, modId: number): Promise<CurseForgeFile[]> => {
+    const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/curseforge/modpacks/${modId}/server-files`);
     return (data.items || []).map(curseForgeFile);
 };
 
@@ -299,5 +337,17 @@ export const installCurseForgeFile = async (uuid: string, modId: number, fileId:
         mod_id: modId,
         file_id: fileId,
     });
+    return data.file_name;
+};
+
+export const installCurseForgeModpack = async (uuid: string, modId: number, fileId: number): Promise<string> => {
+    const { data } = await http.post(
+        `/api/client/servers/${uuid}/howtoo/curseforge/modpacks/install`,
+        {
+            mod_id: modId,
+            file_id: fileId,
+        },
+        { timeout: 900000 }
+    );
     return data.file_name;
 };

@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
@@ -66,12 +67,14 @@ export default () => {
     }, [error]);
 
     return (
-        <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
+        <PageContentBlock title={translateUiText('Dashboard')} showFlashKey={'dashboard'}>
             <section css={tw`mx-auto w-full`} style={{ maxWidth: 1500 }}>
                 <div css={tw`mb-6 flex flex-wrap items-end justify-between gap-4`}>
                     <div>
-                        <h1 css={tw`text-3xl font-semibold text-neutral-100`}>Seus servidores</h1>
-                        <p css={tw`mt-2 text-sm text-neutral-400`}>Gerencie seus servidores de jogos.</p>
+                        <h1 css={tw`text-3xl font-semibold text-neutral-100`}>{translateUiText('Seus servidores')}</h1>
+                        <p css={tw`mt-2 text-sm text-neutral-400`}>
+                            {translateUiText('Gerencie seus servidores de jogos.')}
+                        </p>
                     </div>
                     <label
                         css={tw`flex w-full items-center gap-3 rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-3 sm:max-w-md`}
@@ -83,8 +86,8 @@ export default () => {
                             type={'search'}
                             value={searchTerm}
                             onChange={(event) => setSearchTerm(event.target.value)}
-                            placeholder={'Buscar servidores, jogos, endereço ou node...'}
-                            aria-label={'Buscar servidores'}
+                            placeholder={translateUiText('Buscar servidores, jogos, endereço ou node...')}
+                            aria-label={translateUiText('Buscar servidores')}
                             css={tw`min-w-0 flex-1 bg-transparent text-sm text-neutral-100 placeholder-neutral-500 outline-none`}
                         />
                     </label>
@@ -92,7 +95,9 @@ export default () => {
                 {rootAdmin && (
                     <div css={tw`mb-4 flex items-center justify-end`}>
                         <p css={tw`mr-2 text-xs uppercase text-neutral-400`}>
-                            {showOnlyAdmin ? 'Exibindo servidores de outros usuários' : 'Exibindo seus servidores'}
+                            {showOnlyAdmin
+                                ? translateUiText('Exibindo servidores de outros usuários')
+                                : translateUiText('Exibindo seus servidores')}
                         </p>
                         <Switch
                             name={'show_all_servers'}
@@ -115,10 +120,10 @@ export default () => {
                             ) : (
                                 <p css={tw`text-center text-sm text-neutral-400`}>
                                     {searchTerm.trim()
-                                        ? 'Nenhum servidor corresponde à sua busca.'
+                                        ? translateUiText('Nenhum servidor corresponde à sua busca.')
                                         : showOnlyAdmin
-                                        ? 'Não há outros servidores para exibir.'
-                                        : 'Não há servidores associados à sua conta.'}
+                                        ? translateUiText('Não há outros servidores para exibir.')
+                                        : translateUiText('Não há servidores associados à sua conta.')}
                                 </p>
                             )
                         }

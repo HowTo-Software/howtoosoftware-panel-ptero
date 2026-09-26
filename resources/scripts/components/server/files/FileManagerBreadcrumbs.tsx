@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { ServerContext } from '@/state/server';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -39,9 +40,10 @@ export default ({ renderLeft, withinFileEditor, isNewFile }: Props) => {
 
     return (
         <div css={tw`flex flex-grow-0 items-center text-sm text-neutral-500 overflow-x-hidden`}>
-            {renderLeft || <div css={tw`w-12`} />}/<span css={tw`px-1 text-neutral-300`}>home</span>/
+            {renderLeft || <div css={tw`w-12`} />}/
+            <span css={tw`px-1 text-neutral-300`}>{translateUiText('home')}</span>/
             <NavLink to={`/server/${id}/files`} css={tw`px-1 text-neutral-200 no-underline hover:text-neutral-100`}>
-                container
+                {translateUiText('container')}
             </NavLink>
             /
             {breadcrumbs().map((crumb, index) =>

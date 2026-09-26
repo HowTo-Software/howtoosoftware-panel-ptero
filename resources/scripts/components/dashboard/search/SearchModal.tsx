@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useRef, useState } from 'react';
 import Modal, { RequiredModalProps } from '@/components/elements/Modal';
 import { Field, Form, Formik, FormikHelpers, useFormikContext } from 'formik';
@@ -80,7 +81,7 @@ export default ({ ...props }: Props) => {
         <Formik
             onSubmit={search}
             validationSchema={object().shape({
-                term: string().min(3, 'Please enter at least three characters to begin searching.'),
+                term: string().min(3, translateUiText('Please enter at least three characters to begin searching.')),
             })}
             initialValues={{ term: '' } as Values}
         >
@@ -89,8 +90,10 @@ export default ({ ...props }: Props) => {
                     <Form>
                         <FormikFieldWrapper
                             name={'term'}
-                            label={'Search term'}
-                            description={'Enter a server name, uuid, or allocation to begin searching.'}
+                            label={translateUiText('Search term')}
+                            description={translateUiText(
+                                'Enter a server name, uuid, or allocation to begin searching.'
+                            )}
                         >
                             <SearchWatcher />
                             <InputSpinner visible={isSubmitting}>

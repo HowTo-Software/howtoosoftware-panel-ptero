@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
@@ -24,7 +25,7 @@ export default () => {
                 addFlash({
                     key: 'settings',
                     type: 'success',
-                    message: 'A reinstalação do servidor foi iniciada.',
+                    message: translateUiText('A reinstalação do servidor foi iniciada.'),
                 });
             })
             .catch((error) => {
@@ -47,13 +48,14 @@ export default () => {
                         <FontAwesomeIcon icon={faSyncAlt} />
                     </div>
                     <div>
-                        <h2>Reinstalar Servidor</h2>
-                        <p>Reinstale completamente o seu servidor.</p>
+                        <h2>{translateUiText('Reinstalar Servidor')}</h2>
+                        <p>{translateUiText('Reinstale completamente o seu servidor.')}</p>
                     </div>
                 </div>
                 <p css={tw`text-sm`}>
-                    A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato
-                    com um administrador se precisar reinstalá-lo.
+                    {translateUiText(
+                        'A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato com um administrador se precisar reinstalá-lo.'
+                    )}
                 </p>
             </section>
         );
@@ -66,29 +68,34 @@ export default () => {
                     <FontAwesomeIcon icon={faSyncAlt} />
                 </div>
                 <div>
-                    <h2>Reinstalar Servidor</h2>
-                    <p>Reinstale completamente o seu servidor.</p>
+                    <h2>{translateUiText('Reinstalar Servidor')}</h2>
+                    <p>{translateUiText('Reinstale completamente o seu servidor.')}</p>
                 </div>
             </div>
             <Dialog.Confirm
                 open={modalVisible}
-                title={'Confirmar reinstalação do servidor'}
-                confirm={'Sim, reinstalar servidor'}
+                title={translateUiText('Confirmar reinstalação do servidor')}
+                confirm={translateUiText('Sim, reinstalar servidor')}
                 onClose={() => setModalVisible(false)}
                 onConfirmed={reinstall}
             >
-                O servidor será parado e alguns arquivos poderão ser excluídos ou alterados. Deseja continuar?
+                {translateUiText(
+                    'O servidor será parado e alguns arquivos poderão ser excluídos ou alterados. Deseja continuar?'
+                )}
             </Dialog.Confirm>
             <p css={tw`text-sm`}>
-                A reinstalação irá parar o servidor e executar novamente o script de instalação original.&nbsp;
+                {translateUiText(
+                    'A reinstalação irá parar o servidor e executar novamente o script de instalação original.'
+                )}
                 <strong css={tw`font-medium`}>
-                    Alguns arquivos podem ser excluídos ou alterados durante esse processo. Faça backup dos seus dados
-                    antes de continuar.
+                    {translateUiText(
+                        'Alguns arquivos podem ser excluídos ou alterados durante esse processo. Faça backup dos seus dados antes de continuar.'
+                    )}
                 </strong>
             </p>
             <div css={tw`mt-6 text-right`}>
                 <Button.Danger variant={Button.Variants.Secondary} onClick={() => setModalVisible(true)}>
-                    Reinstalar Servidor
+                    {translateUiText('Reinstalar Servidor')}
                 </Button.Danger>
             </div>
         </section>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() === 'pt' ? 'pt-BR' : 'en' }}">
     <head>
         <title>{{ config('app.name', 'Pterodactyl') }}</title>
         <link rel="icon" type="image/svg+xml" href="/themes/howtoo/images/hts-logo.svg">

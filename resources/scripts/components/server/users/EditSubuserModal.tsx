@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect, useRef } from 'react';
 import { Subuser } from '@/state/server/subusers';
 import { Form, Formik } from 'formik';
@@ -97,9 +98,9 @@ const EditSubuserModal = ({ subuser }: Props) => {
             }
             validationSchema={object().shape({
                 email: string()
-                    .max(191, 'Email addresses must not exceed 191 characters.')
-                    .email('A valid email address must be provided.')
-                    .required('A valid email address must be provided.'),
+                    .max(191, translateUiText('Email addresses must not exceed 191 characters.'))
+                    .email(translateUiText('A valid email address must be provided.'))
+                    .required(translateUiText('A valid email address must be provided.')),
                 permissions: array().of(string()),
             })}
         >
@@ -108,11 +109,11 @@ const EditSubuserModal = ({ subuser }: Props) => {
                     <h2 css={tw`text-2xl`} ref={ref}>
                         {subuser
                             ? `${canEditUser ? 'Modify' : 'View'} permissions for ${subuser.email}`
-                            : 'Create new subuser'}
+                            : translateUiText('Create new subuser')}
                     </h2>
                     <div>
                         <Button type={'submit'} css={tw`w-full sm:w-auto`}>
-                            {subuser ? 'Save' : 'Invite User'}
+                            {subuser ? translateUiText('Save') : translateUiText('Invite User')}
                         </Button>
                     </div>
                 </div>
@@ -120,8 +121,9 @@ const EditSubuserModal = ({ subuser }: Props) => {
                 {!isRootAdmin && loggedInPermissions[0] !== '*' && (
                     <div css={tw`mt-4 pl-4 py-2 border-l-4 border-cyan-400`}>
                         <p css={tw`text-sm text-neutral-300`}>
-                            Only permissions which your account is currently assigned may be selected when creating or
-                            modifying other users.
+                            {translateUiText(
+                                'Only permissions which your account is currently assigned may be selected when creating or modifying other users.'
+                            )}
                         </p>
                     </div>
                 )}
@@ -129,10 +131,10 @@ const EditSubuserModal = ({ subuser }: Props) => {
                     <div css={tw`mt-6`}>
                         <Field
                             name={'email'}
-                            label={'User Email'}
-                            description={
+                            label={translateUiText('User Email')}
+                            description={translateUiText(
                                 'Enter the email address of the user you wish to invite as a subuser for this server.'
-                            }
+                            )}
                         />
                     </div>
                 )}
@@ -165,7 +167,7 @@ const EditSubuserModal = ({ subuser }: Props) => {
                 <Can action={subuser ? 'user.update' : 'user.create'}>
                     <div css={tw`pb-6 flex justify-end`}>
                         <Button type={'submit'} css={tw`w-full sm:w-auto`}>
-                            {subuser ? 'Save' : 'Invite User'}
+                            {subuser ? translateUiText('Save') : translateUiText('Invite User')}
                         </Button>
                     </div>
                 </Can>

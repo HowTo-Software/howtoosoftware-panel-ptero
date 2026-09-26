@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import { Field, Form, Formik, FormikHelpers } from 'formik';
 import { object, string } from 'yup';
@@ -59,24 +60,24 @@ export default ({ onKeyCreated }: { onKeyCreated: (key: ApiKey) => void }) => {
                     <Form>
                         <SpinnerOverlay visible={isSubmitting} />
                         <FormikFieldWrapper
-                            label={'Description'}
+                            label={translateUiText('Description')}
                             name={'description'}
-                            description={'A description of this API key.'}
+                            description={translateUiText('A description of this API key.')}
                             css={tw`mb-6`}
                         >
                             <Field name={'description'} as={Input} />
                         </FormikFieldWrapper>
                         <FormikFieldWrapper
-                            label={'Allowed IPs'}
+                            label={translateUiText('Allowed IPs')}
                             name={'allowedIps'}
-                            description={
+                            description={translateUiText(
                                 'Leave blank to allow any IP address to use this API key, otherwise provide each IP address on a new line.'
-                            }
+                            )}
                         >
                             <Field name={'allowedIps'} as={CustomTextarea} />
                         </FormikFieldWrapper>
                         <div css={tw`flex justify-end mt-6`}>
-                            <Button>Create</Button>
+                            <Button>{translateUiText('Create')}</Button>
                         </div>
                     </Form>
                 )}

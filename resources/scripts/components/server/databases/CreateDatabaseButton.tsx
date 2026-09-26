@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import Modal from '@/components/elements/Modal';
 import { Form, Formik, FormikHelpers } from 'formik';
@@ -18,14 +19,16 @@ interface Values {
 
 const schema = object().shape({
     databaseName: string()
-        .required('A database name must be provided.')
-        .min(3, 'Database name must be at least 3 characters.')
-        .max(48, 'Database name must not exceed 48 characters.')
+        .required(translateUiText('A database name must be provided.'))
+        .min(3, translateUiText('Database name must be at least 3 characters.'))
+        .max(48, translateUiText('Database name must not exceed 48 characters.'))
         .matches(
             /^[\w\-.]{3,48}$/,
-            'Database name should only contain alphanumeric characters, underscores, dashes, and/or periods.'
+            translateUiText(
+                'Database name should only contain alphanumeric characters, underscores, dashes, and/or periods.'
+            )
         ),
-    connectionsFrom: string().matches(/^[\w\-/.%:]+$/, 'A valid host address must be provided.'),
+    connectionsFrom: string().matches(/^[\w\-/.%:]+$/, translateUiText('A valid host address must be provided.')),
 });
 
 export default () => {
@@ -69,24 +72,24 @@ export default () => {
                         }}
                     >
                         <FlashMessageRender byKey={'database:create'} css={tw`mb-6`} />
-                        <h2 css={tw`text-2xl mb-6`}>Create new database</h2>
+                        <h2 css={tw`text-2xl mb-6`}>{translateUiText('Create new database')}</h2>
                         <Form css={tw`m-0`}>
                             <Field
                                 type={'string'}
                                 id={'database_name'}
                                 name={'databaseName'}
-                                label={'Database Name'}
-                                description={'A descriptive name for your database instance.'}
+                                label={translateUiText('Database Name')}
+                                description={translateUiText('A descriptive name for your database instance.')}
                             />
                             <div css={tw`mt-6`}>
                                 <Field
                                     type={'string'}
                                     id={'connections_from'}
                                     name={'connectionsFrom'}
-                                    label={'Connections From'}
-                                    description={
+                                    label={translateUiText('Connections From')}
+                                    description={translateUiText(
                                         'Where connections should be allowed from. Leave blank to allow connections from anywhere.'
-                                    }
+                                    )}
                                 />
                             </div>
                             <div css={tw`flex flex-wrap justify-end mt-6`}>
@@ -96,17 +99,17 @@ export default () => {
                                     css={tw`w-full sm:w-auto sm:mr-2`}
                                     onClick={() => setVisible(false)}
                                 >
-                                    Cancel
+                                    {translateUiText('Cancel')}
                                 </Button>
                                 <Button css={tw`w-full mt-4 sm:w-auto sm:mt-0`} type={'submit'}>
-                                    Create Database
+                                    {translateUiText('Create Database')}
                                 </Button>
                             </div>
                         </Form>
                     </Modal>
                 )}
             </Formik>
-            <Button onClick={() => setVisible(true)}>New Database</Button>
+            <Button onClick={() => setVisible(true)}>{translateUiText('New Database')}</Button>
         </>
     );
 };

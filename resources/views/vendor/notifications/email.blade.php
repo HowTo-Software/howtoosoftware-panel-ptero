@@ -140,7 +140,7 @@ $style = [
 
                                         <!-- Salutation -->
                                         <p style="{{ $style['paragraph'] }}">
-                                            Regards,<br>{{ config('app.name') }}
+                                            {{ __('Regards,') }}<br>{{ config('app.name') }}
                                         </p>
 
                                         <!-- Sub Copy -->
@@ -149,8 +149,7 @@ $style = [
                                                 <tr>
                                                     <td style="{{ $fontFamily }}">
                                                         <p style="{{ $style['paragraph-sub'] }}">
-                                                            If you’re having trouble clicking the "{{ $actionText }}" button,
-                                                            copy and paste the URL below into your web browser:
+                                                            {{ __('If you’re having trouble clicking the :actionText button, copy and paste the URL below into your web browser:', ['actionText' => $actionText]) }}
                                                         </p>
 
                                                         <p style="{{ $style['paragraph-sub'] }}">
@@ -175,9 +174,9 @@ $style = [
                                 <tr>
                                     <td style="{{ $fontFamily }} {{ $style['email-footer_cell'] }}">
                                         <p style="{{ $style['paragraph-sub'] }}">
-                                            Copyright &copy; 2024 - 2026 HowTo.Software.
+                                            {{ __('Copyright') }} &copy; 2024 - 2026 HowTo.Software.
                                             <a style="{{ $style['anchor'] }}" href="{{ url('/') }}" target="_blank">{{ config('app.name') }}</a>.
-                                            All rights reserved.
+                                            {{ __('All rights reserved.') }}
                                         </p>
                                     </td>
                                 </tr>

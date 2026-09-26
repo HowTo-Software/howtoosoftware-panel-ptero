@@ -35,6 +35,7 @@ final class IntegrationCapabilities
                 'supported' => $context['minecraft'],
                 'available' => $context['minecraft'] && $available($providers['curseforge']),
                 'game_version' => $context['minecraft_version'],
+                'edition' => $context['minecraft_edition'],
                 'mod_loader' => $context['mod_loader'],
                 'mod_loader_type' => $context['mod_loader_type'],
             ],

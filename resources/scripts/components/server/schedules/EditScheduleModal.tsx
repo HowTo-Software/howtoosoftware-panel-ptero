@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect, useState } from 'react';
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
 import createOrUpdateSchedule from '@/api/server/schedules/createOrUpdateSchedule';
@@ -87,22 +88,22 @@ const EditScheduleModal = ({ schedule }: Props) => {
         event.preventDefault();
         clearFlashes('schedule:edit');
         if (!name.trim()) {
-            addError({ key: 'schedule:edit', message: 'Enter a name for this schedule.' });
+            addError({ key: 'schedule:edit', message: translateUiText('Enter a name for this schedule.') });
             return;
         }
         if (action === 'backup' && backupLimit === 0) {
             addError({
                 key: 'schedule:edit',
-                message: "A backup task cannot be created when the server's backup limit is set to 0.",
+                message: translateUiText("A backup task cannot be created when the server's backup limit is set to 0."),
             });
             return;
         }
         if (frequency.type !== 'custom' && !toCronFields(frequency)) {
-            addError({ key: 'schedule:edit', message: 'Choose a valid schedule frequency.' });
+            addError({ key: 'schedule:edit', message: translateUiText('Choose a valid schedule frequency.') });
             return;
         }
         if (action === 'command' && !payload.trim()) {
-            addError({ key: 'schedule:edit', message: 'Enter the command to run.' });
+            addError({ key: 'schedule:edit', message: translateUiText('Enter the command to run.') });
             return;
         }
 
@@ -160,32 +161,40 @@ const EditScheduleModal = ({ schedule }: Props) => {
             <div css={tw`mx-auto w-full`} style={{ maxWidth: 780 }}>
                 <div css={tw`flex items-start justify-between mb-6`}>
                     <div>
-                        <p css={tw`text-xs uppercase tracking-widest text-purple-300 mb-1`}>Server automation</p>
+                        <p css={tw`text-xs uppercase tracking-widest text-purple-300 mb-1`}>
+                            {translateUiText('Server automation')}
+                        </p>
                         <h2 css={tw`text-2xl font-semibold text-neutral-100`}>
-                            {schedule ? 'Edit schedule' : 'Create schedule'}
+                            {schedule ? translateUiText('Edit schedule') : translateUiText('Create schedule')}
                         </h2>
-                        <p css={tw`text-sm text-neutral-400 mt-1`}>Choose an action and when it should run.</p>
+                        <p css={tw`text-sm text-neutral-400 mt-1`}>
+                            {translateUiText('Choose an action and when it should run.')}
+                        </p>
                     </div>
                 </div>
                 <FlashMessageRender byKey={'schedule:edit'} css={tw`mb-4`} />
 
                 <label css={tw`block mb-5`}>
-                    <span css={tw`block text-xs uppercase text-neutral-300 mb-2`}>Schedule name</span>
+                    <span css={tw`block text-xs uppercase text-neutral-300 mb-2`}>
+                        {translateUiText('Schedule name')}
+                    </span>
                     <input
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                         maxLength={191}
                         autoFocus
                         css={tw`w-full rounded border border-neutral-600 bg-neutral-900 px-3 py-2 text-neutral-100 focus:border-purple-400 focus:outline-none`}
-                        placeholder={'Daily restart'}
+                        placeholder={translateUiText('Daily restart')}
                     />
                 </label>
 
                 <div css={tw`mb-6`}>
                     <div css={tw`flex items-center justify-between mb-2`}>
-                        <h3 css={tw`text-sm font-semibold text-neutral-100`}>Action</h3>
+                        <h3 css={tw`text-sm font-semibold text-neutral-100`}>{translateUiText('Action')}</h3>
                         {schedule && schedule.tasks.length > 1 && (
-                            <span css={tw`text-xs text-neutral-400`}>Additional tasks will be preserved.</span>
+                            <span css={tw`text-xs text-neutral-400`}>
+                                {translateUiText('Additional tasks will be preserved.')}
+                            </span>
                         )}
                     </div>
                     <div css={tw`grid grid-cols-2 md:grid-cols-3 gap-2`}>
@@ -209,33 +218,37 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                         !permitted && tw`opacity-40 cursor-not-allowed`,
                                     ]}
                                 >
-                                    <span css={tw`block font-semibold`}>{item.label}</span>
-                                    <span css={tw`block text-xs text-neutral-400 mt-1`}>{item.detail}</span>
+                                    <span css={tw`block font-semibold`}>{translateUiText(item.label)}</span>
+                                    <span css={tw`block text-xs text-neutral-400 mt-1`}>
+                                        {translateUiText(item.detail)}
+                                    </span>
                                 </button>
                             );
                         })}
                     </div>
                     {action === 'command' && (
                         <label css={tw`block mt-4`}>
-                            <span css={tw`block text-xs uppercase text-neutral-300 mb-2`}>Command</span>
+                            <span css={tw`block text-xs uppercase text-neutral-300 mb-2`}>
+                                {translateUiText('Command')}
+                            </span>
                             <textarea
                                 rows={3}
                                 value={payload}
                                 onChange={(event) => setPayload(event.target.value)}
                                 css={tw`w-full rounded border border-neutral-600 bg-neutral-900 px-3 py-2 text-neutral-100 focus:border-purple-400 focus:outline-none`}
-                                placeholder={'save'}
+                                placeholder={translateUiText('save')}
                             />
                         </label>
                     )}
                     {action === 'backup' && (
                         <p css={tw`text-xs text-neutral-400 mt-3`}>
-                            The server’s .pteroignore rules will be used for excluded files.
+                            {translateUiText('The server’s .pteroignore rules will be used for excluded files.')}
                         </p>
                     )}
                 </div>
 
                 <div css={tw`mb-5`}>
-                    <h3 css={tw`text-sm font-semibold text-neutral-100 mb-2`}>Frequency</h3>
+                    <h3 css={tw`text-sm font-semibold text-neutral-100 mb-2`}>{translateUiText('Frequency')}</h3>
                     <div css={tw`flex flex-wrap gap-2 mb-4`}>
                         {(
                             [
@@ -270,18 +283,18 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                 ]}
                             >
                                 {type === 'interval'
-                                    ? 'Every X minutes'
+                                    ? translateUiText('Every X minutes')
                                     : type === 'hourly'
-                                    ? 'Hourly'
+                                    ? translateUiText('Hourly')
                                     : type === 'days'
-                                    ? 'Days and time'
-                                    : 'Custom'}
+                                    ? translateUiText('Days and time')
+                                    : translateUiText('Custom')}
                             </button>
                         ))}
                     </div>
                     {frequency.type === 'interval' && (
                         <label css={tw`flex items-center gap-3 text-sm text-neutral-200`}>
-                            Run every{' '}
+                            {translateUiText('Run every')}{' '}
                             <select
                                 value={frequency.minutes}
                                 onChange={(event) =>
@@ -295,12 +308,12 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                     </option>
                                 ))}
                             </select>{' '}
-                            minutes
+                            {translateUiText('minutes')}
                         </label>
                     )}
                     {frequency.type === 'hourly' && (
                         <label css={tw`flex items-center gap-3 text-sm text-neutral-200`}>
-                            Run at minute{' '}
+                            {translateUiText('Run at minute')}{' '}
                             <select
                                 value={frequency.minute}
                                 onChange={(event) =>
@@ -314,7 +327,7 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                     </option>
                                 ))}
                             </select>{' '}
-                            of every hour
+                            {translateUiText('of every hour')}
                         </label>
                     )}
                     {frequency.type === 'days' && (
@@ -330,7 +343,7 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                             : tw`border-neutral-700 bg-neutral-900 text-neutral-300`,
                                     ]}
                                 >
-                                    Every day
+                                    {translateUiText('Every day')}
                                 </button>
                                 {DAYS.map((day, index) => (
                                     <button
@@ -349,12 +362,12 @@ const EditScheduleModal = ({ schedule }: Props) => {
                                                 : tw`border-neutral-700 bg-neutral-900 text-neutral-300`,
                                         ]}
                                     >
-                                        {day}
+                                        {translateUiText(day)}
                                     </button>
                                 ))}
                             </div>
                             <div css={tw`flex items-center gap-3 text-sm text-neutral-200`}>
-                                At{' '}
+                                {translateUiText('At')}{' '}
                                 <select
                                     value={dayValue.hour}
                                     onChange={(event) =>
@@ -387,26 +400,29 @@ const EditScheduleModal = ({ schedule }: Props) => {
                     )}
                     {frequency.type === 'custom' && (
                         <div css={tw`rounded border border-neutral-700 bg-neutral-900 p-3 text-sm text-neutral-300`}>
-                            This existing frequency is not changed by the simplified editor.{' '}
+                            {translateUiText('This existing frequency is not changed by the simplified editor.')}{' '}
                             <code css={tw`block mt-2 text-xs text-purple-200`}>{cronText}</code>
                         </div>
                     )}
                 </div>
 
                 <div css={tw`rounded-lg border border-purple-800 bg-neutral-900 p-4 mb-5`}>
-                    <p css={tw`text-xs uppercase tracking-wide text-neutral-400`}>Schedule preview</p>
+                    <p css={tw`text-xs uppercase tracking-wide text-neutral-400`}>
+                        {translateUiText('Schedule preview')}
+                    </p>
                     <p css={tw`text-lg text-neutral-100 mt-1`}>
                         {action === 'command'
                             ? `Run “${payload || 'your command'}”`
                             : action === 'backup'
-                            ? 'Create a server backup'
+                            ? translateUiText('Create a server backup')
                             : `${
                                   action === 'kill' ? 'Force stop' : action[0].toUpperCase() + action.slice(1)
                               } the server`}{' '}
                         {frequencyLabelText.toLowerCase()}.
                     </p>
                     <p css={tw`text-xs text-neutral-400 mt-2`}>
-                        Times use the panel timezone{schedule?.timezone ? ` (${schedule.timezone})` : ''}.{' '}
+                        {translateUiText('Times use the panel timezone')}
+                        {schedule?.timezone ? ` (${schedule.timezone})` : ''}.{' '}
                         <code css={tw`ml-1 text-neutral-500`}>
                             {cron.minute} {cron.hour} {cron.dayOfMonth} {cron.month} {cron.dayOfWeek}
                         </code>
@@ -424,8 +440,12 @@ const EditScheduleModal = ({ schedule }: Props) => {
                             css={tw`text-purple-500`}
                         />
                         <span>
-                            <strong css={tw`block text-sm text-neutral-100`}>Schedule enabled</strong>
-                            <small css={tw`text-xs text-neutral-400`}>Run automatically at the selected time.</small>
+                            <strong css={tw`block text-sm text-neutral-100`}>
+                                {translateUiText('Schedule enabled')}
+                            </strong>
+                            <small css={tw`text-xs text-neutral-400`}>
+                                {translateUiText('Run automatically at the selected time.')}
+                            </small>
                         </span>
                     </label>
                     <label
@@ -438,9 +458,11 @@ const EditScheduleModal = ({ schedule }: Props) => {
                             css={tw`text-purple-500`}
                         />
                         <span>
-                            <strong css={tw`block text-sm text-neutral-100`}>Only when online</strong>
+                            <strong css={tw`block text-sm text-neutral-100`}>
+                                {translateUiText('Only when online')}
+                            </strong>
                             <small css={tw`text-xs text-neutral-400`}>
-                                Skip the action if the server is offline when it runs.
+                                {translateUiText('Skip the action if the server is offline when it runs.')}
                             </small>
                         </span>
                     </label>
@@ -448,10 +470,14 @@ const EditScheduleModal = ({ schedule }: Props) => {
 
                 <div css={tw`flex justify-end gap-3`}>
                     <Button.Text type={'button'} onClick={dismiss}>
-                        Cancel
+                        {translateUiText('Cancel')}
                     </Button.Text>
                     <Button type={'submit'} disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving…' : schedule ? 'Save changes' : 'Create schedule'}
+                        {isSubmitting
+                            ? translateUiText('Saving…')
+                            : schedule
+                            ? translateUiText('Save changes')
+                            : translateUiText('Create schedule')}
                     </Button>
                 </div>
             </div>

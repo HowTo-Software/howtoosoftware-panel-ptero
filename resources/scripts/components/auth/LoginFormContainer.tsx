@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { forwardRef } from 'react';
 import { Form } from 'formik';
 import styled from 'styled-components/macro';
@@ -73,7 +74,9 @@ export const AuthPageShell: React.FC<{ title?: string }> = ({ title, children })
             </Brand>
             <FlashMessageRender css={tw`mb-3`} />
             {children}
-            <p css={tw`text-center text-neutral-500 text-xs mt-4`}>Copyright &copy; 2024 - 2026 HowTo.Software.</p>
+            <p css={tw`text-center text-neutral-500 text-xs mt-4`}>
+                {translateUiText('Copyright © 2024 - 2026 HowTo.Software.')}
+            </p>
         </Container>
     );
 };

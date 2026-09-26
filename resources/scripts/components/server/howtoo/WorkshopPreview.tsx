@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components/macro';
 import Button from '@/components/elements/Button';
@@ -141,7 +142,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2982254489',
         name: 'Animal Care Fixes',
         image: null,
-        description: 'Ajustes e melhorias para o cuidado dos animais no Project Zomboid.',
+        description: translateUiText('Ajustes e melhorias para o cuidado dos animais no Project Zomboid.'),
         modIds: ['AnimalCareFixes'],
         modIdSource: 'steam_metadata',
         tags: ['Build 42', 'Animals'],
@@ -156,7 +157,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2873490067',
         name: 'Exercises',
         image: null,
-        description: 'Rotinas de exercício para os sobreviventes.',
+        description: translateUiText('Rotinas de exercício para os sobreviventes.'),
         modIds: ['Exercises'],
         modIdSource: 'steam_metadata',
         tags: ['Build 42', 'Balance'],
@@ -171,7 +172,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2911049324',
         name: 'RP Voice',
         image: null,
-        description: 'Mais opções de voz e comunicação para o modo roleplay.',
+        description: translateUiText('Mais opções de voz e comunicação para o modo roleplay.'),
         modIds: ['RPVoice'],
         modIdSource: null,
         tags: ['Build 42', 'Interface'],
@@ -186,7 +187,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '3004179531',
         name: 'Gas Pump Indicator',
         image: null,
-        description: 'Indica visualmente o combustível restante nas bombas.',
+        description: translateUiText('Indica visualmente o combustível restante nas bombas.'),
         modIds: ['GasPumpIndicator'],
         modIdSource: 'steam_metadata',
         tags: ['Build 42', 'Interface'],
@@ -201,7 +202,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2785805307',
         name: 'The Mutants',
         image: null,
-        description: 'Novas criaturas e desafios para o mundo.',
+        description: translateUiText('Novas criaturas e desafios para o mundo.'),
         modIds: ['TheMutants'],
         modIdSource: 'steam_metadata',
         tags: ['Build 41', 'Hardmode'],
@@ -216,7 +217,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2863127292',
         name: 'Fence Sheets',
         image: null,
-        description: 'Novas opções de construção e cercas.',
+        description: translateUiText('Novas opções de construção e cercas.'),
         modIds: ['FenceSheets'],
         modIdSource: 'steam_metadata',
         tags: ['Build 42', 'Building'],
@@ -231,7 +232,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2769239843',
         name: 'Dynamic Tarps Covers',
         image: null,
-        description: 'Coberturas dinâmicas para veículos e objetos.',
+        description: translateUiText('Coberturas dinâmicas para veículos e objetos.'),
         modIds: ['DynamicTarps'],
         modIdSource: null,
         tags: ['Build 42', 'Items'],
@@ -246,7 +247,7 @@ const fixtureItems: WorkshopItem[] = [
         workshopId: '2832136889',
         name: 'More Furniture',
         image: null,
-        description: 'Uma coleção de móveis para personalizar as construções.',
+        description: translateUiText('Uma coleção de móveis para personalizar as construções.'),
         modIds: ['MoreFurniture'],
         modIdSource: 'steam_metadata',
         tags: ['Build 42', 'Building'],
@@ -316,17 +317,17 @@ function PreviewContent() {
     return (
         <PreviewShell>
             <Topbar>
-                <strong>HowTo.Software</strong>
-                <span>PRÉVIA LOCAL · dados de demonstração</span>
+                <strong>{translateUiText('HowTo.Software')}</strong>
+                <span>{translateUiText('PRÉVIA LOCAL · dados de demonstração')}</span>
             </Topbar>
             <ShellBody>
                 <PreviewNav>
-                    <div>Console</div>
-                    <div>Files</div>
-                    <div>Databases</div>
-                    <div>Schedules</div>
-                    <div>Settings</div>
-                    <div className='active'>Workshop Mods</div>
+                    <div>{translateUiText('Console')}</div>
+                    <div>{translateUiText('Files')}</div>
+                    <div>{translateUiText('Databases')}</div>
+                    <div>{translateUiText('Schedules')}</div>
+                    <div>{translateUiText('Settings')}</div>
+                    <div className='active'>{translateUiText('Workshop Mods')}</div>
                 </PreviewNav>
                 <Main>
                     <ServerHeading>
@@ -334,10 +335,10 @@ function PreviewContent() {
                             ◉
                         </span>
                         <div>
-                            <h1>Project Zomboid Workshop Mods</h1>
-                            <p>/cache/Server/Pterodactyl.ini &nbsp; · &nbsp; Malaio Code</p>
+                            <h1>{translateUiText('Project Zomboid Workshop Mods')}</h1>
+                            <p>{translateUiText('/cache/Server/Pterodactyl.ini · Malaio Code')}</p>
                         </div>
-                        <b>● Configuration synced</b>
+                        <b>{translateUiText('● Configuration synced')}</b>
                     </ServerHeading>
                     <PageGrid style={{ marginTop: '1rem' }}>
                         <Surface>
@@ -360,16 +361,20 @@ function PreviewContent() {
                                 <div>
                                     <h2>
                                         {mode === 'installed'
-                                            ? 'Instalados'
+                                            ? translateUiText('Instalados')
                                             : mode === 'most_subscribed'
-                                            ? 'Mais inscritos'
+                                            ? translateUiText('Mais inscritos')
                                             : mode === 'recent'
-                                            ? 'Atualizados recentemente'
-                                            : 'Mods em alta'}
+                                            ? translateUiText('Atualizados recentemente')
+                                            : translateUiText('Mods em alta')}
                                     </h2>
-                                    <p>Mods populares na comunidade Steam para Project Zomboid</p>
+                                    <p>{translateUiText('Mods populares na comunidade Steam para Project Zomboid')}</p>
                                 </div>
-                                {notice && <span style={{ color: '#86efac', fontSize: '.75rem' }}>{notice}</span>}
+                                {notice && (
+                                    <span style={{ color: '#86efac', fontSize: '.75rem' }}>
+                                        {translateUiText(notice)}
+                                    </span>
+                                )}
                             </Heading>
                             <WorkshopCards
                                 items={visibleItems}
@@ -385,8 +390,8 @@ function PreviewContent() {
                         <Surface>
                             <Heading>
                                 <div>
-                                    <h2>Itens configurados no servidor</h2>
-                                    <p>Mods do Workshop instalados neste servidor</p>
+                                    <h2>{translateUiText('Itens configurados no servidor')}</h2>
+                                    <p>{translateUiText('Mods do Workshop instalados neste servidor')}</p>
                                 </div>
                                 <span>{configured.length}</span>
                             </Heading>
@@ -396,11 +401,13 @@ function PreviewContent() {
                                         <span>
                                             {item.name}
                                             <br />
-                                            <small>Workshop ID: {item.workshopId}</small>
+                                            <small>
+                                                {translateUiText('Workshop ID:')} {item.workshopId}
+                                            </small>
                                         </span>
                                         <button
                                             type='button'
-                                            aria-label={`Remover ${item.name}`}
+                                            aria-label={translateUiText('Remover {{name}}', { name: item.name })}
                                             onClick={() =>
                                                 setConfigured((current) =>
                                                     current.filter((entry) => entry.workshopId !== item.workshopId)
@@ -416,11 +423,11 @@ function PreviewContent() {
                                         <span>
                                             + {item.name}
                                             <br />
-                                            <small>Será adicionado ao salvar</small>
+                                            <small>{translateUiText('Será adicionado ao salvar')}</small>
                                         </span>
                                         <button
                                             type='button'
-                                            aria-label={`Desfazer ${item.name}`}
+                                            aria-label={translateUiText('Desfazer {{name}}', { name: item.name })}
                                             onClick={() =>
                                                 setSelected((current) =>
                                                     current.filter((entry) => entry.workshopId !== item.workshopId)
@@ -437,13 +444,15 @@ function PreviewContent() {
                 </Main>
             </ShellBody>
             <ActionBar>
-                <div>{selected.length} mods selecionados</div>
+                <div>
+                    {selected.length} {translateUiText('mods selecionados')}
+                </div>
                 <div style={{ display: 'flex', gap: '.5rem' }}>
                     <Button type='button' isSecondary disabled={!selected.length} onClick={() => save(false)}>
-                        Salvar
+                        {translateUiText('Salvar')}
                     </Button>
                     <Button type='button' disabled={!selected.length} onClick={() => save(true)}>
-                        Salvar e Reiniciar
+                        {translateUiText('Salvar e Reiniciar')}
                     </Button>
                 </div>
             </ActionBar>

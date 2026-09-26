@@ -7,7 +7,7 @@
 @section('content-header')
     <h1>{{ __('External integrations') }}<small>{{ __('Configure server-side providers without exposing credentials to the browser.') }}</small></h1>
     <ol class="breadcrumb">
-        <li><a href="{{ route('admin.index') }}">Admin</a></li>
+        <li><a href="{{ route('admin.index') }}">{{ __('Admin') }}</a></li>
         <li class="active">{{ __('Integrations') }}</li>
     </ol>
 @endsection
@@ -181,7 +181,7 @@
                                 <tr>
                                     <td>
                                         <input class="form-control input-sm" type="text" maxlength="80" required
-                                               name="providers[{{ $provider }}][keys][__INDEX__][name]" value="API Key">
+                                               name="providers[{{ $provider }}][keys][__INDEX__][name]" value="{{ __('API Key') }}">
                                     </td>
                                     <td>
                                         <input class="form-control input-sm" type="number" min="1" max="1000" required

@@ -1,0 +1,1118 @@
+import { getBrowserLocale, SupportedLocale } from './locale';
+
+/**
+ * Exact-text translations for the panel UI. English source text is kept as the
+ * fallback; Portuguese source text is included here as well because a few of
+ * the redesigned screens were originally authored in Portuguese.
+ */
+const translations: Record<SupportedLocale, Record<string, string>> = {
+    en: {
+        'A lista configurada continua disponível abaixo.': 'The configured list remains available below.',
+        'A pasta': 'The folder',
+        'A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato com um administrador se precisar reinstalá-lo.':
+            'Reinstallation is disabled because this server skips the installation script. Contact an administrator if you need to reinstall it.',
+        'A reinstalação irá parar o servidor e executar novamente o script de instalação original.':
+            'Reinstallation will stop the server and run the original installation script again.',
+        'Alguns arquivos podem ser excluídos ou alterados durante esse processo. Faça backup dos seus dados antes de continuar.':
+            'Some files may be deleted or changed during this process. Back up your data before continuing.',
+        'A reinstalação do servidor foi iniciada.': 'Server reinstallation has started.',
+        'Alterações pendentes': 'Pending changes',
+        'Configuração sincronizada': 'Configuration synced',
+        'Ainda não há Workshop IDs salvos neste servidor.': 'There are no Workshop IDs saved on this server yet.',
+        'Confirmar Wipe': 'Confirm Wipe',
+        'Executando wipe...': 'Wiping...',
+        'Já está configurado': 'Already configured',
+        'Selecionar mod': 'Select mod',
+        'Ajustes e melhorias para o cuidado dos animais no Project Zomboid.':
+            'Animal care fixes and improvements for Project Zomboid.',
+        'Coberturas dinâmicas para veículos e objetos.': 'Dynamic covers for vehicles and objects.',
+        '{{filename}} instalado na pasta de mods.': '{{filename}} installed in the mods directory.',
+        'Configuração salva no servidor.': 'Configuration saved to the server.',
+        'Configuração salva; reinício solicitado.': 'Configuration saved; restart requested.',
+        'Foto padrão do jogo restaurada.': 'Default game background restored.',
+        'Ícone padrão do jogo restaurado.': 'Default game icon restored.',
+        'Ícone personalizado atualizado.': 'Custom icon updated.',
+        'Indica visualmente o combustível restante nas bombas.': 'Displays the remaining fuel in gas pumps.',
+        'Mais opções de voz e comunicação para o modo roleplay.': 'More voice and communication options for roleplay.',
+        'Novas criaturas e desafios para o mundo.': 'New creatures and challenges for the world.',
+        'Novas opções de construção e cercas.': 'New building and fence options.',
+        'Os dados de save do Project Zomboid foram removidos com sucesso.':
+            'Project Zomboid save data was successfully removed.',
+        'Os diretórios de dados do Project Zomboid não foram encontrados; nenhum arquivo foi alterado.':
+            'Project Zomboid data folders were not found; no files were changed.',
+        'Prévia: configuração salva e servidor reiniciado.': 'Preview: configuration saved and server restarted.',
+        'Prévia: configuração salva.': 'Preview: configuration saved.',
+        'Rotinas de exercício para os sobreviventes.': 'Exercise routines for survivors.',
+        'Seleção adicionada à configuração pendente. Salve para aplicar no servidor.':
+            'Selection added to pending configuration. Save to apply it to the server.',
+        'Uma coleção de móveis para personalizar as construções.': 'A furniture collection to customize buildings.',
+        'Usando os Mod IDs informados manualmente. Confira se estão corretos antes de salvar.':
+            'Using the manually entered Mod IDs. Check that they are correct before saving.',
+        '{{name}}: informe o Mod ID exato antes de adicionar ao servidor.':
+            '{{name}}: enter the exact Mod ID before adding it to the server.',
+        '{{name}}: não foi possível descobrir o Mod ID. Informe o valor exato de mod.info.':
+            '{{name}}: could not determine the Mod ID. Enter the exact value from mod.info.',
+        'Copiar {{label}}': 'Copy {{label}}',
+        'Remover {{id}}': 'Remove {{id}}',
+        'Remover Mod ID {{id}}': 'Remove Mod ID {{id}}',
+        'Remover {{name}}': 'Remove {{name}}',
+        'Desfazer {{name}}': 'Undo {{name}}',
+        'Detalhes de {{name}}': 'Details for {{name}}',
+        'Mod IDs para {{name}}': 'Mod IDs for {{name}}',
+        'Endereço indisponível': 'Address unavailable',
+        'Falha na instalação': 'Installation failed',
+        'Falha na reinstalação': 'Reinstallation failed',
+        Iniciando: 'Starting',
+        Instalando: 'Installing',
+        'Node em manutenção': 'Node under maintenance',
+        'Restaurando backup': 'Restoring backup',
+        Suspenso: 'Suspended',
+        Verificando: 'Checking',
+        Desligando: 'Stopping',
+        Indisponível: 'Unavailable',
+        'Foto de fundo atualizada.': 'Background image updated.',
+        'Sem imagem': 'NO Image',
+        'Não há': 'There are no',
+        'Não é possível': 'Unable',
+        Painel: 'Dashboard',
+        'Servidor de jogos': 'Game server',
+        Atualmente: 'Currently',
+        'Frequência personalizada (mantida como está)': 'Custom frequency (kept as-is)',
+        'Atualize o nome e a descrição do seu servidor.': 'Update your server name and description.',
+        'Esta ação removerá somente': 'This action will only remove',
+        'Foto de fundo': 'Background image',
+        'Nome do Servidor': 'Server Name',
+        'O servidor precisa estar completamente parado. O estado será validado novamente pelo servidor antes da exclusão.':
+            'The server must be fully stopped. Its status will be verified again by the server before deletion.',
+        'O servidor precisa estar totalmente parado pelo painel. A ação fica bloqueada enquanto ele estiver iniciando, online ou desligando.':
+            'The server must be fully stopped from the panel. This action is blocked while it is starting, online, or stopping.',
+        'O servidor será parado e alguns arquivos poderão ser excluídos ou alterados. Deseja continuar?':
+            'The server will be stopped and some files may be deleted or changed. Do you want to continue?',
+        'Selecionar foto de fundo do servidor': 'Select server background image',
+        'Selecionar ícone do servidor': 'Select server icon',
+        'Sim, reinstalar servidor': 'Yes, reinstall server',
+        'Ícone pequeno': 'Small icon',
+        'serão excluídos; o servidor poderá iniciar com as mesmas configurações.':
+            'will be deleted; the server may start with the same settings.',
+        não: 'no',
+        'Abrir SFTP ↗': 'Open SFTP ↗',
+        'Abrir no Steam ↗': 'Open on Steam ↗',
+        'Abrir servidor': 'Open server',
+        Adicionar: 'Add',
+        'Alterar Detalhes do Servidor': 'Edit Server Details',
+        'Alterações aplicadas ao salvar': 'Changes will be applied when saved',
+        ', os arquivos de configuração e todos os outros arquivos serão preservados.':
+            ', the configuration files and all other files will be preserved.',
+        'Busque servidores, jogos, endereço ou node...': 'Search servers, games, address, or node...',
+        'Buscar servidores': 'Search servers',
+        'Buscar servidores, jogos, endereço ou node...': 'Search servers, games, address, or node...',
+        'Descubra mods e sincronize Workshop IDs e Mod IDs do servidor.':
+            'Discover mods and sync Workshop IDs and server Mod IDs.',
+        'Executando...': 'Running...',
+        'Informações do Servidor': 'Server Information',
+        'Seus servidores': 'Your servers',
+        'Choose an action and when it should run.': 'Escolha uma ação e quando ela deve ser executada.',
+        'Workshop Mods': 'Mods da Workshop',
+        'Workshop catalog': 'Catálogo da Workshop',
+        'Workshop tags': 'Tags da Workshop',
+        'Atualizado em:': 'Updated:',
+        'Atualizados recentemente': 'Recently updated',
+        'Acesse seus arquivos usando as informações abaixo.': 'Access your files using the information below.',
+        'Apaga os dados do mundo e mantém as configurações do servidor.':
+            'Wipes the world data and keeps the server settings.',
+        'Visualize informações básicas do seu servidor.': 'View basic information about your server.',
+        Buscar: 'Search',
+        'Buscar mods por nome, Workshop ID ou URL do Steam Workshop...':
+            'Search mods by name, Workshop ID, or Steam Workshop URL...',
+        'Carregando mods': 'Loading mods',
+        'Carregar mais': 'Load more',
+        Configurações: 'Settings',
+        'Descrição do Servidor': 'Server Description',
+        'Endereço do Servidor': 'Server Address',
+        'Enviando...': 'Uploading...',
+        'Enviar foto': 'Upload image',
+        Executando: 'Running',
+        'Exibindo servidores de outros usuários': 'Showing other users’ servers',
+        'Exibindo seus servidores': 'Showing your servers',
+        Fechar: 'Close',
+        'Gerencie as configurações e ações do seu servidor.': 'Manage your server settings and actions.',
+        'Gerencie seus servidores de jogos.': 'Manage your game servers.',
+        'Imagens do servidor': 'Server images',
+        Instalados: 'Installed',
+        'Instalados na configuração': 'Installed in configuration',
+        'Itens configurados no servidor': 'Items configured on the server',
+        'Itens na configuração pendente': 'Items pending configuration',
+        'Já configurado': 'Already configured',
+        'Mais inscritos': 'Most subscribed',
+        'Mais⌄': 'More⌄',
+        'Mod ID(s), separados por ;': 'Mod ID(s), separated by ;',
+        'Mod IDs do servidor': 'Server Mod IDs',
+        'Mod IDs exatos, separados por ;': 'Exact Mod IDs, separated by ;',
+        'Mod IDs:': 'Mod IDs:',
+        'Mods do Workshop instalados neste servidor': 'Workshop mods installed on this server',
+        'Mods em alta': 'Trending mods',
+        'Mods populares na comunidade Steam para Project Zomboid':
+            'Popular mods in the Project Zomboid Steam community',
+        'Nenhum mod encontrado com estes filtros.': 'No mods found with these filters.',
+        'Nenhum servidor corresponde à sua busca.': 'No servers match your search.',
+        'Node indisponível': 'Node unavailable',
+        'Não há outros servidores para exibir.': 'There are no other servers to show.',
+        'Não há servidores associados à sua conta.': 'There are no servers associated with your account.',
+        'Não informado': 'Not provided',
+        'Pastas removidas:': 'Folders removed:',
+        'Personalize as imagens exibidas no card da lista de servidores.':
+            'Customize the images shown on server cards.',
+        'PRÉVIA LOCAL · dados de demonstração': 'LOCAL PREVIEW · sample data',
+        'Reinstalar Servidor': 'Reinstall Server',
+        'Reinstale completamente o seu servidor.': 'Completely reinstall your server.',
+        'Restaurar padrão': 'Restore default',
+        'Resultados da busca': 'Search results',
+        Salvar: 'Save',
+        'Salvar Alterações': 'Save Changes',
+        'Salvar e Reiniciar': 'Save and Restart',
+        'Selecionar para o servidor': 'Select for server',
+        'Selecione mods do catálogo para preparar a configuração.':
+            'Select mods from the catalog to prepare the configuration.',
+        'Selecione no catálogo antes de adicionar à configuração':
+            'Select items from the catalog before adding them to the configuration',
+        'Sem descrição disponível.': 'No description available.',
+        'Será adicionado ao salvar': 'Will be added when saved',
+        'Será verificado ao selecionar.': 'Will be checked when selected.',
+        'Status do servidor:': 'Server status:',
+        'Sua senha SFTP é a mesma usada para acessar este painel.':
+            'Your SFTP password is the same as the one you use to access this panel.',
+        Todos: 'All',
+        Usuário: 'User',
+        'Ver no Steam ↗': 'View on Steam ↗',
+        'Você não tem permissão para executar o wipe neste servidor.':
+            'You do not have permission to wipe this server.',
+        'Wipar o save excluirá permanentemente o progresso salvo. Seus arquivos de configuração':
+            'Wiping the save permanently deletes saved progress. Your configuration files',
+        'Wipe / Resetar Save': 'Wipe / Reset Save',
+        'Wipe / Resetar Save (Project Zomboid)': 'Wipe / Reset Save (Project Zomboid)',
+        'Workshop ID:': 'Workshop ID:',
+        'Workshop IDs atualmente salvos no servidor': 'Workshop IDs currently saved on the server',
+        'mods selecionados': 'selected mods',
+    },
+    pt: {
+        'Close {{name}}': 'Fechar {{name}}',
+        'Unlock "{{name}}"': 'Desbloquear "{{name}}"',
+        'Restore "{{name}}"': 'Restaurar "{{name}}"',
+        'Delete "{{name}}"': 'Excluir "{{name}}"',
+        'Delete {{type}}': 'Excluir {{type}}',
+        'File actions for {{name}}': 'Ações do arquivo {{name}}',
+        'Edit {{name}}': 'Editar {{name}}',
+        File: 'Arquivo',
+        Directory: 'Pasta',
+        'An integration key does not belong to this provider.': 'Uma chave de integração não pertence a este provedor.',
+        'A secret is required for each new integration key.':
+            'Informe uma chave secreta para cada nova chave de integração.',
+        'An unexpected error occurred.': 'Ocorreu um erro inesperado.',
+        'Could not load CurseForge server pack files.':
+            'Não foi possível carregar os pacotes de servidor do CurseForge.',
+        'Minecraft Bedrock was detected. This installer handles Java mods and Java server packs only.':
+            'Minecraft Bedrock detectado. Este instalador funciona somente com mods e pacotes de servidor Java.',
+        'CurseForge content is currently available for Minecraft servers only.':
+            'O conteúdo do CurseForge está disponível somente para servidores Minecraft.',
+        'The Minecraft version could not be read from this server egg. Set its version variable to an exact version such as 1.20.1.':
+            'Não foi possível ler a versão do Minecraft neste Egg. Defina a variável de versão com um valor exato, como 1.20.1.',
+        'The Java mod loader could not be read from this server egg. Set the server egg to Forge, Fabric, Quilt, or NeoForge.':
+            'Não foi possível ler o mod loader Java deste Egg. Configure o Egg para Forge, Fabric, Quilt ou NeoForge.',
+        'This server uses Vanilla. Individual CurseForge mods require Forge, Fabric, Quilt, or NeoForge; use a server pack that includes its own mod loader.':
+            'Este servidor usa Vanilla. Mods individuais do CurseForge exigem Forge, Fabric, Quilt ou NeoForge; use um pacote de servidor que inclua o próprio mod loader.',
+        'The selected file is not a verified CurseForge server pack for this Minecraft version.':
+            'O arquivo selecionado não é um pacote de servidor verificado do CurseForge para esta versão do Minecraft.',
+        'Stop the server completely before installing a modpack server pack.':
+            'Pare completamente o servidor antes de instalar um pacote de servidor.',
+        'A temporary file for this server pack already exists in the server root. Remove it and try again.':
+            'Já existe um arquivo temporário deste pacote na raiz do servidor. Remova-o e tente novamente.',
+        'Paste a CurseForge Minecraft modpack link, for example https://www.curseforge.com/minecraft/modpacks/example.':
+            'Cole o link de um modpack do CurseForge, por exemplo https://www.curseforge.com/minecraft/modpacks/example.',
+        'CurseForge search is temporarily unavailable.': 'A busca do CurseForge está temporariamente indisponível.',
+        'Could not access the server mods directory.': 'Não foi possível acessar a pasta de mods do servidor.',
+        'Could not connect to the Ollama server.': 'Não foi possível conectar ao servidor Ollama.',
+        'Could not find the Project Zomboid server configuration file.':
+            'Não foi possível encontrar o arquivo de configuração do servidor Project Zomboid.',
+        'Could not load compatible CurseForge files.': 'Não foi possível carregar arquivos compatíveis do CurseForge.',
+        'Could not load this CurseForge project.': 'Não foi possível carregar este projeto do CurseForge.',
+        'The selected CurseForge project is not a Minecraft modpack.':
+            'O projeto selecionado do CurseForge não é um modpack de Minecraft.',
+        'Could not read the Project Zomboid configuration from Wings.':
+            'Não foi possível ler a configuração do Project Zomboid no Wings.',
+        'Could not read the server mods directory.': 'Não foi possível ler a pasta de mods do servidor.',
+        'CurseForge Mods is currently available for Minecraft servers only.':
+            'O CurseForge Mods está disponível apenas para servidores Minecraft.',
+        'CurseForge is not configured by the administrator.': 'O administrador ainda não configurou o CurseForge.',
+        'CurseForge returned an unsafe file name.': 'O CurseForge retornou um nome de arquivo não seguro.',
+        'The selected file is not compatible with this server version and mod loader.':
+            'O arquivo selecionado não é compatível com a versão do servidor e o mod loader.',
+        'This author does not provide a supported server download for this file.':
+            'O autor não oferece um download compatível com servidores para este arquivo.',
+        'This mod file is already installed.': 'Este arquivo de mod já está instalado.',
+        'The Minecraft version or mod loader could not be detected from this server egg.':
+            'Não foi possível detectar a versão do Minecraft ou o mod loader deste Egg de servidor.',
+        'The Project Zomboid configuration changed after this page was opened. Reload before saving.':
+            'A configuração do Project Zomboid mudou depois que esta página foi aberta. Recarregue antes de salvar.',
+        'The selected Steam Workshop item could not be found.':
+            'Não foi possível encontrar o item selecionado da Steam Workshop.',
+        'A selected Workshop item has no resolvable Mod ID. Use the advanced Mod ID fallback before saving.':
+            'Um item selecionado da Workshop não tem um Mod ID identificável. Informe o Mod ID manualmente antes de salvar.',
+        'The Steam Workshop item was not found or is private/deleted.':
+            'O item da Steam Workshop não foi encontrado, é privado ou foi excluído.',
+        'The Steam Workshop URL is invalid.': 'A URL da Steam Workshop é inválida.',
+        'Steam Workshop authentication failed. Contact an administrator.':
+            'A autenticação da Steam Workshop falhou. Entre em contato com um administrador.',
+        'The Steam Workshop endpoint or item was not found.':
+            'O item ou endpoint da Steam Workshop não foi encontrado.',
+        'Steam Workshop rate limit reached. Please try again shortly.':
+            'A Steam Workshop atingiu o limite de requisições. Tente novamente em instantes.',
+        'Steam Workshop details are temporarily unavailable.':
+            'Os detalhes da Steam Workshop estão temporariamente indisponíveis.',
+        'Steam Workshop returned an invalid details response.':
+            'A Steam Workshop retornou uma resposta de detalhes inválida.',
+        'Steam Workshop is not configured by the administrator.':
+            'O administrador ainda não configurou a Steam Workshop.',
+        'Steam Workshop is temporarily unavailable.': 'A Steam Workshop está temporariamente indisponível.',
+        'Steam Workshop returned an invalid response.': 'A Steam Workshop retornou uma resposta inválida.',
+        'Workshop Manager is only available for Project Zomboid servers.':
+            'O gerenciador da Workshop está disponível apenas para servidores Project Zomboid.',
+        'This action is only available for Project Zomboid servers.':
+            'Esta ação está disponível apenas para servidores Project Zomboid.',
+        'The server must be fully offline before its Project Zomboid save can be wiped.':
+            'O servidor precisa estar totalmente desligado para apagar o save do Project Zomboid.',
+        'The server cover image could not be stored.': 'Não foi possível salvar a imagem do servidor.',
+        'The local AI assistant is not configured or is temporarily unavailable.':
+            'O assistente de IA local não está configurado ou está temporariamente indisponível.',
+        'The local AI assistant encountered an internal error. Please try again shortly.':
+            'O assistente de IA local encontrou um erro interno. Tente novamente em instantes.',
+        'The local AI assistant took too long to answer. Please try again.':
+            'O assistente de IA local demorou demais para responder. Tente novamente.',
+        'Save the Ollama base URL and API key before refreshing models.':
+            'Salve a URL base e a chave de API do Ollama antes de atualizar os modelos.',
+        'Ollama responded successfully, but no models are installed.':
+            'O Ollama respondeu, mas nenhum modelo está instalado.',
+        'The configured Ollama base URL is invalid.': 'A URL base do Ollama configurada é inválida.',
+        'Ollama rejected the configured API key.': 'O Ollama rejeitou a chave de API configurada.',
+        'The Ollama /api/tags endpoint was not found.': 'O endpoint /api/tags do Ollama não foi encontrado.',
+        'Ollama is rate limiting model discovery. Try again shortly.':
+            'O Ollama limitou as consultas de modelos. Tente novamente em instantes.',
+        'Ollama is temporarily unavailable.': 'O Ollama está temporariamente indisponível.',
+        'A valid Ollama base URL is required.': 'Informe uma URL base válida para o Ollama.',
+        'The Ollama base URL must use HTTP or HTTPS without credentials, query, or fragment.':
+            'A URL base do Ollama deve usar HTTP ou HTTPS e não pode conter credenciais, consulta ou fragmento.',
+        'The Ollama base URL path must be empty or /api.':
+            'O caminho da URL base do Ollama deve estar vazio ou ser /api.',
+        'The requested resource does not exist on the system.': 'O recurso solicitado não existe no sistema.',
+        'Network Error': 'Erro de conexão. Verifique sua conexão com a internet e tente novamente.',
+        'A new password is required.': 'Uma nova senha é obrigatória.',
+        'Email addresses must not exceed 191 characters.': 'Os endereços de e-mail devem ter no máximo 191 caracteres.',
+        'Please enter at least three characters to begin searching.':
+            'Informe pelo menos três caracteres para iniciar a busca.',
+        'A valid email address must be provided.': 'Informe um endereço de e-mail válido.',
+        'A valid email address must be provided to continue.': 'Informe um endereço de e-mail válido para continuar.',
+        'Your new password does not match.': 'A nova senha não confere.',
+        'Your new password should be at least 8 characters in length.':
+            'A nova senha deve ter pelo menos 8 caracteres.',
+        'The value is invalid.': 'O valor informado é inválido.',
+        'This field is required.': 'Este campo é obrigatório.',
+        'Choose one of the allowed values: {{values}}.': 'Escolha um dos valores permitidos: {{values}}.',
+        'Choose a value that is not: {{values}}.': 'Escolha um valor diferente de: {{values}}.',
+        'Enter a value of the expected type.': 'Informe um valor do tipo esperado.',
+        'Use exactly {{length}} characters.': 'Use exatamente {{length}} caracteres.',
+        'Use at least {{min}} characters.': 'Use pelo menos {{min}} caracteres.',
+        'Use no more than {{max}} characters.': 'Use no máximo {{max}} caracteres.',
+        'The value has an invalid format.': 'O formato informado é inválido.',
+        'Enter a valid email address.': 'Informe um endereço de e-mail válido.',
+        'Enter a valid URL.': 'Informe uma URL válida.',
+        'Enter a valid UUID.': 'Informe um UUID válido.',
+        'Remove spaces from the start and end of this value.': 'Remova os espaços do início e do fim deste valor.',
+        'Use lowercase letters for this value.': 'Use letras minúsculas neste valor.',
+        'Use uppercase letters for this value.': 'Use letras maiúsculas neste valor.',
+        'Enter a number greater than or equal to {{min}}.': 'Informe um número maior ou igual a {{min}}.',
+        'Enter a number less than or equal to {{max}}.': 'Informe um número menor ou igual a {{max}}.',
+        'Enter a number less than {{less}}.': 'Informe um número menor que {{less}}.',
+        'Enter a number greater than {{more}}.': 'Informe um número maior que {{more}}.',
+        'Enter a positive number.': 'Informe um número positivo.',
+        'Enter a negative number.': 'Informe um número negativo.',
+        'Enter a whole number.': 'Informe um número inteiro.',
+        'Network In': 'Rede de entrada',
+        'Network Out': 'Rede de saída',
+        subscribers: 'inscritos',
+        Animals: 'Animais',
+        Audio: 'Áudio',
+        Balance: 'Balanceamento',
+        Building: 'Construção',
+        'Clothing/Armor': 'Roupas/Armaduras',
+        Farming: 'Agricultura',
+        Food: 'Comida',
+        Framework: 'Estrutura',
+        Interface: 'Interface',
+        Map: 'Mapa',
+        Vehicles: 'Veículos',
+        Items: 'Itens',
+        Models: 'Modelos',
+        Multiplayer: 'Multijogador',
+        Misc: 'Diversos',
+        Hardmode: 'Modo difícil',
+        '{{count}} results from Steam Workshop for Project Zomboid':
+            '{{count}} resultados do Steam Workshop para Project Zomboid',
+        '"I Accept"': '"Eu aceito"',
+        '&nbsp;Please select a supported version from the list below to continue starting the server.':
+            ' Selecione uma versão compatível na lista abaixo para continuar iniciando o servidor.',
+        '+ Create schedule': '+ Criar agendamento',
+        'A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato com um administrador se precisar reinstalá-lo.':
+            'A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato com um administrador se precisar reinstalá-lo.',
+        'A reinstalação irá parar o servidor e executar novamente o script de instalação original.&nbsp;':
+            'A reinstalação interromperá o servidor e executará novamente o script de instalação original. ',
+        'A quick glance at your system.': 'Um resumo rápido do seu sistema.',
+        'Already configured': 'Já configurado',
+        'Authentication Code': 'Código de autenticação',
+        'Confirm Wipe': 'Confirmar Wipe',
+        'Enter one of the recovery codes generated when you setup 2-Factor authentication on this account in order to continue.':
+            'Para continuar, informe um dos códigos de recuperação gerados ao configurar a autenticação em duas etapas desta conta.',
+        'Enter the two-factor token generated by your device.':
+            'Informe o código de autenticação em duas etapas gerado pelo seu dispositivo.',
+        'Enter the new name and directory of this file or folder, relative to the current directory.':
+            'Informe o novo nome e a pasta deste arquivo ou diretório, relativos à pasta atual.',
+        'Extract ZIP': 'Extrair ZIP',
+        'Recovery Code': 'Código de recuperação',
+        'Restoring from Backup': 'Restaurando backup',
+        'Select mod': 'Selecionar mod',
+        'Something went wrong': 'Algo deu errado',
+        'System User': 'Usuário do sistema',
+        'The requested resource was not found.': 'O recurso solicitado não foi encontrado.',
+        Unarchive: 'Descompactar',
+        'Your server is being transferred to a new node, please check back later.':
+            'Seu servidor está sendo transferido para outro nó. Tente novamente mais tarde.',
+        'Your server is currently being restored from a backup, please check back in a few minutes.':
+            'O servidor está sendo restaurado de um backup. Tente novamente em alguns minutos.',
+        "A backup task cannot be created when the server's backup limit is set to 0.":
+            'Não é possível criar uma tarefa de backup quando o limite de backups do servidor está definido como 0.',
+        'Choose a valid schedule frequency.': 'Escolha uma frequência válida para o agendamento.',
+        'Enable Two-Step Verification': 'Ativar verificação em duas etapas',
+        'Disable Two-Step Verification': 'Desativar verificação em duas etapas',
+        'Enter a name for this schedule.': 'Informe um nome para este agendamento.',
+        'Enter the command to run.': 'Informe o comando que será executado.',
+        'file is uploading, click to view': 'arquivo está sendo enviado; clique para ver',
+        'files are uploading, click to view': 'arquivos estão sendo enviados; clique para ver',
+        'Force stop': 'Forçar parada',
+        'Not scheduled': 'Não agendado',
+        'Restart the server': 'Reinicie o servidor',
+        'Start the server': 'Inicie o servidor',
+        'Stop the server': 'Pare o servidor',
+        "Help protect your account from unauthorized access. You'll be prompted for a verification code each time you sign in.":
+            'Ajude a proteger sua conta contra acessos não autorizados. Será solicitado um código de verificação sempre que você entrar.',
+        'Waiting for QR code to load...': 'Aguarde o carregamento do código QR...',
+        'You must enter the 6-digit code and your password to continue.':
+            'Informe o código de 6 dígitos e sua senha para continuar.',
+        '{{name}}: enter the exact Mod ID before adding it to the server.':
+            '{{name}}: informe o Mod ID exato antes de adicionar ao servidor.',
+        '{{name}}: could not determine the Mod ID. Enter the exact value from mod.info.':
+            '{{name}}: não foi possível descobrir o Mod ID. Informe o valor exato de mod.info.',
+        '{{filename}} installed in the mods directory.': '{{filename}} instalado na pasta de mods.',
+        'Delete Task': 'Excluir tarefa',
+        'Yes, remove subuser': 'Sim, remover subusuário',
+        'You must enter your account password to continue.': 'Informe a senha da sua conta para continuar.',
+        'View additional event metadata': 'Ver metadados adicionais do evento',
+        'Using API Key': 'Usando chave de API',
+        'Using SFTP': 'Usando SFTP',
+        'A database name must be provided.': 'Informe o nome do banco de dados.',
+        'A task payload must be provided.': 'Informe os dados da tarefa.',
+        'A time offset value must be provided.': 'Informe o deslocamento de horário.',
+        'A valid directory name must be provided.': 'Informe um nome válido para a pasta.',
+        'A valid host address must be provided.': 'Informe um endereço de host válido.',
+        'Archiving files...': 'Compactando arquivos...',
+        'Cannot mount <Dropdown /> component without a child <Dropdown.Button />.':
+            'Não é possível montar o componente <Dropdown /> sem um componente <Dropdown.Button /> filho.',
+        'Component passed to <CopyOnClick/> must be a valid React element.':
+            'O componente informado a <CopyOnClick/> precisa ser um elemento React válido.',
+        'Database name must be at least 3 characters.': 'O nome do banco de dados precisa ter pelo menos 3 caracteres.',
+        'Database name must not exceed 48 characters.': 'O nome do banco de dados não pode ter mais de 48 caracteres.',
+        'Database name should only contain alphanumeric characters, underscores, dashes, and/or periods.':
+            'O nome do banco de dados pode conter apenas letras, números, sublinhados, hífens e pontos.',
+        'Deleting files...': 'Excluindo arquivos...',
+        'Disabling two-step verification will make your account less secure.':
+            'Desativar a verificação em duas etapas deixará sua conta menos segura.',
+        'Failed to connect to websocket instance after multiple attempts: try refreshing the page.':
+            'Não foi possível conectar ao WebSocket após várias tentativas. Tente atualizar a página.',
+        'File Uploads': 'Envios de arquivos',
+        'Folder uploads are not supported.': 'O envio de pastas não é compatível.',
+        'minecraft 1.17 requires running the server with java 16 or above':
+            'O Minecraft 1.17 exige que o servidor use Java 16 ou superior.',
+        'minecraft 1.18 requires running the server with java 17 or above':
+            'O Minecraft 1.18 exige que o servidor use Java 17 ou superior.',
+        'Password confirmation does not match the password you entered.':
+            'A confirmação de senha não corresponde à senha informada.',
+        'The assistant could not answer right now.': 'O assistente não conseguiu responder agora.',
+        'The database name must be provided.': 'O nome do banco de dados é obrigatório.',
+        'The following files are being uploaded to your server.':
+            'Os seguintes arquivos estão sendo enviados para o servidor.',
+        'The time offset must be a valid number between 0 and 900.':
+            'O deslocamento de horário deve ser um número válido entre 0 e 900.',
+        'The time offset must be at least 0 seconds.': 'O deslocamento de horário deve ser de pelo menos 0 segundos.',
+        'The time offset must be less than 900 seconds.': 'O deslocamento de horário deve ser menor que 900 segundos.',
+        'There was an error validating the credentials provided for the websocket. Please refresh the page.':
+            'Ocorreu um erro ao validar as credenciais do WebSocket. Atualize a página.',
+        'Unable to load server resource usage from the Panel API.':
+            'Não foi possível carregar o uso de recursos do servidor pela API do painel.',
+        'You must provide your current account password.': 'Informe a senha atual da sua conta.',
+        'You must provide your current password.': 'Informe sua senha atual.',
+        'Your primary email has been updated.': 'Seu e-mail principal foi atualizado.',
+        'Send a console command': 'Enviar um comando pelo console',
+        'Send Command': 'Enviar comando',
+        'Send Power Action': 'Enviar ação de energia',
+        'Create Backup': 'Criar backup',
+        'Unknown Action': 'Ação desconhecida',
+        Error: 'Erro',
+        Success: 'Sucesso',
+        Online: 'Ligado',
+        Iniciando: 'Iniciando',
+        Desligando: 'Desligando',
+        Verificando: 'Verificando',
+        Indisponível: 'Indisponível',
+        Offline: 'Desligado',
+        'Falha na instalação': 'Falha na instalação',
+        'Falha na reinstalação': 'Falha na reinstalação',
+        'Restaurando backup': 'Restaurando backup',
+        Transferindo: 'Transferindo',
+        Suspenso: 'Suspenso',
+        Instalando: 'Instalando',
+        'Node em manutenção': 'Nó em manutenção',
+        'Endereço indisponível': 'Endereço indisponível',
+        'Game server': 'Servidor de jogos',
+        Every: 'A cada',
+        minute: 'minuto',
+        'Hourly at minute': 'A cada hora, no minuto',
+        'Custom frequency (kept as-is)': 'Frequência personalizada (mantida como está)',
+        Sunday: 'Domingo',
+        Monday: 'Segunda-feira',
+        Tuesday: 'Terça-feira',
+        Wednesday: 'Quarta-feira',
+        Thursday: 'Quinta-feira',
+        Friday: 'Sexta-feira',
+        Saturday: 'Sábado',
+        at: 'às',
+        '). You can negate a prior rule by prepending an exclamation point (':
+            '). Para cancelar uma regra anterior, coloque um ponto de exclamação ( antes do caminho.',
+        ', might help resolve this issue.': ', talvez ajude a resolver este problema.',
+        '? This is a permanent action and the files cannot be recovered.':
+            '? Esta ação é permanente e os arquivos não poderão ser recuperados.',
+        'AI Assistant': 'Assistente de IA',
+        'API Keys': 'Chaves de API',
+        At: 'Às',
+        'Copyright © 2024 - 2026': 'Copyright © 2024 - 2026',
+        'Copyright © 2024 - 2026 HowTo.Software.': 'Copyright © 2024 - 2026 HowTo.Software.',
+        'Enter the files or folders to ignore while generating this backup. Leave blank to use the contents of the .pteroignore file in the root of the server directory if present. Wildcard matching of files and folders is supported in addition to negating a rule by prefixing the path with an exclamation point.':
+            'Informe os arquivos ou pastas que devem ser ignorados ao criar este backup. Deixe em branco para usar o conteúdo do arquivo .pteroignore na pasta raiz do servidor, se houver. Também é possível usar curingas e cancelar uma regra prefixando o caminho com um ponto de exclamação.',
+        'Leave blank to allow any IP address to use this API key, otherwise provide each IP address on a new line.':
+            'Deixe em branco para permitir que qualquer endereço IP use esta chave de API. Caso contrário, informe cada endereço IP em uma nova linha.',
+        'Note: Wings must be restarted for the configuration file changes to take effect':
+            'Observação: o Wings precisa ser reiniciado para que as alterações no arquivo de configuração entrem em vigor.',
+        Open: 'Abrir',
+        'Oops!': 'Ops!',
+        Save: 'Salvar',
+        This: 'Este',
+        '2-Factor Required': 'Autenticação em duas etapas obrigatória',
+        '2FA Enabled': '2FA ativada',
+        'A description of this API key.': 'Uma descrição para esta chave de API.',
+        'A descriptive name for your database instance.': 'Um nome descritivo para este banco de dados.',
+        'Access Denied': 'Acesso negado',
+        'Account API': 'API da conta',
+        'Account Activity Log': 'Registro de atividade da conta',
+        'Account Overview': 'Visão geral da conta',
+        'Activity Log': 'Registro de atividades',
+        'Add SSH Key': 'Adicionar chave SSH',
+        Address: 'Endereço',
+        'Allowed IPs': 'IPs permitidos',
+        'Ask something...': 'Faça uma pergunta...',
+        'Assistant is thinking': 'O assistente está pensando',
+        'Backup name': 'Nome do backup',
+        Backups: 'Backups',
+        'CPU Load': 'Uso da CPU',
+        'Change Password': 'Alterar senha',
+        Clear: 'Limpar',
+        'Close file': 'Fechar arquivo',
+        'Confirm Database Name': 'Confirmar nome do banco de dados',
+        'Confirm New Password': 'Confirmar nova senha',
+        'Confirm Password': 'Confirmar senha',
+        'Confirm task deletion': 'Confirmar exclusão da tarefa',
+        'Confirmar reinstalação do servidor': 'Confirm server reinstallation',
+        'Confirmar wipe do Project Zomboid?': 'Confirm Project Zomboid wipe?',
+        'Connections From': 'Conexões de',
+        'Console command input.': 'Campo de comando do console.',
+        'Continue on Failure': 'Continuar em caso de falha',
+        'Copy code': 'Copiar código',
+        Create: 'Criar',
+        'Create API Key': 'Criar chave de API',
+        'Create schedule': 'Criar agendamento',
+        'Create server backup': 'Criar backup do servidor',
+        'Current Password': 'Senha atual',
+        'CurseForge Mods - BETA': 'Mods do CurseForge - BETA',
+        'CurseForge Mods': 'Mods do CurseForge',
+        'CurseForge project': 'Projeto no CurseForge',
+        'CurseForge catalogs': 'Catálogos do CurseForge',
+        'Minecraft mod browser': 'Catálogo de mods para Minecraft',
+        'Find server-compatible mods and published server packs from CurseForge.':
+            'Encontre mods compatíveis com o servidor e pacotes de servidor publicados no CurseForge.',
+        'Bedrock Edition': 'Edição Bedrock',
+        'Java Edition': 'Edição Java',
+        Mods: 'Mods',
+        Modpacks: 'Modpacks',
+        Installed: 'Instalados',
+        'Sort by': 'Ordenar por',
+        'Most downloaded': 'Mais baixados',
+        Popular: 'Populares',
+        'Recently updated': 'Atualizados recentemente',
+        'Search results': 'Resultados da busca',
+        '{{count}} CurseForge projects': '{{count}} projetos do CurseForge',
+        'Server pack files are separated from client downloads.':
+            'Os arquivos de servidor são separados dos downloads para cliente.',
+        'Results are filtered to this server version and mod loader.':
+            'Os resultados são filtrados pela versão do servidor e pelo mod loader.',
+        'Search modpacks by name or paste a CurseForge modpack link':
+            'Busque modpacks pelo nome ou cole o link de um modpack do CurseForge',
+        'Search compatible mods by name': 'Busque mods compatíveis pelo nome',
+        'No projects found': 'Nenhum projeto encontrado',
+        'Try another search or select a different ranking filter.':
+            'Tente outra busca ou escolha outro filtro de classificação.',
+        'View server files': 'Ver arquivos do servidor',
+        'View compatible files': 'Ver arquivos compatíveis',
+        Previous: 'Anterior',
+        Next: 'Próxima',
+        'Installing...': 'Instalando...',
+        'Server pack files': 'Arquivos de servidor',
+        'Select a modpack to check whether its creator published a server pack.':
+            'Selecione um modpack para verificar se o criador publicou um pacote de servidor.',
+        'Choose a mod to see files matching this server.':
+            'Escolha um mod para ver os arquivos compatíveis com este servidor.',
+        'This author has not published a server pack for the selected modpack.':
+            'O autor não publicou um pacote de servidor para este modpack.',
+        'No compatible mod file was returned for this project.':
+            'Este projeto não retornou arquivos de mod compatíveis.',
+        'Server pack': 'Pacote de servidor',
+        'Install pack': 'Instalar pacote',
+        'Install this server pack?': 'Instalar este pacote de servidor?',
+        'Download and extract': 'Baixar e extrair',
+        'The server must be completely stopped before installing a server pack.':
+            'O servidor precisa estar completamente parado antes da instalação do pacote.',
+        'The archive will be extracted into the server root. Existing files with the same names can be overwritten, so make a backup before continuing.':
+            'O arquivo será extraído na raiz do servidor. Arquivos existentes com o mesmo nome podem ser sobrescritos; faça um backup antes de continuar.',
+        'After extraction, review the startup command and server files before starting the server.':
+            'Após a extração, confira o comando de inicialização e os arquivos antes de ligar o servidor.',
+        'The server pack was extracted. Check the startup command and server files before starting.':
+            'O pacote de servidor foi extraído. Confira o comando de inicialização e os arquivos antes de ligar o servidor.',
+        'Bedrock was detected. This CurseForge integration manages Java mods and Java server packs. Bedrock add-ons use a different format and are not installed by this page.':
+            'Servidor Bedrock detectado. Esta integração do CurseForge gerencia mods e pacotes de servidor Java. Add-ons Bedrock usam outro formato e não são instalados por esta tela.',
+        'Bedrock add-ons do not use the Java mods directory.': 'Add-ons Bedrock não usam a pasta de mods do Java.',
+        'Choose a Java server to browse these mods and server packs.':
+            'Selecione um servidor Java para pesquisar estes mods e pacotes de servidor.',
+        'The egg does not expose an exact Minecraft version. Modpack results cannot be version-filtered; check the version tags before installing.':
+            'O Egg não informa uma versão exata do Minecraft. Os modpacks não serão filtrados por versão; confira as etiquetas de versão antes de instalar.',
+        'Vanilla Java was detected. Individual mods need Forge, Fabric, Quilt, or NeoForge; use Modpacks to find a server pack that includes a mod loader.':
+            'Java Vanilla detectado. Mods individuais exigem Forge, Fabric, Quilt ou NeoForge; procure em Modpacks um pacote de servidor que inclua um mod loader.',
+        'Minecraft Java was detected, but this server egg does not identify a supported mod loader. Configure the egg with Forge, Fabric, Quilt, or NeoForge to filter compatible mods.':
+            'Minecraft Java detectado, mas este Egg não identifica um mod loader compatível. Configure-o com Forge, Fabric, Quilt ou NeoForge para filtrar os mods compatíveis.',
+        'No .jar or .zip mod files were found in the mods directory.':
+            'Nenhum arquivo .jar ou .zip foi encontrado na pasta de mods.',
+        'Daily restart': 'Reinício diário',
+        Dashboard: 'Painel',
+        'Database Name': 'Nome do banco de dados',
+        'Delete API Key': 'Excluir chave de API',
+        'Delete Files': 'Excluir arquivos',
+        'Delete Key': 'Excluir chave',
+        'Delete SSH Key': 'Excluir chave SSH',
+        'Delete Schedule': 'Excluir agendamento',
+        'Delete scheduled task': 'Excluir tarefa agendada',
+        'Delete subuser': 'Remover subusuário',
+        'Delete this subuser?': 'Remover este subusuário?',
+        Description: 'Descrição',
+        'Device Checkpoint': 'Verificação do dispositivo',
+        Disk: 'Disco',
+        'Docker Image': 'Imagem Docker',
+        'Edit scheduled task': 'Editar tarefa agendada',
+        'Edit subuser': 'Editar subusuário',
+        'Enter a server name, uuid, or allocation to begin searching.':
+            'Informe o nome, UUID ou alocação de um servidor para iniciar a busca.',
+        'Enter the database name to confirm deletion.': 'Informe o nome do banco de dados para confirmar a exclusão.',
+        'Enter the email address of the user you wish to invite as a subuser for this server.':
+            'Informe o e-mail da pessoa que deseja convidar como subusuário deste servidor.',
+        'Enter the name that this file should be saved as.': 'Informe o nome com o qual este arquivo deve ser salvo.',
+        'Enter your account email address to receive instructions on resetting your password.':
+            'Informe o e-mail da sua conta para receber instruções de redefinição de senha.',
+        'Enter your public SSH key.': 'Informe sua chave pública SSH.',
+        'File Mode': 'Permissões do arquivo',
+        'File Name': 'Nome do arquivo',
+        'File editor': 'Editor de arquivos',
+        'File explorer': 'Explorador de arquivos',
+        'Filter this folder…': 'Filtrar esta pasta…',
+        'Forcibly Stop Process': 'Forçar encerramento do processo',
+        'Future tasks will be run when this task fails.':
+            'As tarefas seguintes serão executadas se esta tarefa falhar.',
+        'GSL Token': 'Token GSL',
+        'HowTo.Software': 'HowTo.Software',
+        'If provided, the name that should be used to reference this backup.':
+            'Se informado, este nome será usado para identificar o backup.',
+        'Ignored Files & Directories': 'Arquivos e pastas ignorados',
+        "It looks like you don't have any subusers.": 'Você ainda não tem subusuários.',
+        'JPG, PNG ou WebP · 1200 x 700 px · até 5 MB': 'JPG, PNG, or WebP · 1200 x 700 px · up to 5 MB',
+        'JPG, PNG ou WebP · 256 x 256 px · até 5 MB': 'JPG, PNG, or WebP · 256 x 256 px · up to 5 MB',
+        'Last used:': 'Último uso:',
+        Locked: 'Bloqueado',
+        Memory: 'Memória',
+        Metadata: 'Metadados',
+        'NO Image': 'Sem imagem',
+        Name: 'Nome',
+        Network: 'Rede',
+        'Network (Inbound)': 'Rede (entrada)',
+        'Network (Outbound)': 'Rede (saída)',
+        Never: 'Nunca',
+        'New Password': 'Nova senha',
+        'Next run at:': 'Próxima execução:',
+        'Node under Maintenance': 'Nó em manutenção',
+        Notes: 'Observações',
+        Ollama: 'Ollama',
+        'Open files': 'Arquivos abertos',
+        'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.':
+            'Opcional. Informe os arquivos e pastas que devem ser excluídos deste backup. Por padrão, serão usadas as regras do arquivo .pteroignore. Se o limite de backups for atingido, o backup mais antigo será substituído.',
+        'Passwords must be at least 8 characters in length.': 'As senhas devem ter pelo menos 8 caracteres.',
+        'Prevents this backup from being deleted until explicitly unlocked.':
+            'Impede que este backup seja excluído até que seja desbloqueado.',
+        'Public Key': 'Chave pública',
+        'Remove Allocation': 'Remover alocação',
+        'Removing the': 'Removendo',
+        'Request Password Reset': 'Solicitar redefinição de senha',
+        'Return to Login': 'Voltar para o login',
+        'Running Installer': 'Executando instalador',
+        'SSH Key Name': 'Nome da chave SSH',
+        'SSH Keys': 'Chaves SSH',
+        'SSH key will invalidate its usage across the Panel.': 'A chave SSH deixará de ser válida em todo o painel.',
+        'Search compatible CurseForge mods': 'Pesquisar mods compatíveis do CurseForge',
+        'Search term': 'Termo de pesquisa',
+        'Server Suspended': 'Servidor suspenso',
+        Showing: 'Exibindo',
+        'Startup Command': 'Comando de inicialização',
+        'Startup Settings': 'Configurações de inicialização',
+        'Steam Workshop': 'Steam Workshop',
+        'Store the codes below somewhere safe. If you lose access to your phone you can use these backup codes to sign in.':
+            'Guarde os códigos abaixo em um local seguro. Se perder acesso ao seu telefone, você poderá usá-los para entrar na conta.',
+        'The amount of time to wait after the previous task executes before running this one. If this is the first task on a schedule this will not be applied.':
+            'Tempo de espera após a execução da tarefa anterior. Este intervalo não se aplica à primeira tarefa do agendamento.',
+        'The node of this server is currently under maintenance.': 'O nó deste servidor está em manutenção.',
+        'This server is suspended and cannot be accessed.': 'Este servidor está suspenso e não pode ser acessado.',
+        'Time offset (in seconds)': 'Deslocamento de horário (em segundos)',
+        'Two-Step Authentication Enabled': 'Autenticação em duas etapas ativada',
+        'Two-Step Verification': 'Verificação em duas etapas',
+        'Type a command...': 'Digite um comando...',
+        'Update Email Address': 'Atualizar endereço de e-mail',
+        Uptime: 'Tempo ligado',
+        'User Email': 'E-mail do usuário',
+        Users: 'Usuários',
+        'Visit https://steamcommunity.com/dev/managegameservers to generate a token.':
+            'Acesse https://steamcommunity.com/dev/managegameservers para gerar um token.',
+        'Where connections should be allowed from. Leave blank to allow connections from anywhere.':
+            'Origens das conexões permitidas. Deixe em branco para permitir conexões de qualquer lugar.',
+        'You do not have permission to access this page.': 'Você não tem permissão para acessar esta página.',
+        "You're editing a": 'Você está editando um(a)',
+        'Your new password should be at least 8 characters in length and unique to this website.':
+            'Sua nova senha deve ter pelo menos 8 caracteres e ser exclusiva deste site.',
+        'Your server should be ready soon, please try again in a few minutes.':
+            'Seu servidor deve ficar pronto em breve. Tente novamente em alguns minutos.',
+        and: 'e',
+        container: 'container',
+        to: 'para',
+        'Ícone pequeno': 'Small icon',
+        '⊕ Adicionar selecionados': '⊕ Add selected',
+        '▣ Instalados': '▣ Installed',
+        '▣ Salvar': '▣ Save',
+        '▶ Salvar e Reiniciar': '▶ Save and Restart',
+        '● Configuration synced': '● Configuração sincronizada',
+        '⚙ Gerenciar IDs manualmente': '⚙ Manage IDs manually',
+        'Accept Minecraft® EULA': 'Aceitar o EULA do Minecraft®',
+        'Account Password': 'Senha da conta',
+        Action: 'Ação',
+        Active: 'Ativo',
+        'Added on:&nbsp;': 'Adicionado em: ',
+        'Additional tasks will be preserved.': 'As tarefas adicionais serão mantidas.',
+        'All requests using the': 'Todas as solicitações que usam',
+        'All tasks will be removed and any running processes will be terminated.':
+            'Todas as tarefas serão removidas e os processos em execução serão encerrados.',
+        'An error was encountered by the application while rendering this view. Try refreshing the page.':
+            'Ocorreu um erro ao exibir esta página. Tente atualizá-la.',
+        Archive: 'Compactar',
+        'Are you sure you want to delete this task? This action cannot be undone.':
+            'Tem certeza de que deseja excluir esta tarefa? Esta ação não pode ser desfeita.',
+        'Are you sure you want to delete': 'Tem certeza de que deseja excluir',
+        'Are you sure you wish to remove this subuser? They will have all access to this server revoked immediately.':
+            'Tem certeza de que deseja remover este subusuário? O acesso dessa pessoa ao servidor será revogado imediatamente.',
+        'Ask about an error, a configuration option or a panel function.':
+            'Pergunte sobre um erro, uma opção de configuração ou um recurso do painel.',
+        Assistant: 'Assistente',
+        'Authentication Required': 'Autenticação necessária',
+        'Automate power actions, console commands, and backups.':
+            'Automatize ações de energia, comandos do console e backups.',
+        Automation: 'Automação',
+        Available: 'Disponível',
+        'Backups cannot be created for this server because the backup limit is set to 0.':
+            'Não é possível criar backups deste servidor porque o limite está definido como 0.',
+        'Browse, manage, and edit your server files.': 'Navegue, gerencie e edite os arquivos do servidor.',
+        'By pressing': 'Ao clicar em',
+        Cancel: 'Cancelar',
+        'Cancel Uploads': 'Cancelar envios',
+        'Clear Filters': 'Limpar filtros',
+        Close: 'Fechar',
+        Command: 'Comando',
+        'Compatible files': 'Arquivos compatíveis',
+        'Compatible mod browser': 'Navegador de mods compatíveis',
+        'Confirm database deletion': 'Confirmar exclusão do banco de dados',
+        'Connection Error': 'Erro de conexão',
+        'Connections from': 'Conexões de',
+        Console: 'Console',
+        Continue: 'Continuar',
+        'Continues on Failure': 'Continuar em caso de falha',
+        Copied: 'Copiado',
+        'Copied text to clipboard.': 'Texto copiado para a área de transferência.',
+        Copy: 'Copiar',
+        'Create Allocation': 'Criar alocação',
+        'Create Database': 'Criar banco de dados',
+        'Create Directory': 'Criar pasta',
+        'Create File': 'Criar arquivo',
+        'Create Task': 'Criar tarefa',
+        'Create a schedule to run a server action automatically at a time that works for you.':
+            'Crie um agendamento para executar ações no servidor automaticamente no horário desejado.',
+        'Create a server backup': 'Criar um backup do servidor',
+        'Create backup': 'Criar backup',
+        'Create new database': 'Criar banco de dados',
+        'Create new subuser': 'Criar subusuário',
+        'Create your first schedule': 'Crie seu primeiro agendamento',
+        Created: 'Criado',
+        Custom: 'Personalizado',
+        'Database connection details': 'Dados de conexão do banco de dados',
+        Databases: 'Bancos de dados',
+        'Databases cannot be created for this server.': 'Não é possível criar bancos de dados para este servidor.',
+        'Day (Month)': 'Dia do mês',
+        'Day (Week)': 'Dia da semana',
+        'Days and time': 'Dias e horário',
+        Delete: 'Excluir',
+        'Delete Database': 'Excluir banco de dados',
+        'Delete all files before restoring backup.': 'Excluir todos os arquivos antes de restaurar o backup.',
+        'Deleting a database is a permanent action, it cannot be undone. This will permanently delete the':
+            'A exclusão de um banco de dados é permanente e não pode ser desfeita. Isso excluirá permanentemente',
+        Disable: 'Desativar',
+        'Disable Two-Step': 'Desativar verificação em duas etapas',
+        Disabled: 'Desativado',
+        'Docker image has been manually set by an administrator and cannot be changed through this UI.':
+            'A imagem Docker foi definida manualmente por um administrador e não pode ser alterada por esta tela.',
+        Done: 'Concluído',
+        Download: 'Baixar',
+        'Drag and drop files to upload.': 'Arraste e solte arquivos aqui para enviá-los.',
+        Edit: 'Editar',
+        'Edit Task': 'Editar tarefa',
+        'Edit schedule': 'Editar agendamento',
+        'Editor language': 'Idioma do editor',
+        Email: 'E-mail',
+        Enable: 'Ativar',
+        'Enable Two-Step': 'Ativar verificação em duas etapas',
+        Enabled: 'Ativado',
+        Endpoint: 'Endpoint',
+        'Enter to send / Shift+Enter for a new line':
+            'Pressione Enter para enviar / Shift+Enter para inserir uma nova linha',
+        'Ensure the machine has enough disk space by typing':
+            'Verifique se a máquina tem espaço em disco suficiente digitando',
+        'Every X minutes': 'A cada X minutos',
+        'Every day': 'Todos os dias',
+        Examples: 'Exemplos',
+        Failed: 'Falhou',
+        'File Explorer': 'Gerenciador de arquivos',
+        Files: 'Arquivos',
+        'Filter files in this folder': 'Filtrar arquivos nesta pasta',
+        'Forcibly stopping a server can lead to data corruption.': 'Forçar a parada do servidor pode corromper dados.',
+        Frequency: 'Frequência',
+        Hostname: 'Nome do host',
+        Hour: 'Hora',
+        Hourly: 'A cada hora',
+        'I Accept': 'Eu aceito',
+        Inbound: 'Entrada',
+        Outbound: 'Saída',
+        'I Have My Device': 'Estou com meu dispositivo',
+        "I've Lost My Device": 'Perdi meu dispositivo',
+        'IP Address': 'Endereço IP',
+        'If it reports that the password could not be set, your account is managed outside this system and an administrator has to reset it for you.':
+            'Se aparecer uma mensagem informando que a senha não pôde ser definida, sua conta é gerenciada fora deste sistema e um administrador precisará redefini-la.',
+        'Ignored Files': 'Arquivos ignorados',
+        'Ignoring files & folders:': 'Ignorando arquivos e pastas:',
+        Inactive: 'Inativo',
+        Increasing: 'Aumentando',
+        Install: 'Instalar',
+        'Installed mod files': 'Arquivos de mod instalados',
+        Installing: 'Instalando',
+        'Invalid GSL token!': 'Token GSL inválido!',
+        'Invite User': 'Convidar usuário',
+        'It looks like there are no backups currently stored for this server.': 'Este servidor ainda não tem backups.',
+        'It looks like you don&apos;t have any subusers.': 'Você ainda não tem subusuários.',
+        'It looks like you have no databases.': 'Você ainda não tem bancos de dados.',
+        'It seems like your Gameserver Login Token (GSL token) is invalid or has expired.':
+            'Parece que o token de login do servidor de jogos (GSL) é inválido ou expirou.',
+        'JDBC Connection String': 'String de conexão JDBC',
+        Kill: 'Encerrar',
+        'Last run at:': 'Última execução em:',
+        'Last run at:&nbsp;': 'Última execução em: ',
+        'Last used:&nbsp;': 'Último uso: ',
+        'Loader not detected': 'Carregador não detectado',
+        Loading: 'Carregando',
+        'Loading...': 'Carregando...',
+        Lock: 'Bloquear',
+        'Log in': 'Entrar',
+        "Looks like we've run out of backups to show you, try going back a page.":
+            'Não há mais backups para exibir. Tente voltar para a página anterior.',
+        'Make Primary': 'Tornar principal',
+        'Memory or process limit reached...': 'Limite de memória ou processos atingido...',
+        'Minecraft® EULA': 'EULA do Minecraft®',
+        Minute: 'Minuto',
+        Modified: 'Modificado',
+        Month: 'Mês',
+        Move: 'Mover',
+        'New Database': 'Novo banco de dados',
+        'New File': 'Novo arquivo',
+        'New Task': 'Nova tarefa',
+        'New User': 'Novo usuário',
+        'New location:': 'Novo local:',
+        'Next run': 'Próxima execução',
+        'Next run at:&nbsp;': 'Próxima execução em: ',
+        'No .jar or .zip mod files were found.': 'Nenhum arquivo de mod .jar ou .zip foi encontrado.',
+        'No API keys exist for this account.': 'Esta conta não tem chaves de API.',
+        'No SSH Keys exist for this account.': 'Esta conta não tem chaves SSH.',
+        'No action configured': 'Nenhuma ação configurada',
+        'No activity logs available for this server.': 'Não há registros de atividade disponíveis para este servidor.',
+        'No assistant provider is currently available.': 'Nenhum provedor de assistente está disponível no momento.',
+        'No compatible file was returned.': 'Nenhum arquivo compatível foi retornado.',
+        'No files open': 'Nenhum arquivo aberto',
+        'No matching files.': 'Nenhum arquivo correspondente.',
+        'No schedules yet': 'Nenhum agendamento ainda',
+        Node: 'Nó',
+        'Only files matching this server are offered for installation.':
+            'Somente arquivos compatíveis com este servidor podem ser instalados.',
+        'Only permissions which your account is currently assigned may be selected when creating or modifying other users.':
+            'Ao criar ou editar outros usuários, você só pode selecionar permissões atribuídas à sua conta.',
+        'Only when online': 'Somente quando estiver ligado',
+        'Open a file to start editing': 'Abra um arquivo para começar a editar',
+        'Out of available disk space...': 'Sem espaço em disco disponível...',
+        Password: 'Senha',
+        Payload: 'Conteúdo',
+        Permissions: 'Permissões',
+        Port: 'Porta',
+        'Possible resource limit reached...': 'Possível limite de recursos atingido...',
+        Primary: 'Principal',
+        Processing: 'Processando',
+        'Project Zomboid Workshop Mods': 'Mods da Workshop do Project Zomboid',
+        'Project page': 'Página do projeto',
+        'Read Only': 'Somente leitura',
+        Rename: 'Renomear',
+        'Reset Password': 'Redefinir senha',
+        Restart: 'Reiniciar',
+        Restore: 'Restaurar',
+        'Restoring Backup': 'Restaurando backup',
+        'Rotate Password': 'Trocar senha',
+        'Run Now': 'Executar agora',
+        'Run at minute': 'Executar no minuto',
+        'Run automatically at the selected time.': 'Executar automaticamente no horário selecionado.',
+        'Run every': 'Executar a cada',
+        Running: 'Em execução',
+        SFTP: 'SFTP',
+        'Save Changes': 'Salvar alterações',
+        'Save Content': 'Salvar conteúdo',
+        'Save File': 'Salvar arquivo',
+        'Save all (': 'Salvar tudo (',
+        'Save changes': 'Salvar alterações',
+        Saved: 'Salvo',
+        'Saving…': 'Salvando…',
+        'Scan the QR code above using the two-step authentication app of your choice. Then, enter the 6-digit code generated into the field below.':
+            'Leia o código QR acima com o aplicativo de autenticação em duas etapas de sua preferência. Em seguida, informe abaixo o código de 6 dígitos gerado.',
+        'Schedule enabled': 'Agendamento ativado',
+        'Schedule name': 'Nome do agendamento',
+        'Schedule preview': 'Prévia do agendamento',
+        Schedules: 'Agendamentos',
+        Search: 'Pesquisar',
+        'Search for a mod to view compatible server files.':
+            'Pesquise um mod para ver os arquivos compatíveis com o servidor.',
+        'Select a project to continue.': 'Selecione um projeto para continuar.',
+        'Select an editable file from the explorer.': 'Selecione um arquivo editável no explorador.',
+        'Select files': 'Selecionar arquivos',
+        Send: 'Enviar',
+        'Send Email': 'Enviar e-mail',
+        'Send command': 'Enviar comando',
+        'Send power action': 'Enviar ação de energia',
+        'Server Files': 'Arquivos do servidor',
+        'Server ID': 'ID do servidor',
+        'Server automation': 'Automação do servidor',
+        'Server schedules': 'Agendamentos do servidor',
+        'Server:': 'Servidor:',
+        'Server backup': 'Backup do servidor',
+        Settings: 'Configurações',
+        'Showing&nbsp;': 'Exibindo ',
+        'Skip the action if the server is offline when it runs.':
+            'Ignorar a ação se o servidor estiver desligado no horário agendado.',
+        'Special Characters': 'Caracteres especiais',
+        Start: 'Iniciar',
+        'Start backup': 'Iniciar backup',
+        Stop: 'Parar',
+        Suspended: 'Suspenso',
+        System: 'Sistema',
+        'Terminate the server': 'Encerra o processo do servidor',
+        'The API key you have requested is shown below. Please store this in a safe location, it will not be shown again.':
+            'A chave de API solicitada está abaixo. Guarde-a em um local seguro, pois ela não será exibida novamente.',
+        'The node of this server is currently under maintenance and all actions are unavailable.':
+            'O nó deste servidor está em manutenção e todas as ações estão indisponíveis.',
+        'The server’s .pteroignore rules will be used for excluded files.':
+            'As regras de .pteroignore do servidor serão usadas para excluir arquivos.',
+        'These codes will not be shown again.': 'Estes códigos não serão exibidos novamente.',
+        Thinking: 'Pensando',
+        'This allocation will be immediately removed from your server.':
+            'Esta alocação será removida imediatamente do servidor.',
+        'This backup will no longer be protected from automated or accidental deletions.':
+            'Este backup deixará de ser protegido contra exclusões automáticas ou acidentais.',
+        'This directory will be created as': 'Esta pasta será criada em',
+        'This existing frequency is not changed by the simplified editor.':
+            'O editor simplificado não altera esta frequência existente.',
+        'This folder has more than 250 items; only the first 250 are shown.':
+            'Esta pasta tem mais de 250 itens; somente os 250 primeiros são exibidos.',
+        'This folder is empty.': 'Esta pasta está vazia.',
+        'This is a permanent operation. The backup cannot be recovered once deleted.':
+            'Esta operação é permanente. Não será possível recuperar o backup depois de excluído.',
+        'This is an advanced feature allowing you to select a Docker image to use when running this server instance.':
+            'Este recurso avançado permite escolher uma imagem Docker para executar esta instância do servidor.',
+        'This server has reached the maximum process or memory limit.':
+            'Este servidor atingiu o limite máximo de processos ou memória.',
+        'This server has run out of available disk space and cannot complete the install or update process.':
+            'Este servidor está sem espaço em disco e não pode concluir a instalação ou atualização.',
+        'This server has run out of available disk space and cannot complete the install or update process. Please get in touch with the administrator(s) and inform them of disk space issues.':
+            'Este servidor está sem espaço em disco e não pode concluir a instalação ou atualização. Entre em contato com um administrador para informar o problema.',
+        'This server is attempting to use more resources than allocated. Please contact the administrator and give them the error below.':
+            'Este servidor está tentando usar mais recursos do que o permitido. Entre em contato com um administrador e informe o erro abaixo.',
+        'This server is currently being transferred to another node and all actions are unavailable.':
+            'Este servidor está sendo transferido para outro nó e todas as ações estão indisponíveis.',
+        'This server is currently running an unsupported version of Java and cannot be started.':
+            'Este servidor está usando uma versão não compatível do Java e não pode ser iniciado.',
+        'This server is currently running its installation process and most actions are unavailable.':
+            'O servidor está sendo instalado e a maioria das ações está indisponível.',
+        'Times use the panel timezone': 'Os horários seguem o fuso horário do painel',
+        Transferring: 'Transferindo',
+        'Try again': 'Tentar novamente',
+        'Two-step verification is currently enabled on your account.':
+            'A verificação em duas etapas está ativada na sua conta.',
+        'Unable to load this file.': 'Não foi possível carregar este arquivo.',
+        Unavailable: 'Indisponível',
+        'Under Maintenance': 'Em manutenção',
+        Unlock: 'Desbloquear',
+        'Unsaved changes': 'Alterações não salvas',
+        'Unsupported Java Version': 'Versão do Java não compatível',
+        Update: 'Atualizar',
+        'Update Docker Image': 'Atualizar imagem Docker',
+        'Update Email': 'Atualizar e-mail',
+        'Update GSL Token': 'Atualizar token GSL',
+        'Update Password': 'Atualizar senha',
+        Upload: 'Enviar arquivo',
+        Username: 'Nome de usuário',
+        Variables: 'Variáveis',
+        'Version not detected': 'Versão não detectada',
+        "We're having some trouble connecting to your server, please wait...":
+            'Estamos com problemas para conectar ao servidor. Aguarde...',
+        You: 'Você',
+        'You are currently using': 'Você está usando',
+        'You can either generate a new one and enter it below or leave the field blank to remove it completely.':
+            'Você pode gerar um novo token e informá-lo abaixo ou deixar o campo vazio para removê-lo.',
+        'You do not currently have two-step verification enabled on your account. Click the button below to begin configuring it.':
+            'A verificação em duas etapas não está ativada na sua conta. Clique no botão abaixo para configurá-la.',
+        'You need to authenticate with your Hytale account to download or update server files. Please log in to continue.':
+            'Você precisa autenticar sua conta Hytale para baixar ou atualizar os arquivos do servidor. Entre na conta para continuar.',
+        'You will not be able to recover the contents of': 'Não será possível recuperar o conteúdo de',
+        'Your API Key': 'Sua chave de API',
+        'Your account must have two-factor authentication enabled in order to continue.':
+            'Sua conta precisa ter a autenticação em duas etapas ativada para continuar.',
+        'Your password is held in Active Directory, so it is changed in your HowTo.Software account rather than here. Sign in there if you are asked to; the new password then applies everywhere, including this panel.':
+            'Sua senha é gerenciada pelo Active Directory. Altere-a na sua conta HowTo.Software; se solicitado, entre nessa conta. A nova senha será usada em todos os serviços, inclusive neste painel.',
+        'Your server will be stopped. You will not be able to control the power state, access the file manager, or create additional backups until completed.':
+            'O servidor será desligado. Não será possível controlar a energia, acessar os arquivos ou criar backups até a conclusão.',
+        'allowed allocations for this server.': 'alocações permitidas para este servidor.',
+        'any value': 'qualquer valor',
+        'backups have been created for this server.': 'backups foram criados para este servidor.',
+        'below you are indicating your agreement to the': 'abaixo você declara que concorda com o',
+        'database and remove all associated data.': 'banco de dados e remover todos os dados associados.',
+        'databases have been allocated to this server.': 'bancos de dados foram alocados para este servidor.',
+        downloads: 'downloads',
+        'every 5 minutes': 'a cada 5 minutos',
+        'every Monday': 'toda segunda-feira',
+        'every hour': 'a cada hora',
+        'file. Any files or directories listed in here will be excluded from backups. Wildcards are supported by using an asterisk (':
+            'arquivo. Os arquivos e pastas listados aqui serão excluídos dos backups. Use um asterisco (*) como curinga (',
+        files: 'arquivos',
+        home: 'início',
+        'hour range': 'intervalo de horas',
+        'in the wings configuration,': 'na configuração do Wings,',
+        'key will be invalidated.': 'a chave será invalidada.',
+        minutes: 'minutos',
+        'n/a': 'n/d',
+        never: 'nunca',
+        'of every hour': 'de cada hora',
+        of: 'de',
+        'on the machine hosting this server. Delete files or increase the available disk space to resolve the issue.':
+            'na máquina que hospeda este servidor. Exclua arquivos ou aumente o espaço disponível para resolver o problema.',
+        'once a day': 'uma vez por dia',
+        'once deleted.': 'depois de excluído.',
+        others: 'outros',
+        'range values': 'valores do intervalo',
+        'results.': 'resultados.',
+        's later': 's depois',
+        "server's": 'do servidor',
+        'step values': 'valores incrementais',
+        task: 'tarefa',
+        tasks: 'tarefas',
+        unknown: 'desconhecido',
+        'value list separator': 'separador da lista de valores',
+    },
+};
+
+const normalizeSourceText = (value: string): string =>
+    value
+        .replace(/&nbsp;/g, '\u00a0')
+        .replace(/&mdash;/g, '\u2014')
+        .replace(/&ndash;/g, '\u2013')
+        .replace(/&infin;/g, '\u221e')
+        .replace(/&reg;/g, '\u00ae')
+        .replace(/&copy;/g, '\u00a9')
+        .replace(/&apos;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+const normalizeDictionary = (source: Record<string, string>): Record<string, string> => {
+    const output: Record<string, string> = {};
+    Object.keys(source).forEach((key) => (output[normalizeSourceText(key)] = source[key]));
+
+    return output;
+};
+
+const normalizedTranslations: Record<SupportedLocale, Record<string, string>> = {
+    en: normalizeDictionary(translations.en),
+    pt: normalizeDictionary(translations.pt),
+};
+
+export const translateUiText = (sourceText: string, variables?: Record<string, string | number>): string => {
+    const normalizedSource = normalizeSourceText(sourceText);
+    const translated = normalizedTranslations[getBrowserLocale()][normalizedSource] || normalizedSource;
+
+    return variables
+        ? Object.keys(variables).reduce(
+              (result, key) => result.replace(new RegExp(`{{${key}}}`, 'g'), () => String(variables[key])),
+              translated
+          )
+        : translated;
+};
+
+export const hasUiTranslation = (sourceText: string): boolean => {
+    const normalizedSource = normalizeSourceText(sourceText);
+
+    return normalizedSource in normalizedTranslations.en || normalizedSource in normalizedTranslations.pt;
+};

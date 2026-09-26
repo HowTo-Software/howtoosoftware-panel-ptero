@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { store } from '@/state';
+import { translateUiText } from '@/i18n/uiTranslations';
 
 const http: AxiosInstance = axios.create({
     withCredentials: true,
@@ -41,6 +42,8 @@ export default http;
  * make sure we display the message from the server back to the user if we can.
  */
 export function httpErrorToHuman(error: any): string {
+    let message: string | undefined;
+
     if (error.response && error.response.data) {
         let { data } = error.response;
 
@@ -54,17 +57,17 @@ export function httpErrorToHuman(error: any): string {
             }
         }
 
-        if (data.errors && data.errors[0] && data.errors[0].detail) {
-            return data.errors[0].detail;
+        if (data.errors && data.errors[0] && typeof data.errors[0].detail === 'string') {
+            message = data.errors[0].detail;
         }
 
         // Errors from wings directory, mostly just for file uploads.
-        if (data.error && typeof data.error === 'string') {
-            return data.error;
+        if (!message && data.error && typeof data.error === 'string') {
+            message = data.error;
         }
     }
 
-    return error.message;
+    return translateUiText(message || error.message || 'An unexpected error occurred.');
 }
 
 export interface FractalResponseData {

@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 $(document).ready(function () {
+    const translate = (key) => window.howTooTranslate ? window.howTooTranslate(key) : key;
+
     Socket.on('console', function (data) {
         if (typeof data === 'undefined' || typeof data.line === 'undefined') {
             return;
@@ -25,14 +27,14 @@ $(document).ready(function () {
 
         if (~data.line.indexOf('You need to agree to the EULA in order to run the server')) {
             swal({
-                title: 'EULA Acceptance',
-                text: 'By pressing \'I Accept\' below you are indicating your agreement to the <a href="https://account.mojang.com/documents/minecraft_eula" target="_blank">Mojang EULA</a>.',
+                title: translate('EULA Acceptance'),
+                text: translate('By pressing I Accept below you are indicating your agreement to the') + ' <a href="https://account.mojang.com/documents/minecraft_eula" target="_blank">Mojang EULA</a>.',
                 type: 'info',
                 html: true,
                 showCancelButton: true,
                 showConfirmButton: true,
-                cancelButtonText: 'I do not Accept',
-                confirmButtonText: 'I Accept',
+                cancelButtonText: translate('I do not Accept'),
+                confirmButtonText: translate('I Accept'),
                 closeOnConfirm: false,
                 showLoaderOnConfirm: true
             }, function () {
@@ -49,13 +51,13 @@ $(document).ready(function () {
                     swal({
                         type: 'success',
                         title: '',
-                        text: 'The EULA for this server has been accepted, restarting server now.',
+                        text: translate('The EULA for this server has been accepted, restarting server now.'),
                     });
                 }).fail(function (jqXHR) {
                     console.error(jqXHR);
                     swal({
-                        title: 'Whoops!',
-                        text: 'An error occurred while attempting to set the EULA as accepted: ' + jqXHR.responseJSON.error,
+                        title: translate('Whoops!'),
+                        text: translate('An error occurred while attempting to set the EULA as accepted: ') + jqXHR.responseJSON.error,
                         type: 'error'
                     })
                 });

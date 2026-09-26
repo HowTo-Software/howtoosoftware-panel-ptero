@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React from 'react';
 import { Actions, State, useStoreActions, useStoreState } from 'easy-peasy';
 import { Form, Formik, FormikHelpers } from 'formik';
@@ -17,11 +18,11 @@ interface Values {
 }
 
 const schema = Yup.object().shape({
-    current: Yup.string().min(1).required('You must provide your current password.'),
+    current: Yup.string().min(1).required(translateUiText('You must provide your current password.')),
     password: Yup.string().min(8).required(),
     confirmPassword: Yup.string().test(
         'password',
-        'Password confirmation does not match the password you entered.',
+        translateUiText('Password confirmation does not match the password you entered.'),
         function (value) {
             return value === this.parent.password;
         }
@@ -46,18 +47,19 @@ export default () => {
         return (
             <div>
                 <p css={tw`text-sm`}>
-                    Your password is held in Active Directory, so it is changed in your HowTo.Software account rather
-                    than here. Sign in there if you are asked to; the new password then applies everywhere, including
-                    this panel.
+                    {translateUiText(
+                        'Your password is held in Active Directory, so it is changed in your HowTo.Software account rather than here. Sign in there if you are asked to; the new password then applies everywhere, including this panel.'
+                    )}
                 </p>
                 <p css={tw`text-sm mt-4 text-neutral-400`}>
-                    If it reports that the password could not be set, your account is managed outside this system and
-                    an administrator has to reset it for you.
+                    {translateUiText(
+                        'If it reports that the password could not be set, your account is managed outside this system and an administrator has to reset it for you.'
+                    )}
                 </p>
                 <div css={tw`mt-6`}>
                     {/* Full page load in a new tab, not a router link: this leaves the SPA. */}
                     <a href={passwordChangeUrl} target={'_blank'} rel={'noopener noreferrer'}>
-                        <Button type={'button'}>Change Password</Button>
+                        <Button type={'button'}>{translateUiText('Change Password')}</Button>
                     </a>
                 </div>
             </div>
@@ -75,7 +77,7 @@ export default () => {
                 addFlash({
                     key: 'account:password',
                     type: 'error',
-                    title: 'Error',
+                    title: translateUiText('Error'),
                     message: httpErrorToHuman(error),
                 })
             )
@@ -97,17 +99,17 @@ export default () => {
                                 id={'current_password'}
                                 type={'password'}
                                 name={'current'}
-                                label={'Current Password'}
+                                label={translateUiText('Current Password')}
                             />
                             <div css={tw`mt-6`}>
                                 <Field
                                     id={'new_password'}
                                     type={'password'}
                                     name={'password'}
-                                    label={'New Password'}
-                                    description={
+                                    label={translateUiText('New Password')}
+                                    description={translateUiText(
                                         'Your new password should be at least 8 characters in length and unique to this website.'
-                                    }
+                                    )}
                                 />
                             </div>
                             <div css={tw`mt-6`}>
@@ -115,11 +117,13 @@ export default () => {
                                     id={'confirm_new_password'}
                                     type={'password'}
                                     name={'confirmPassword'}
-                                    label={'Confirm New Password'}
+                                    label={translateUiText('Confirm New Password')}
                                 />
                             </div>
                             <div css={tw`mt-6`}>
-                                <Button disabled={isSubmitting || !isValid}>Update Password</Button>
+                                <Button disabled={isSubmitting || !isValid}>
+                                    {translateUiText('Update Password')}
+                                </Button>
                             </div>
                         </Form>
                     </React.Fragment>

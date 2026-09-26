@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect } from 'react';
 import { ServerContext } from '@/state/server';
 import { CloudUploadIcon, XIcon } from '@heroicons/react/solid';
@@ -58,17 +59,17 @@ const FileUploadList = () => {
             ))}
             <Dialog.Footer>
                 <Button.Danger variant={Button.Variants.Secondary} onClick={() => clearFileUploads()}>
-                    Cancel Uploads
+                    {translateUiText('Cancel Uploads')}
                 </Button.Danger>
-                <Button.Text onClick={close}>Close</Button.Text>
+                <Button.Text onClick={close}>{translateUiText('Close')}</Button.Text>
             </Dialog.Footer>
         </div>
     );
 };
 
 const FileUploadListDialog = asDialog({
-    title: 'File Uploads',
-    description: 'The following files are being uploaded to your server.',
+    title: translateUiText('File Uploads'),
+    description: translateUiText('The following files are being uploaded to your server.'),
 })(FileUploadList);
 
 export default () => {
@@ -89,7 +90,11 @@ export default () => {
     return (
         <>
             {count > 0 && (
-                <Tooltip content={`${count} files are uploading, click to view`}>
+                <Tooltip
+                    content={`${count} ${translateUiText(
+                        count === 1 ? 'file is uploading, click to view' : 'files are uploading, click to view'
+                    )}`}
+                >
                     <button
                         className={'flex items-center justify-center w-10 h-10'}
                         onClick={() => (open.value = true)}

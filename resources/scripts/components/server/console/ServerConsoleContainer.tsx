@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { memo } from 'react';
 import { ServerContext } from '@/state/server';
 import Can from '@/components/elements/Can';
@@ -23,14 +24,20 @@ const ServerConsoleContainer = () => {
     const isNodeUnderMaintenance = ServerContext.useStoreState((state) => state.server.data!.isNodeUnderMaintenance);
 
     return (
-        <ServerContentBlock title={'Console'} className={'console-content-wide'}>
+        <ServerContentBlock title={translateUiText('Console')} className={'console-content-wide'}>
             {(isNodeUnderMaintenance || isInstalling || isTransferring) && (
                 <Alert type={'warning'} className={'mb-4'}>
                     {isNodeUnderMaintenance
-                        ? 'The node of this server is currently under maintenance and all actions are unavailable.'
+                        ? translateUiText(
+                              'The node of this server is currently under maintenance and all actions are unavailable.'
+                          )
                         : isInstalling
-                        ? 'This server is currently running its installation process and most actions are unavailable.'
-                        : 'This server is currently being transferred to another node and all actions are unavailable.'}
+                        ? translateUiText(
+                              'This server is currently running its installation process and most actions are unavailable.'
+                          )
+                        : translateUiText(
+                              'This server is currently being transferred to another node and all actions are unavailable.'
+                          )}
                 </Alert>
             )}
             <div className={styles.console_page}>

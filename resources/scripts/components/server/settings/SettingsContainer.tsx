@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -58,7 +59,7 @@ function DataRow({ label, value }: { label: string; value: string }) {
             <CopyOnClick text={value}>
                 <div className={styles.copyValue}>
                     <code>{value}</code>
-                    <button type='button' aria-label={`Copiar ${label}`}>
+                    <button type='button' aria-label={translateUiText('Copiar {{label}}', { label })}>
                         <FontAwesomeIcon icon={faCopy} />
                     </button>
                 </div>
@@ -101,8 +102,10 @@ const SettingsContainer = () => {
                 type: 'success',
                 message:
                     targets.length > 0
-                        ? 'Os dados de save do Project Zomboid foram removidos com sucesso.'
-                        : 'Os diretórios de dados do Project Zomboid não foram encontrados; nenhum arquivo foi alterado.',
+                        ? translateUiText('Os dados de save do Project Zomboid foram removidos com sucesso.')
+                        : translateUiText(
+                              'Os diretórios de dados do Project Zomboid não foram encontrados; nenhum arquivo foi alterado.'
+                          ),
             });
             setConfirmWipe(false);
         } catch (error) {
@@ -114,15 +117,15 @@ const SettingsContainer = () => {
     };
 
     return (
-        <ServerContentBlock title={'Settings'}>
+        <ServerContentBlock title={translateUiText('Settings')}>
             <FlashMessageRender byKey={'settings'} />
             <div className={styles.heading}>
                 <div>
-                    <h1>Configurações</h1>
-                    <p>Gerencie as configurações e ações do seu servidor.</p>
+                    <h1>{translateUiText('Configurações')}</h1>
+                    <p>{translateUiText('Gerencie as configurações e ações do seu servidor.')}</p>
                 </div>
                 <div className={styles.breadcrumb}>
-                    {server.name} <span>/</span> Configurações
+                    {server.name} <span>/</span> {translateUiText('Configurações')}
                 </div>
             </div>
 
@@ -131,36 +134,36 @@ const SettingsContainer = () => {
                     <section className={styles.card}>
                         <CardHeader
                             icon={faServer}
-                            title='Informações do Servidor'
-                            subtitle='Visualize informações básicas do seu servidor.'
+                            title={translateUiText('Informações do Servidor')}
+                            subtitle={translateUiText('Visualize informações básicas do seu servidor.')}
                         />
-                        <DataRow label='Node' value={server.node} />
-                        <DataRow label='Server ID' value={server.uuid} />
+                        <DataRow label={translateUiText('Node')} value={server.node} />
+                        <DataRow label={translateUiText('Server ID')} value={server.uuid} />
                     </section>
 
                     <Can action={'file.sftp'}>
                         <section className={styles.card}>
                             <CardHeader
                                 icon={faDatabase}
-                                title='SFTP'
-                                subtitle='Acesse seus arquivos usando as informações abaixo.'
+                                title={translateUiText('SFTP')}
+                                subtitle={translateUiText('Acesse seus arquivos usando as informações abaixo.')}
                             />
                             <DataRow
-                                label='Endereço do Servidor'
+                                label={translateUiText('Endereço do Servidor')}
                                 value={`sftp://${ip(server.sftpDetails.ip)}:${server.sftpDetails.port}`}
                             />
-                            <DataRow label='Usuário' value={`${username}.${server.id}`} />
+                            <DataRow label={translateUiText('Usuário')} value={`${username}.${server.id}`} />
                             <div className={styles.notice}>
                                 <span>
-                                    <FontAwesomeIcon icon={faInfoCircle} /> Sua senha SFTP é a mesma usada para acessar
-                                    este painel.
+                                    <FontAwesomeIcon icon={faInfoCircle} />{' '}
+                                    {translateUiText('Sua senha SFTP é a mesma usada para acessar este painel.')}
                                 </span>
                                 <a
                                     href={`sftp://${username}.${server.id}@${ip(server.sftpDetails.ip)}:${
                                         server.sftpDetails.port
                                     }`}
                                 >
-                                    Abrir SFTP ↗
+                                    {translateUiText('Abrir SFTP ↗')}
                                 </a>
                             </div>
                         </section>
@@ -170,31 +173,39 @@ const SettingsContainer = () => {
                         <section className={`${styles.card} ${styles.wipeCard}`}>
                             <CardHeader
                                 icon={faTrashAlt}
-                                title='Wipe / Resetar Save (Project Zomboid)'
-                                subtitle='Apaga os dados do mundo e mantém as configurações do servidor.'
+                                title={translateUiText('Wipe / Resetar Save (Project Zomboid)')}
+                                subtitle={translateUiText(
+                                    'Apaga os dados do mundo e mantém as configurações do servidor.'
+                                )}
                                 danger
                             />
                             <p className={styles.wipeDescription}>
-                                Wipar o save excluirá permanentemente o progresso salvo. Seus arquivos de configuração{' '}
-                                <strong>não</strong> serão excluídos; o servidor poderá iniciar com as mesmas
-                                configurações.
+                                {translateUiText(
+                                    'Wipar o save excluirá permanentemente o progresso salvo. Seus arquivos de configuração'
+                                )}{' '}
+                                <strong>{translateUiText('não')}</strong>{' '}
+                                {translateUiText(
+                                    'serão excluídos; o servidor poderá iniciar com as mesmas configurações.'
+                                )}
                             </p>
                             <div className={styles.warning}>
                                 <FontAwesomeIcon icon={faExclamationTriangle} />
                                 <span>
-                                    O servidor precisa estar totalmente parado pelo painel. A ação fica bloqueada
-                                    enquanto ele estiver iniciando, online ou desligando.
+                                    {translateUiText(
+                                        'O servidor precisa estar totalmente parado pelo painel. A ação fica bloqueada enquanto ele estiver iniciando, online ou desligando.'
+                                    )}
                                 </span>
                             </div>
                             <div className={styles.targets}>
-                                <span>Pastas removidas:</span>
+                                <span>{translateUiText('Pastas removidas:')}</span>
                                 <code>.cache/db</code>
                                 <code>.cache/logs</code>
                                 <code>.cache/saves</code>
                             </div>
                             <div className={styles.wipeFooter}>
                                 <div className={styles.status}>
-                                    Status do servidor: <strong data-offline={isOffline}>{statusLabel}</strong>
+                                    {translateUiText('Status do servidor:')}{' '}
+                                    <strong data-offline={isOffline}>{statusLabel}</strong>
                                 </div>
                                 <Button.Danger
                                     className={styles.wipeButton}
@@ -202,12 +213,12 @@ const SettingsContainer = () => {
                                     onClick={() => setConfirmWipe(true)}
                                 >
                                     <FontAwesomeIcon icon={faTrashAlt} />{' '}
-                                    {wiping ? 'Executando...' : 'Wipe / Resetar Save'}
+                                    {wiping ? translateUiText('Executando...') : translateUiText('Wipe / Resetar Save')}
                                 </Button.Danger>
                             </div>
                             {!canWipe && (
                                 <p className={styles.permissionNote}>
-                                    Você não tem permissão para executar o wipe neste servidor.
+                                    {translateUiText('Você não tem permissão para executar o wipe neste servidor.')}
                                 </p>
                             )}
                         </section>
@@ -230,23 +241,24 @@ const SettingsContainer = () => {
 
             <Dialog.Confirm
                 open={confirmWipe}
-                title={'Confirmar wipe do Project Zomboid?'}
-                confirm={wiping ? 'Executando wipe...' : 'Confirmar Wipe'}
+                title={translateUiText('Confirmar wipe do Project Zomboid?')}
+                confirm={wiping ? translateUiText('Executando wipe...') : translateUiText('Confirmar Wipe')}
                 onClose={() => !wiping && setConfirmWipe(false)}
                 onConfirmed={wipe}
             >
                 <div className={styles.confirmation}>
                     <p>
-                        Esta ação removerá somente <code>.cache/db</code>, <code>.cache/logs</code> e{' '}
-                        <code>.cache/saves</code>.
+                        {translateUiText('Esta ação removerá somente')} <code>.cache/db</code>, <code>.cache/logs</code>{' '}
+                        e <code>.cache/saves</code>.
                     </p>
                     <p>
-                        A pasta <code>.cache</code>, os arquivos de configuração e todos os outros arquivos serão
-                        preservados.
+                        {translateUiText('A pasta')} <code>.cache</code>
+                        {translateUiText(', os arquivos de configuração e todos os outros arquivos serão preservados.')}
                     </p>
                     <p className={styles.confirmWarning}>
-                        O servidor precisa estar completamente parado. O estado será validado novamente pelo servidor
-                        antes da exclusão.
+                        {translateUiText(
+                            'O servidor precisa estar completamente parado. O estado será validado novamente pelo servidor antes da exclusão.'
+                        )}
                     </p>
                 </div>
             </Dialog.Confirm>

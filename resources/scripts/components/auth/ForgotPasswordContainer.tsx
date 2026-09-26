@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -38,7 +39,7 @@ export default () => {
                 console.error(error);
 
                 setSubmitting(false);
-                addFlash({ type: 'error', title: 'Error', message: httpErrorToHuman(error) });
+                addFlash({ type: 'error', title: translateUiText('Error'), message: httpErrorToHuman(error) });
             });
 
             return;
@@ -47,11 +48,11 @@ export default () => {
         requestPasswordResetEmail(email, token)
             .then((response) => {
                 resetForm();
-                addFlash({ type: 'success', title: 'Success', message: response });
+                addFlash({ type: 'success', title: translateUiText('Success'), message: response });
             })
             .catch((error) => {
                 console.error(error);
-                addFlash({ type: 'error', title: 'Error', message: httpErrorToHuman(error) });
+                addFlash({ type: 'error', title: translateUiText('Error'), message: httpErrorToHuman(error) });
             })
             .then(() => {
                 setToken('');
@@ -67,24 +68,24 @@ export default () => {
             initialValues={{ email: '' }}
             validationSchema={object().shape({
                 email: string()
-                    .email('A valid email address must be provided to continue.')
-                    .required('A valid email address must be provided to continue.'),
+                    .email(translateUiText('A valid email address must be provided to continue.'))
+                    .required(translateUiText('A valid email address must be provided to continue.')),
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Request Password Reset'} css={tw`w-full flex`}>
+                <LoginFormContainer title={translateUiText('Request Password Reset')} css={tw`w-full flex`}>
                     <Field
                         light
-                        label={'Email'}
-                        description={
+                        label={translateUiText('Email')}
+                        description={translateUiText(
                             'Enter your account email address to receive instructions on resetting your password.'
-                        }
+                        )}
                         name={'email'}
                         type={'email'}
                     />
                     <div css={tw`mt-6`}>
                         <Button type={'submit'} size={'xlarge'} disabled={isSubmitting} isLoading={isSubmitting}>
-                            Send Email
+                            {translateUiText('Send Email')}
                         </Button>
                     </div>
                     {recaptchaEnabled && (
@@ -107,7 +108,7 @@ export default () => {
                             to={'/auth/login'}
                             css={tw`text-xs text-neutral-500 tracking-wide uppercase no-underline hover:text-neutral-700`}
                         >
-                            Return to Login
+                            {translateUiText('Return to Login')}
                         </Link>
                     </div>
                 </LoginFormContainer>

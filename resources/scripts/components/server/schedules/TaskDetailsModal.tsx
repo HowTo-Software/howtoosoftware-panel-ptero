@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useContext, useEffect } from 'react';
 import { Schedule, Task } from '@/api/server/schedules/getServerSchedules';
 import { Field as FormikField, Form, Formik, FormikHelpers, useField } from 'formik';
@@ -36,15 +37,15 @@ const schema = object().shape({
     action: string().required().oneOf(['command', 'power', 'backup']),
     payload: string().when('action', {
         is: (v) => v !== 'backup',
-        then: string().required('A task payload must be provided.'),
+        then: string().required(translateUiText('A task payload must be provided.')),
         otherwise: string(),
     }),
     continueOnFailure: boolean(),
     timeOffset: number()
-        .typeError('The time offset must be a valid number between 0 and 900.')
-        .required('A time offset value must be provided.')
-        .min(0, 'The time offset must be at least 0 seconds.')
-        .max(900, 'The time offset must be less than 900 seconds.'),
+        .typeError(translateUiText('The time offset must be a valid number between 0 and 900.'))
+        .required(translateUiText('A time offset value must be provided.'))
+        .min(0, translateUiText('The time offset must be at least 0 seconds.'))
+        .max(900, translateUiText('The time offset must be less than 900 seconds.')),
 });
 
 const ActionListener = () => {
@@ -83,7 +84,7 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
         if (backupLimit === 0 && values.action === 'backup') {
             setSubmitting(false);
             addError({
-                message: "A backup task cannot be created when the server's backup limit is set to 0.",
+                message: translateUiText("A backup task cannot be created when the server's backup limit is set to 0."),
                 key: 'schedule:task',
             });
         } else {
@@ -119,57 +120,59 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
             {({ isSubmitting, values }) => (
                 <Form css={tw`m-0`}>
                     <FlashMessageRender byKey={'schedule:task'} css={tw`mb-4`} />
-                    <h2 css={tw`text-2xl mb-6`}>{task ? 'Edit Task' : 'Create Task'}</h2>
+                    <h2 css={tw`text-2xl mb-6`}>
+                        {task ? translateUiText('Edit Task') : translateUiText('Create Task')}
+                    </h2>
                     <div css={tw`flex`}>
                         <div css={tw`mr-2 w-1/3`}>
-                            <Label>Action</Label>
+                            <Label>{translateUiText('Action')}</Label>
                             <ActionListener />
                             <FormikFieldWrapper name={'action'}>
                                 <FormikField as={Select} name={'action'}>
-                                    <option value={'command'}>Send command</option>
-                                    <option value={'power'}>Send power action</option>
-                                    <option value={'backup'}>Create backup</option>
+                                    <option value={'command'}>{translateUiText('Send command')}</option>
+                                    <option value={'power'}>{translateUiText('Send power action')}</option>
+                                    <option value={'backup'}>{translateUiText('Create backup')}</option>
                                 </FormikField>
                             </FormikFieldWrapper>
                         </div>
                         <div css={tw`flex-1 ml-6`}>
                             <Field
                                 name={'timeOffset'}
-                                label={'Time offset (in seconds)'}
-                                description={
+                                label={translateUiText('Time offset (in seconds)')}
+                                description={translateUiText(
                                     'The amount of time to wait after the previous task executes before running this one. If this is the first task on a schedule this will not be applied.'
-                                }
+                                )}
                             />
                         </div>
                     </div>
                     <div css={tw`mt-6`}>
                         {values.action === 'command' ? (
                             <div>
-                                <Label>Payload</Label>
+                                <Label>{translateUiText('Payload')}</Label>
                                 <FormikFieldWrapper name={'payload'}>
                                     <FormikField as={Textarea} name={'payload'} rows={6} />
                                 </FormikFieldWrapper>
                             </div>
                         ) : values.action === 'power' ? (
                             <div>
-                                <Label>Payload</Label>
+                                <Label>{translateUiText('Payload')}</Label>
                                 <FormikFieldWrapper name={'payload'}>
                                     <FormikField as={Select} name={'payload'}>
-                                        <option value={'start'}>Start the server</option>
-                                        <option value={'restart'}>Restart the server</option>
-                                        <option value={'stop'}>Stop the server</option>
-                                        <option value={'kill'}>Terminate the server</option>
+                                        <option value={'start'}>{translateUiText('Start the server')}</option>
+                                        <option value={'restart'}>{translateUiText('Restart the server')}</option>
+                                        <option value={'stop'}>{translateUiText('Stop the server')}</option>
+                                        <option value={'kill'}>{translateUiText('Terminate the server')}</option>
                                     </FormikField>
                                 </FormikFieldWrapper>
                             </div>
                         ) : (
                             <div>
-                                <Label>Ignored Files</Label>
+                                <Label>{translateUiText('Ignored Files')}</Label>
                                 <FormikFieldWrapper
                                     name={'payload'}
-                                    description={
+                                    description={translateUiText(
                                         'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.'
-                                    }
+                                    )}
                                 >
                                     <FormikField as={Textarea} name={'payload'} rows={6} />
                                 </FormikFieldWrapper>
@@ -179,13 +182,13 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
                     <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
                         <FormikSwitch
                             name={'continueOnFailure'}
-                            description={'Future tasks will be run when this task fails.'}
-                            label={'Continue on Failure'}
+                            description={translateUiText('Future tasks will be run when this task fails.')}
+                            label={translateUiText('Continue on Failure')}
                         />
                     </div>
                     <div css={tw`flex justify-end mt-6`}>
                         <Button type={'submit'} disabled={isSubmitting}>
-                            {task ? 'Save Changes' : 'Create Task'}
+                            {task ? translateUiText('Save Changes') : translateUiText('Create Task')}
                         </Button>
                     </div>
                 </Form>

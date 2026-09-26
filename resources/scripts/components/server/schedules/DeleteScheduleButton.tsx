@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useState } from 'react';
 import deleteSchedule from '@/api/server/schedules/deleteSchedule';
 import { ServerContext } from '@/state/server';
@@ -41,19 +42,19 @@ export default ({ scheduleId, onDeleted }: Props) => {
             <Dialog.Confirm
                 open={visible}
                 onClose={() => setVisible(false)}
-                title={'Delete Schedule'}
-                confirm={'Delete'}
+                title={translateUiText('Delete Schedule')}
+                confirm={translateUiText('Delete')}
                 onConfirmed={onDelete}
             >
                 <SpinnerOverlay visible={isLoading} />
-                All tasks will be removed and any running processes will be terminated.
+                {translateUiText('All tasks will be removed and any running processes will be terminated.')}
             </Dialog.Confirm>
             <Button.Danger
                 variant={Button.Variants.Secondary}
                 className={'flex-1 sm:flex-none mr-4 border-transparent'}
                 onClick={() => setVisible(true)}
             >
-                Delete
+                {translateUiText('Delete')}
             </Button.Danger>
         </>
     );

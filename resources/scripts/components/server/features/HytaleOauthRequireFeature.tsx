@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { ServerContext } from '@/state/server';
 import Modal from '@/components/elements/Modal';
@@ -55,17 +56,18 @@ const HytaleOauthRequireFeature = () => {
             showSpinnerOverlay={false}
         >
             <FlashMessageRender key={'feature:hytaleOauth'} css={tw`mb-4`} />
-            <h2 css={tw`text-2xl mb-4 text-neutral-100`}>Authentication Required</h2>
+            <h2 css={tw`text-2xl mb-4 text-neutral-100`}>{translateUiText('Authentication Required')}</h2>
             <p css={tw`text-neutral-200`}>
-                You need to authenticate with your Hytale account to download or update server files. Please log in to
-                continue.
+                {translateUiText(
+                    'You need to authenticate with your Hytale account to download or update server files. Please log in to continue.'
+                )}
             </p>
             <div css={tw`mt-8 sm:flex items-center justify-end`}>
                 <Button isSecondary onClick={() => setVisible(false)} css={tw`w-full sm:w-auto border-transparent`}>
-                    Cancel
+                    {translateUiText('Cancel')}
                 </Button>
                 <Button onClick={handleLogin} css={tw`mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto`}>
-                    Log in
+                    {translateUiText('Log in')}
                 </Button>
             </div>
         </Modal>

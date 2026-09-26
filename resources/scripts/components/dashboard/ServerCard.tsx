@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,17 +15,19 @@ interface Props {
 
 const getAddress = (server: Server): string => {
     const allocation = server.allocations.find((item) => item.isDefault);
-    return allocation ? `${allocation.alias || ip(allocation.ip)}:${allocation.port}` : 'Endereço indisponível';
+    return allocation
+        ? `${allocation.alias || ip(allocation.ip)}:${allocation.port}`
+        : translateUiText('Endereço indisponível');
 };
 
 const getProvisioningStatus = (server: Server): string | undefined => {
-    if (server.status === 'suspended') return 'Suspenso';
-    if (server.status === 'installing') return 'Instalando';
-    if (server.status === 'install_failed') return 'Falha na instalação';
-    if (server.status === 'reinstall_failed') return 'Falha na reinstalação';
-    if (server.status === 'restoring_backup') return 'Restaurando backup';
-    if (server.isTransferring) return 'Transferindo';
-    if (server.isNodeUnderMaintenance) return 'Node em manutenção';
+    if (server.status === 'suspended') return translateUiText('Suspenso');
+    if (server.status === 'installing') return translateUiText('Instalando');
+    if (server.status === 'install_failed') return translateUiText('Falha na instalação');
+    if (server.status === 'reinstall_failed') return translateUiText('Falha na reinstalação');
+    if (server.status === 'restoring_backup') return translateUiText('Restaurando backup');
+    if (server.isTransferring) return translateUiText('Transferindo');
+    if (server.isNodeUnderMaintenance) return translateUiText('Node em manutenção');
 
     return undefined;
 };
@@ -81,19 +84,23 @@ export default ({ server }: Props) => {
     const status = provisioningStatus
         ? { label: provisioningStatus, className: styles.statusNeutral }
         : powerState === 'running'
-        ? { label: 'Online', className: styles.statusOnline }
+        ? { label: translateUiText('Online'), className: styles.statusOnline }
         : powerState === 'starting'
-        ? { label: 'Iniciando', className: styles.statusPending }
+        ? { label: translateUiText('Iniciando'), className: styles.statusPending }
         : powerState === 'stopping'
-        ? { label: 'Desligando', className: styles.statusPending }
+        ? { label: translateUiText('Desligando'), className: styles.statusPending }
         : checking
-        ? { label: 'Verificando', className: styles.statusPending }
+        ? { label: translateUiText('Verificando'), className: styles.statusPending }
         : connectionError
-        ? { label: 'Indisponível', className: styles.statusNeutral }
-        : { label: 'Offline', className: styles.statusOffline };
+        ? { label: translateUiText('Indisponível'), className: styles.statusNeutral }
+        : { label: translateUiText('Offline'), className: styles.statusOffline };
 
     return (
-        <Link className={styles.card} to={`/server/${server.id}`} aria-label={`Abrir ${server.name}`}>
+        <Link
+            className={styles.card}
+            to={`/server/${server.id}`}
+            aria-label={`${translateUiText('Open')} ${server.name}`}
+        >
             <div className={styles.artwork}>
                 {!backgroundMissing ? (
                     <img
@@ -112,7 +119,7 @@ export default ({ server }: Props) => {
                         }}
                     />
                 ) : (
-                    <div className={styles.backgroundPlaceholder}>NO Image</div>
+                    <div className={styles.backgroundPlaceholder}>{translateUiText('NO Image')}</div>
                 )}
                 <div className={styles.artworkOverlay} />
                 <div className={styles.topLine}>
@@ -120,7 +127,7 @@ export default ({ server }: Props) => {
                         <span className={styles.statusDot} />
                         {status.label}
                     </span>
-                    <span className={styles.gameType}>{visuals.label}</span>
+                    <span className={styles.gameType}>{translateUiText(visuals.label)}</span>
                 </div>
                 <div className={styles.identity}>
                     <div className={styles.iconFrame}>
@@ -138,7 +145,7 @@ export default ({ server }: Props) => {
                                 }}
                             />
                         ) : (
-                            <span>NO Image</span>
+                            <span>{translateUiText('NO Image')}</span>
                         )}
                     </div>
                     <div className={styles.serverIdentity}>
@@ -146,13 +153,13 @@ export default ({ server }: Props) => {
                         <span className={styles.serverAddress}>{getAddress(server)}</span>
                         <span className={styles.nodePill}>
                             <FontAwesomeIcon icon={faServer} />
-                            {server.node || 'Node indisponível'}
+                            {server.node || translateUiText('Node indisponível')}
                         </span>
                     </div>
                 </div>
             </div>
             <div className={styles.footer}>
-                <span>Abrir servidor</span>
+                <span>{translateUiText('Abrir servidor')}</span>
                 <FontAwesomeIcon icon={faArrowRight} />
             </div>
         </Link>

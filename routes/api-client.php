@@ -178,11 +178,16 @@ Route::group([
 
         Route::get('/curseforge/installed', [Client\Servers\HowToo\CurseForgeController::class, 'installed']);
         Route::get('/curseforge/search', [Client\Servers\HowToo\CurseForgeController::class, 'search']);
+        Route::get('/curseforge/modpacks/search', [Client\Servers\HowToo\CurseForgeController::class, 'searchModpacks']);
         Route::get('/curseforge/mods/{modId}', [Client\Servers\HowToo\CurseForgeController::class, 'show'])
             ->whereNumber('modId');
         Route::get('/curseforge/mods/{modId}/files', [Client\Servers\HowToo\CurseForgeController::class, 'files'])
             ->whereNumber('modId');
+        Route::get('/curseforge/modpacks/{modId}/server-files', [Client\Servers\HowToo\CurseForgeController::class, 'serverPackFiles'])
+            ->whereNumber('modId');
         Route::post('/curseforge/install', [Client\Servers\HowToo\CurseForgeController::class, 'install'])
             ->middleware('throttle:5,1');
+        Route::post('/curseforge/modpacks/install', [Client\Servers\HowToo\CurseForgeController::class, 'installServerPack'])
+            ->middleware('throttle:2,1');
     });
 });

@@ -1,3 +1,4 @@
+import { translateUiText } from '@/i18n/uiTranslations';
 import React, { useEffect, useState } from 'react';
 import { ActivityLogFilters, useActivityLogs } from '@/api/account/activity';
 import { useFlashKey } from '@/plugins/useFlash';
@@ -31,7 +32,7 @@ export default () => {
     }, [error]);
 
     return (
-        <PageContentBlock title={'Account Activity Log'}>
+        <PageContentBlock title={translateUiText('Account Activity Log')}>
             <FlashMessageRender byKey={'account'} />
             {(filters.filters?.event || filters.filters?.ip) && (
                 <div className={'flex justify-end mb-2'}>
@@ -40,7 +41,7 @@ export default () => {
                         className={classNames(btnStyles.button, btnStyles.text, 'w-full sm:w-auto')}
                         onClick={() => setFilters((value) => ({ ...value, filters: {} }))}
                     >
-                        Clear Filters <XCircleIcon className={'w-4 h-4 ml-2'} />
+                        {translateUiText('Clear Filters')} <XCircleIcon className={'w-4 h-4 ml-2'} />
                     </Link>
                 </div>
             )}
