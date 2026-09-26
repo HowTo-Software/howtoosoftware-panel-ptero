@@ -18,6 +18,7 @@ export interface ModalProps extends RequiredModalProps {
     closeOnEscape?: boolean;
     closeOnBackground?: boolean;
     showSpinnerOverlay?: boolean;
+    size?: 'default' | 'large';
 }
 
 export const ModalMask = styled.div`
@@ -25,11 +26,17 @@ export const ModalMask = styled.div`
     background: rgba(0, 0, 0, 0.7);
 `;
 
-const ModalContainer = styled.div<{ alignTop?: boolean }>`
+const ModalContainer = styled.div<{ alignTop?: boolean; size?: 'default' | 'large' }>`
     max-width: 95%;
     max-height: calc(100vh - 8rem);
     ${breakpoint('md')`max-width: 75%`};
     ${breakpoint('lg')`max-width: 50%`};
+
+    ${(props) =>
+        props.size === 'large' &&
+        css`
+            max-width: min(880px, calc(100vw - 2rem));
+        `};
 
     ${tw`relative flex flex-col w-full m-auto`};
     ${(props) =>
@@ -70,6 +77,7 @@ const Modal: React.FC<ModalProps> = ({
     top = true,
     closeOnBackground = true,
     closeOnEscape = true,
+    size = 'default',
     onDismissed,
     children,
 }) => {
@@ -108,7 +116,7 @@ const Modal: React.FC<ModalProps> = ({
                     }
                 }}
             >
-                <ModalContainer alignTop={top}>
+                <ModalContainer alignTop={top} size={size}>
                     {isDismissable && (
                         <div className={'close-icon'} onClick={() => setRender(false)}>
                             <svg
