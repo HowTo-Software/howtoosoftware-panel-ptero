@@ -17,8 +17,9 @@ import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
 import getServerResourceUsage from '@/api/server/getServerResourceUsage';
+import { parseResourceStats, ResourceStatKey, ResourceStats } from '@/components/server/console/resourceStats';
 
-type Stats = Record<'memory' | 'cpu' | 'disk' | 'uptime' | 'rx' | 'tx', number>;
+type Stats = ResourceStats;
 
 const getBackgroundColor = (value: number, max: number | null): string | undefined => {
     const delta = !max ? 0 : value / max;
@@ -42,7 +43,7 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0, tx: 0, rx: 0 });
-    const lastSocketStatsAt = useRef(0);
+    const lastSocketStatsAt = useRef<Partial<Record<ResourceStatKey, number>>>({});
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
@@ -67,24 +68,33 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     useEffect(() => {
         let active = true;
-        lastSocketStatsAt.current = 0;
+        let hasLoggedRequestError = false;
+        lastSocketStatsAt.current = {};
 
         const refreshStats = () => {
             getServerResourceUsage(serverUuid)
                 .then((usage) => {
                     if (!active) return;
-                    if (Date.now() - lastSocketStatsAt.current < 20000) return;
+                    hasLoggedRequestError = false;
+                    const patch = parseResourceStats(usage);
+                    const receivedAt = Date.now();
 
-                    setStats({
-                        memory: usage.memoryUsageInBytes,
-                        cpu: usage.cpuUsagePercent,
-                        disk: usage.diskUsageInBytes,
-                        rx: usage.networkRxInBytes,
-                        tx: usage.networkTxInBytes,
-                        uptime: usage.uptime,
+                    setStats((current) => {
+                        const next = { ...current };
+                        (Object.keys(patch) as ResourceStatKey[]).forEach((key) => {
+                            if (receivedAt - (lastSocketStatsAt.current[key] || 0) >= 20000) {
+                                next[key] = patch[key]!;
+                            }
+                        });
+
+                        return next;
                     });
                 })
-                .catch(() => undefined);
+                .catch((error) => {
+                    if (!active || hasLoggedRequestError) return;
+                    hasLoggedRequestError = true;
+                    console.error('Unable to load server resource usage from the Panel API.', error);
+                });
         };
 
         refreshStats();
@@ -105,30 +115,15 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     }, [instance, connected]);
 
     useWebsocketEvent(SocketEvent.STATS, (data) => {
-        let incoming: any;
-        try {
-            incoming = JSON.parse(data);
-        } catch (e) {
-            return;
-        }
+        const patch = parseResourceStats(data);
+        const receivedAt = Date.now();
+        const keys = Object.keys(patch) as ResourceStatKey[];
+        if (!keys.length) return;
 
-        if (!incoming || typeof incoming !== 'object') return;
-        const network = incoming.network || {};
-        const coreValues = [incoming.memory_bytes, incoming.cpu_absolute, incoming.disk_bytes];
-        if (!coreValues.every((value) => value !== null && value !== undefined && Number.isFinite(Number(value)))) {
-            return;
-        }
-
-        lastSocketStatsAt.current = Date.now();
-
-        setStats((current) => ({
-            memory: Number(incoming.memory_bytes),
-            cpu: Number(incoming.cpu_absolute),
-            disk: Number(incoming.disk_bytes),
-            tx: Number.isFinite(Number(network.tx_bytes)) ? Number(network.tx_bytes) : current.tx,
-            rx: Number.isFinite(Number(network.rx_bytes)) ? Number(network.rx_bytes) : current.rx,
-            uptime: Number(incoming.uptime) || 0,
-        }));
+        keys.forEach((key) => {
+            lastSocketStatsAt.current[key] = receivedAt;
+        });
+        setStats((current) => ({ ...current, ...patch }));
     });
 
     return (
