@@ -94,6 +94,23 @@ class ClientControllerTest extends ClientApiIntegrationTestCase
             ->assertJsonPath('data.1.attributes.identifier', $servers[2]->uuidShort);
     }
 
+    public function testServersCanBeSearchedByEggAndNodeName()
+    {
+        [$user, $server] = $this->generateTestAccount();
+        $server->egg->forceFill(['name' => 'Minecraft Java'])->save();
+        $server->node->forceFill(['name' => 'Cards Search Node'])->save();
+
+        $this->actingAs($user)->getJson('/api/client?include=egg&filter[*]=minecraft')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.attributes.relationships.egg.attributes.name', 'Minecraft Java');
+
+        $this->actingAs($user)->getJson('/api/client?filter[*]=cards%20search%20node')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.attributes.node', 'Cards Search Node');
+    }
+
     /**
      * Test that using ?filter[*]=:25565 or ?filter[*]=192.168.1.1:25565 returns only those servers
      * with the same allocation for the given user.
