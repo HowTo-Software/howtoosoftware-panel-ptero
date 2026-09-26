@@ -16,6 +16,7 @@ import FlashMessageRender from '@/components/FlashMessageRender';
 import Can from '@/components/elements/Can';
 import RenameServerBox from '@/components/server/settings/RenameServerBox';
 import ReinstallServerBox from '@/components/server/settings/ReinstallServerBox';
+import ServerCoverBox from '@/components/server/settings/ServerCoverBox';
 import CopyOnClick from '@/components/elements/CopyOnClick';
 import { ip } from '@/lib/formatters';
 import { Button } from '@/components/elements/button/index';
@@ -127,6 +128,9 @@ const SettingsContainer = () => {
 
             <div className={styles.grid}>
                 <div className={styles.column}>
+                    <Can action={'settings.rename'}>
+                        <ServerCoverBox />
+                    </Can>
                     <section className={styles.card}>
                         <CardHeader
                             icon={faServer}

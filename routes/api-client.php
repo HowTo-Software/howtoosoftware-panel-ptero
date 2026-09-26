@@ -146,6 +146,12 @@ Route::group([
     });
 
     Route::group(['prefix' => '/settings'], function () {
+        Route::get('/cover', [Client\Servers\HowToo\ServerCoverController::class, 'show'])
+            ->name('api:client:server.settings.cover');
+        Route::post('/cover', [Client\Servers\HowToo\ServerCoverController::class, 'store'])
+            ->middleware('throttle:10,1');
+        Route::delete('/cover', [Client\Servers\HowToo\ServerCoverController::class, 'destroy'])
+            ->middleware('throttle:10,1');
         Route::post('/rename', [Client\Servers\SettingsController::class, 'rename']);
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
         Route::post('/project-zomboid/wipe', [Client\Servers\SettingsController::class, 'wipeProjectZomboid'])

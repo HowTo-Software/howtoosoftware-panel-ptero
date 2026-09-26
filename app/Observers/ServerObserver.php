@@ -5,6 +5,7 @@ namespace Pterodactyl\Observers;
 use Pterodactyl\Events;
 use Pterodactyl\Models\Server;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Support\Facades\Storage;
 
 class ServerObserver
 {
@@ -40,6 +41,10 @@ class ServerObserver
     public function deleted(Server $server): void
     {
         event(new Events\Server\Deleted($server));
+
+        if ($server->cover_image) {
+            Storage::disk('local')->delete($server->cover_image);
+        }
     }
 
     /**
