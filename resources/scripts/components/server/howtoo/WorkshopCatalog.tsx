@@ -128,6 +128,22 @@ const SearchRow = styled.form`
     }
 `;
 
+const SearchInput = styled(Input)`
+    background-color: #111a34 !important;
+    border-color: #344a7a !important;
+    color: #e5edff !important;
+
+    &::placeholder {
+        color: #8e9bbb !important;
+        opacity: 1;
+    }
+
+    &:focus {
+        border-color: #8875ff !important;
+        box-shadow: 0 0 0 2px rgb(136 117 255 / 16%) !important;
+    }
+`;
+
 export function WorkshopFilters({
     mode,
     onMode,
@@ -222,7 +238,7 @@ export function WorkshopFilters({
                 </MoreFilters>
             </FilterRow>
             <SearchRow onSubmit={onSearch}>
-                <Input
+                <SearchInput
                     value={query}
                     onChange={(event) => onQuery(event.currentTarget.value)}
                     placeholder='Buscar mods por nome, Workshop ID ou URL do Steam Workshop...'

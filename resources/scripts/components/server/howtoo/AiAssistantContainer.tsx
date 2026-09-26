@@ -159,6 +159,28 @@ const Composer = styled.form`
     padding: 0.875rem 1rem;
 `;
 
+const ComposerTextarea = styled(Textarea)`
+    background-color: #111a34 !important;
+    border-color: #344a7a !important;
+    color: #e5edff !important;
+
+    &::placeholder {
+        color: #8e9bbb !important;
+        opacity: 1;
+    }
+
+    &:focus {
+        border-color: #8875ff !important;
+        box-shadow: 0 0 0 2px rgb(136 117 255 / 16%) !important;
+    }
+
+    &:disabled {
+        background-color: #0c142b !important;
+        color: #9eaccb !important;
+        opacity: 1;
+    }
+`;
+
 const ComposerActions = styled.div`
     display: flex;
     min-height: 2rem;
@@ -357,7 +379,7 @@ export default () => {
                 </Conversation>
 
                 <Composer onSubmit={submit}>
-                    <Textarea
+                    <ComposerTextarea
                         rows={2}
                         maxLength={3000}
                         value={message}
