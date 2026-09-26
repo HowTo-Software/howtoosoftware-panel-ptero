@@ -71,7 +71,7 @@ final class PanelCapabilityRegistry
             'path' => '/settings',
             'route' => 'api/client/servers/{server}/settings/rename',
             'summary' => 'Rename or reinstall the server and view SFTP connection details.',
-            'permissions' => ['settings.rename', 'settings.reinstall', 'file.sftp'],
+            'permissions' => ['settings.rename', 'settings.reinstall', 'file.sftp', 'integration.workshop-wipe'],
         ],
         'activity' => [
             'label' => 'Activity',

@@ -4,6 +4,7 @@ namespace Pterodactyl\Tests\Integration\Api\Client\Server\Schedule;
 
 use Illuminate\Http\Response;
 use Pterodactyl\Models\Schedule;
+use Pterodactyl\Models\Task;
 use Pterodactyl\Models\Permission;
 use Pterodactyl\Tests\Integration\Api\Client\ClientApiIntegrationTestCase;
 
@@ -46,6 +47,32 @@ class CreateServerScheduleTest extends ClientApiIntegrationTestCase
         $response->assertJsonCount(0, 'attributes.relationships.tasks.data');
     }
 
+    public function testScheduleCanBeCreatedWithAnInitialTask()
+    {
+        [$user, $server] = $this->generateTestAccount();
+
+        $response = $this->actingAs($user)->postJson("/api/client/servers/$server->uuid/schedules", [
+            'name' => 'Restart every day',
+            'is_active' => true,
+            'only_when_online' => true,
+            'minute' => '0',
+            'hour' => '8',
+            'day_of_week' => '*',
+            'month' => '*',
+            'day_of_month' => '*',
+            'task' => [
+                'action' => Task::ACTION_POWER,
+                'payload' => 'restart',
+            ],
+        ]);
+
+        $response->assertOk()->assertJsonPath('attributes.relationships.tasks.data.0.attributes.action', Task::ACTION_POWER);
+        $schedule = Schedule::query()->findOrFail($response->json('attributes.id'));
+        $this->assertCount(1, $schedule->tasks);
+        $this->assertSame('restart', $schedule->tasks[0]->payload);
+        $this->assertTrue($schedule->only_when_online);
+    }
+
     /**
      * Test that the validation rules for scheduling work as expected.
      */
@@ -56,7 +83,7 @@ class CreateServerScheduleTest extends ClientApiIntegrationTestCase
         $response = $this->actingAs($user)->postJson("/api/client/servers/$server->uuid/schedules", []);
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
-        foreach (['name', 'minute', 'hour', 'day_of_month', 'day_of_week'] as $i => $field) {
+        foreach (['name', 'minute', 'hour', 'day_of_month', 'day_of_week', 'month'] as $i => $field) {
             $response->assertJsonPath("errors.$i.code", 'ValidationException');
             $response->assertJsonPath("errors.$i.meta.rule", 'required');
             $response->assertJsonPath("errors.$i.meta.source_field", $field);

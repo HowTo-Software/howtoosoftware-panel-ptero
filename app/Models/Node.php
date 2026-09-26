@@ -101,7 +101,7 @@ class Node extends Model implements Identifiable
         'location_id' => 'required|exists:locations,id',
         'public' => 'boolean',
         'fqdn' => 'required|string',
-        'scheme' => 'required',
+        'scheme' => 'required|in:http,https',
         'behind_proxy' => 'boolean',
         'memory' => 'required|numeric|min:1',
         'memory_overallocate' => 'required|numeric|min:-1',

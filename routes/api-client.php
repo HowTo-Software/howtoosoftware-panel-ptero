@@ -148,6 +148,8 @@ Route::group([
     Route::group(['prefix' => '/settings'], function () {
         Route::post('/rename', [Client\Servers\SettingsController::class, 'rename']);
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
+        Route::post('/project-zomboid/wipe', [Client\Servers\SettingsController::class, 'wipeProjectZomboid'])
+            ->middleware('throttle:5,1');
         Route::put('/docker-image', [Client\Servers\SettingsController::class, 'dockerImage']);
     });
 

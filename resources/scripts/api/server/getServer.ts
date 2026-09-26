@@ -34,6 +34,7 @@ export interface Server {
     uuid: string;
     name: string;
     node: string;
+    eggName: string | null;
     isNodeUnderMaintenance: boolean;
     status: ServerStatus;
     sftpDetails: {
@@ -86,6 +87,10 @@ export const rawDataToServerObject = ({ attributes: data }: FractalResponseData)
     uuid: data.uuid,
     name: data.name,
     node: data.node,
+    eggName:
+        data.relationships?.egg && 'attributes' in data.relationships.egg
+            ? data.relationships.egg.attributes.name ?? null
+            : null,
     isNodeUnderMaintenance: data.is_node_under_maintenance,
     status: data.status,
     invocation: data.invocation,

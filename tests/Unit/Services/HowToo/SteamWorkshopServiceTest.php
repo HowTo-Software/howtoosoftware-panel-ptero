@@ -3,6 +3,7 @@
 namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
 use PHPUnit\Framework\TestCase;
+use Pterodactyl\Services\HowToo\ProjectZomboidModIdResolver;
 use Pterodactyl\Services\HowToo\SteamWorkshopService;
 
 class SteamWorkshopServiceTest extends TestCase
@@ -19,8 +20,8 @@ class SteamWorkshopServiceTest extends TestCase
 
     public function testTextSearchParametersExposeIndependentPages(): void
     {
-        $pageOne = $this->invoke('queryParameters', ['secret', 'Authentic Z', 1, 30]);
-        $pageTwo = $this->invoke('queryParameters', ['secret', 'Authentic Z', 2, 30]);
+        $pageOne = $this->invoke('queryParameters', ['secret', 12, 'Authentic Z', 1, 30]);
+        $pageTwo = $this->invoke('queryParameters', ['secret', 12, 'Authentic Z', 2, 30]);
 
         $this->assertSame(12, $pageOne['query_type']);
         $this->assertSame('Authentic Z', $pageOne['search_text']);
@@ -29,6 +30,55 @@ class SteamWorkshopServiceTest extends TestCase
         $this->assertSame(30, $pageTwo['numperpage']);
         $this->assertSame(108600, $pageTwo['appid']);
         $this->assertSame(108600, $pageTwo['creator_appid']);
+    }
+
+    public function testBrowseModesUseSteamQueryEnumsAndFilterWithRealAllowlistedTags(): void
+    {
+        $trending = $this->invoke('queryParameters', ['secret', 3, '', 1, 30, ['Build 42']]);
+        $subscribed = $this->invoke('queryParameters', ['secret', 9, '', 1, 30]);
+        $recent = $this->invoke('queryParameters', ['secret', 21, '', 1, 30]);
+        $search = $this->invoke('queryParameters', ['secret', 12, 'common sense', 1, 30]);
+
+        $this->assertSame(3, $trending['query_type']);
+        $this->assertSame(7, $trending['days']);
+        $this->assertSame('Build 42', $trending['requiredtags']);
+        $this->assertTrue($trending['match_all_tags']);
+        $this->assertSame(9, $subscribed['query_type']);
+        $this->assertSame(21, $recent['query_type']);
+        $this->assertSame(12, $search['query_type']);
+        $this->assertSame('common sense', $search['search_text']);
+    }
+
+    public function testWorkshopTransformReturnsOnlyRealSteamMetadata(): void
+    {
+        $resolver = new ProjectZomboidModIdResolver(
+            \Mockery::mock(\Pterodactyl\Repositories\Wings\DaemonFileRepository::class),
+            \Mockery::mock(\Illuminate\Contracts\Cache\Repository::class),
+        );
+        $this->reflection->getProperty('modIds')->setValue($this->service, $resolver);
+        $item = $this->invoke('transform', [[
+            'publishedfileid' => '123',
+            'title' => 'Test mod',
+            'tags' => [['tag' => 'Build 42']],
+            'vote_data' => ['score' => 0.9, 'votes_up' => 9, 'votes_down' => 1],
+            'subscriptions' => 1200,
+            'creator' => '76561198000000000',
+        ]]);
+
+        $this->assertSame(['Build 42'], $item['tags']);
+        $this->assertSame(0.9, $item['score']);
+        $this->assertSame(9, $item['votes_up']);
+        $this->assertSame(1, $item['votes_down']);
+        $this->assertSame(1200, $item['subscriptions']);
+        $this->assertNull($this->invoke('transform', [['publishedfileid' => '124']])['score']);
+    }
+
+    public function testTagNormalizationUsesOnlyTheSteamWorkshopAllowlist(): void
+    {
+        $this->assertSame(
+            ['Build 42', 'Animals'],
+            $this->invoke('normalizeTags', [['Build 42', 'untrusted tag', 'Animals', 'Build 42']]),
+        );
     }
 
     public function testPaginationIncludesTotalPagesAndHasNext(): void
@@ -46,7 +96,7 @@ class SteamWorkshopServiceTest extends TestCase
     public function testPaginationDoesNotStopAtTheFormerPageLimit(): void
     {
         $page = $this->invoke('result', [[['workshop_id' => '50000']], 50100, 1000, 50, false]);
-        $parameters = $this->invoke('queryParameters', ['secret', 'late catalog item', 1001, 50]);
+        $parameters = $this->invoke('queryParameters', ['secret', 12, 'late catalog item', 1001, 50]);
 
         $this->assertTrue($page['pagination']['has_next']);
         $this->assertSame(1001, $parameters['page']);

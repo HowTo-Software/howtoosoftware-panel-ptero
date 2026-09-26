@@ -90,13 +90,21 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
 
     return (
         <div className={classNames('grid grid-cols-6 gap-2 md:gap-4', className)}>
-            <StatBlock icon={faWifi} title={'Address'} copyOnClick={allocation}>
+            <StatBlock
+                icon={faWifi}
+                title={'Address'}
+                copyOnClick={allocation}
+                iconColor={'#93c5fd'}
+                iconBackground={'rgba(59, 130, 246, 0.14)'}
+            >
                 {allocation}
             </StatBlock>
             <StatBlock
                 icon={faClock}
                 title={'Uptime'}
                 color={getBackgroundColor(status === 'running' ? 0 : status !== 'offline' ? 9 : 10, 10)}
+                iconColor={status === 'offline' ? '#fca5a5' : '#86efac'}
+                iconBackground={status === 'offline' ? 'rgba(239, 68, 68, 0.14)' : 'rgba(34, 197, 94, 0.14)'}
             >
                 {status === null ? (
                     'Offline'
@@ -106,7 +114,13 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     capitalize(status)
                 )}
             </StatBlock>
-            <StatBlock icon={faMicrochip} title={'CPU Load'} color={getBackgroundColor(stats.cpu, limits.cpu)}>
+            <StatBlock
+                icon={faMicrochip}
+                title={'CPU Load'}
+                color={getBackgroundColor(stats.cpu, limits.cpu)}
+                iconColor={'#c4b5fd'}
+                iconBackground={'rgba(139, 92, 246, 0.14)'}
+            >
                 {status === 'offline' ? (
                     <span className={'text-gray-400'}>Offline</span>
                 ) : (
@@ -117,6 +131,8 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                 icon={faMemory}
                 title={'Memory'}
                 color={getBackgroundColor(stats.memory / 1024, limits.memory * 1024)}
+                iconColor={'#67e8f9'}
+                iconBackground={'rgba(6, 182, 212, 0.14)'}
             >
                 {status === 'offline' ? (
                     <span className={'text-gray-400'}>Offline</span>
@@ -124,13 +140,29 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
                     <Limit limit={textLimits.memory}>{bytesToString(stats.memory)}</Limit>
                 )}
             </StatBlock>
-            <StatBlock icon={faHdd} title={'Disk'} color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}>
+            <StatBlock
+                icon={faHdd}
+                title={'Disk'}
+                color={getBackgroundColor(stats.disk / 1024, limits.disk * 1024)}
+                iconColor={'#fcd34d'}
+                iconBackground={'rgba(245, 158, 11, 0.14)'}
+            >
                 <Limit limit={textLimits.disk}>{bytesToString(stats.disk)}</Limit>
             </StatBlock>
-            <StatBlock icon={faCloudDownloadAlt} title={'Network (Inbound)'}>
+            <StatBlock
+                icon={faCloudDownloadAlt}
+                title={'Network (Inbound)'}
+                iconColor={'#6ee7b7'}
+                iconBackground={'rgba(16, 185, 129, 0.14)'}
+            >
                 {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.rx)}
             </StatBlock>
-            <StatBlock icon={faCloudUploadAlt} title={'Network (Outbound)'}>
+            <StatBlock
+                icon={faCloudUploadAlt}
+                title={'Network (Outbound)'}
+                iconColor={'#d8b4fe'}
+                iconBackground={'rgba(168, 85, 247, 0.14)'}
+            >
                 {status === 'offline' ? <span className={'text-gray-400'}>Offline</span> : bytesToString(stats.tx)}
             </StatBlock>
         </div>

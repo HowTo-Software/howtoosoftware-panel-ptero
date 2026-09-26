@@ -59,11 +59,21 @@ class MultiFieldServerFilter implements Filter
 
         $query
             ->where(function (Builder $builder) use ($value) {
+                $search = "%$value%";
+
                 $builder->where('servers.uuid', $value)
                     ->orWhere('servers.uuid', 'LIKE', "$value%")
                     ->orWhere('servers.uuidShort', $value)
                     ->orWhere('servers.external_id', $value)
-                    ->orWhereRaw('LOWER(servers.name) LIKE ?', ["%$value%"]);
+                    ->orWhereRaw('LOWER(servers.name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(servers.description) LIKE ?', [$search])
+                    ->orWhereHas('egg', fn (Builder $egg) => $egg->whereRaw('LOWER(eggs.name) LIKE ?', [$search]))
+                    ->orWhereHas('node', fn (Builder $node) => $node->whereRaw('LOWER(nodes.name) LIKE ?', [$search]))
+                    ->orWhereHas('allocations', function (Builder $allocation) use ($search) {
+                        $allocation->whereRaw('LOWER(allocations.ip) LIKE ?', [$search])
+                            ->orWhereRaw('LOWER(allocations.alias) LIKE ?', [$search])
+                            ->orWhere('allocations.port', 'LIKE', $search);
+                    });
             });
     }
 }

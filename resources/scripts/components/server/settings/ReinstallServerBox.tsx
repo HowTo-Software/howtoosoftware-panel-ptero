@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
-import TitledGreyBox from '@/components/elements/TitledGreyBox';
 import reinstallServer from '@/api/server/reinstallServer';
 import { Actions, useStoreActions } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
@@ -8,6 +9,7 @@ import { httpErrorToHuman } from '@/api/http';
 import tw from 'twin.macro';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
+import styles from './settings.module.css';
 
 export default () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
@@ -22,7 +24,7 @@ export default () => {
                 addFlash({
                     key: 'settings',
                     type: 'success',
-                    message: 'Your server has begun the reinstallation process.',
+                    message: 'A reinstalação do servidor foi iniciada.',
                 });
             })
             .catch((error) => {
@@ -39,40 +41,56 @@ export default () => {
 
     if (skipScripts) {
         return (
-            <TitledGreyBox title={'Reinstall Server'}>
+            <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                    <div className={styles.cardIcon}>
+                        <FontAwesomeIcon icon={faSyncAlt} />
+                    </div>
+                    <div>
+                        <h2>Reinstalar Servidor</h2>
+                        <p>Reinstale completamente o seu servidor.</p>
+                    </div>
+                </div>
                 <p css={tw`text-sm`}>
-                    Reinstalling this server has been disabled because it is configured to skip its egg&apos;s install
-                    script. If you would like to reinstall this server, contact a server administrator.
+                    A reinstalação está desativada porque este servidor ignora o script de instalação. Entre em contato
+                    com um administrador se precisar reinstalá-lo.
                 </p>
-            </TitledGreyBox>
+            </section>
         );
     }
 
     return (
-        <TitledGreyBox title={'Reinstall Server'} css={tw`relative`}>
+        <section className={`${styles.card} ${styles.reinstallCard}`}>
+            <div className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                    <FontAwesomeIcon icon={faSyncAlt} />
+                </div>
+                <div>
+                    <h2>Reinstalar Servidor</h2>
+                    <p>Reinstale completamente o seu servidor.</p>
+                </div>
+            </div>
             <Dialog.Confirm
                 open={modalVisible}
-                title={'Confirm server reinstallation'}
-                confirm={'Yes, reinstall server'}
+                title={'Confirmar reinstalação do servidor'}
+                confirm={'Sim, reinstalar servidor'}
                 onClose={() => setModalVisible(false)}
                 onConfirmed={reinstall}
             >
-                Your server will be stopped and some files may be deleted or modified during this process, are you sure
-                you wish to continue?
+                O servidor será parado e alguns arquivos poderão ser excluídos ou alterados. Deseja continuar?
             </Dialog.Confirm>
             <p css={tw`text-sm`}>
-                Reinstalling your server will stop it, and then re-run the installation script that initially set it
-                up.&nbsp;
+                A reinstalação irá parar o servidor e executar novamente o script de instalação original.&nbsp;
                 <strong css={tw`font-medium`}>
-                    Some files may be deleted or modified during this process, please back up your data before
-                    continuing.
+                    Alguns arquivos podem ser excluídos ou alterados durante esse processo. Faça backup dos seus dados
+                    antes de continuar.
                 </strong>
             </p>
             <div css={tw`mt-6 text-right`}>
                 <Button.Danger variant={Button.Variants.Secondary} onClick={() => setModalVisible(true)}>
-                    Reinstall Server
+                    Reinstalar Servidor
                 </Button.Danger>
             </div>
-        </TitledGreyBox>
+        </section>
     );
 };

@@ -3,6 +3,7 @@
 namespace Pterodactyl\Console\Commands\Schedule;
 
 use Illuminate\Console\Command;
+use Carbon\Carbon;
 use Pterodactyl\Models\Schedule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,7 +25,7 @@ class ProcessRunnableCommand extends Command
             ->whereRelation('server', fn (Builder $builder) => $builder->whereNull('status'))
             ->where('is_active', true)
             ->where('is_processing', false)
-            ->whereRaw('next_run_at <= NOW()')
+            ->where('next_run_at', '<=', Carbon::now(config('app.timezone')))
             ->get();
 
         if ($schedules->count() < 1) {

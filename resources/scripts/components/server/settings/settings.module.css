@@ -1,0 +1,69 @@
+.heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+}
+
+.heading h1 { margin: 0; color: #e7edff; font-size: 1.65rem; font-weight: 700; }
+.heading p, .breadcrumb { margin: .2rem 0 0; color: #aab9dc; font-size: .9rem; }
+.breadcrumb { white-space: nowrap; }
+.breadcrumb span { margin: 0 .35rem; color: #65749a; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 1.25rem; }
+.column { display: flex; min-width: 0; flex-direction: column; gap: 1.2rem; }
+.card { padding: 1rem 1.15rem; border: 1px solid #2b4275; border-radius: .85rem; background: linear-gradient(145deg, #111b39 0%, #0b1228 100%); box-shadow: 0 12px 28px rgb(0 0 0 / 12%); }
+.editCard, .reinstallCard { position: relative; }
+.editCard input, .editCard textarea { width: 100%; border: 1px solid #344a7a; border-radius: .45rem; background: #172344; color: #e5edff; }
+.editCard input { min-height: 2.7rem; padding: .55rem .7rem; }
+.editCard textarea { min-height: 5rem; padding: .6rem .7rem; resize: vertical; }
+.editCard input:focus, .editCard textarea:focus { border-color: #8875ff; outline: 2px solid rgb(136 117 255 / 16%); }
+.editCard button[type='submit'] { min-height: 2.5rem; padding: .5rem .85rem; border-radius: .45rem; background: #426cf0; color: white; font-weight: 700; }
+.reinstallCard { border-color: #35416d; }
+.reinstallCard button { border: 1px solid #e83e58; border-radius: .45rem; background: #361726; color: #ff8797; }
+.cardHeader { display: flex; align-items: center; gap: .85rem; margin-bottom: .95rem; }
+.cardHeader h2 { margin: 0; color: #f1f4ff; font-size: 1.03rem; font-weight: 700; }
+.cardHeader p { margin: .2rem 0 0; color: #a2b2d9; font-size: .84rem; line-height: 1.4; }
+.cardIcon { display: grid; width: 3rem; height: 3rem; flex: 0 0 3rem; place-items: center; border-radius: .7rem; background: #24266a; color: #9b8bff; font-size: 1.15rem; }
+.dataRow { display: grid; grid-template-columns: minmax(7rem, .7fr) minmax(0, 1.3fr); align-items: center; gap: .7rem; margin-top: .55rem; color: #c5d0ea; font-size: .85rem; }
+.copyValue { display: flex; min-width: 0; align-items: center; border: 1px solid #27375e; border-radius: .45rem; background: #090f20; }
+.copyValue code { overflow: hidden; padding: .55rem .7rem; color: #d5e1ff; font-family: inherit; text-overflow: ellipsis; white-space: nowrap; }
+.copyValue button { width: 2.35rem; height: 2.35rem; flex: 0 0 2.35rem; border: 0; border-left: 1px solid #27375e; border-radius: 0 .4rem .4rem 0; background: #18264b; color: #b9caff; cursor: pointer; }
+.copyValue button:hover { background: #253969; }
+.notice { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-top: .85rem; padding: .65rem .75rem; border: 1px solid #294783; border-radius: .55rem; background: #101f43; color: #bdd0fa; font-size: .79rem; }
+.notice span { display: flex; align-items: center; gap: .5rem; }
+.notice span svg { color: #68a2ff; }
+.notice a { flex: 0 0 auto; color: #d5e3ff; font-weight: 600; text-decoration: none; }
+.notice a:hover { color: #fff; }
+.wipeCard { border-color: #9e2543; background: linear-gradient(145deg, #251127 0%, #150e20 100%); }
+.dangerIcon { background: #49182e; color: #ff5c76; }
+.dangerTitle { color: #ff6378 !important; }
+.wipeDescription { margin: -.15rem 0 .85rem; color: #c0c8df; font-size: .86rem; line-height: 1.5; }
+.warning { display: flex; align-items: flex-start; gap: .6rem; padding: .7rem .8rem; border: 1px solid #996a1a; border-radius: .55rem; background: rgb(102 65 12 / 25%); color: #ffd454; font-size: .81rem; line-height: 1.4; }
+.warning svg { margin-top: .12rem; }
+.targets { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: .75rem; color: #c0c8df; font-size: .78rem; }
+.targets code, .confirmation code { padding: .2rem .38rem; border: 1px solid #382d53; border-radius: .3rem; background: #0a0e1a; color: #d8c5ff; }
+.wipeFooter { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: .9rem; }
+.status { color: #b7c3de; font-size: .8rem; }
+.status strong { display: inline-block; margin-left: .4rem; padding: .24rem .5rem; border: 1px solid #483762; border-radius: .4rem; background: #21182f; color: #e0caff; font-size: .72rem; }
+.status strong[data-offline='true'] { border-color: #235f51; background: #12352f; color: #76e0b6; }
+.wipeButton { min-height: 2.55rem; padding: .55rem .85rem !important; border: 1px solid #ef3855 !important; border-radius: .5rem !important; background: #c91e3c !important; color: #fff !important; font-weight: 700 !important; }
+.wipeButton:hover:not(:disabled) { background: #e32c4a !important; }
+.wipeButton:disabled { cursor: not-allowed; opacity: .5; }
+.wipeButton svg { margin-right: .3rem; }
+.permissionNote { margin: .65rem 0 0; color: #aab5cf; font-size: .75rem; }
+.confirmation { color: #c4cee3; font-size: .9rem; line-height: 1.55; }
+.confirmation p { margin: 0 0 .75rem; }
+.confirmWarning { padding: .6rem .7rem; border-left: 3px solid #edb733; background: #261f13; color: #ffe08a; }
+
+@media (max-width: 900px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .heading { align-items: flex-start; flex-direction: column; }
+    .breadcrumb { white-space: normal; }
+    .dataRow { grid-template-columns: minmax(0, 1fr); gap: .25rem; }
+    .notice, .wipeFooter { align-items: stretch; flex-direction: column; }
+    .notice a { align-self: flex-end; }
+}

@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components/macro';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import Button from '@/components/elements/Button';
@@ -11,12 +11,12 @@ import {
     resolveWorkshopItem,
     saveWorkshop,
     searchWorkshop,
+    WorkshopBrowseMode,
     WorkshopConfiguration,
     WorkshopItem,
-    WorkshopPagination,
 } from '@/api/server/howtoo';
 import { ServerContext } from '@/state/server';
-import { Badge, Card, Grid, Muted, Toolbar } from './IntegrationStyles';
+import { Muted } from './IntegrationStyles';
 import {
     addWorkshopSelection,
     appendWorkshopResults,
@@ -24,37 +24,178 @@ import {
     removeWorkshopSelection,
     uniqueWorkshopValues,
 } from './workshopSelection';
+import {
+    Heading,
+    PageGrid,
+    Surface,
+    WorkshopCards,
+    WorkshopDetails,
+    WorkshopFilters,
+    WorkshopSkeletonGrid,
+} from './WorkshopCatalog';
 
-const Section = styled.div`
-    margin-top: 1.25rem;
+const MainColumn = styled.main`
+    min-width: 0;
+    padding-bottom: 6.5rem;
 `;
-
-const Chip = styled.span`
-    display: inline-flex;
+const Cover = styled.div`
+    display: flex;
+    min-width: 0;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.85rem;
+    padding: 0.3rem 0 0.85rem;
+    border-bottom: 1px solid var(--hts-border);
+    h1 {
+        color: var(--hts-ink);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    p {
+        color: var(--hts-ink-muted);
+        font-size: 0.8rem;
+        overflow-wrap: anywhere;
+    }
+`;
+const GameMark = styled.div`
+    display: grid;
+    width: 2.7rem;
+    height: 2.7rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #496184;
+    border-radius: 50%;
+    background: var(--hts-surface-soft);
+    color: #b9d9ff;
+    font-size: 1.25rem;
+`;
+const HeaderStatus = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
     border: 1px solid var(--hts-border);
     border-radius: 999px;
-    padding: 0.25rem 0.55rem;
+    padding: 0.42rem 0.7rem;
     color: var(--hts-ink-soft);
-    font-size: 0.75rem;
-
+    font-size: 0.73rem;
+    white-space: nowrap;
+`;
+const SidePanel = styled(Surface)`
+    position: sticky;
+    top: 1rem;
+    @media (max-width: 1050px) {
+        position: static;
+    }
+`;
+const SideList = styled.div`
+    display: grid;
+    gap: 0.55rem;
+    margin: 0.75rem 0;
+`;
+const SideItem = styled.div`
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid var(--hts-border);
+    border-radius: 0.45rem;
+    background: var(--hts-surface-soft);
+    padding: 0.4rem;
+    img {
+        width: 3.1rem;
+        height: 3.1rem;
+        flex: 0 0 auto;
+        border-radius: 0.3rem;
+        object-fit: cover;
+    }
+    div {
+        min-width: 0;
+        flex: 1;
+    }
+    strong,
+    small {
+        display: block;
+        overflow: hidden;
+        color: var(--hts-ink);
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    small {
+        margin-top: 0.22rem;
+        color: var(--hts-ink-muted);
+        font-size: 0.65rem;
+    }
     button {
+        flex: 0 0 auto;
+        color: #c5d5ef;
+    }
+`;
+const StickyActions = styled.footer`
+    position: fixed;
+    z-index: 40;
+    right: 0;
+    bottom: 0;
+    left: 15.75rem;
+    display: flex;
+    min-height: 4rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-top: 1px solid var(--hts-border);
+    background: rgba(10, 17, 32, 0.97);
+    padding: 0.55rem max(1rem, calc((100vw - 100rem) / 2));
+    @media (max-width: 800px) {
+        left: 0;
+        flex-wrap: wrap;
+    }
+`;
+const ActionGroup = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
+`;
+const InlineChips = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.65rem 0;
+    span {
+        border: 1px solid var(--hts-border);
+        border-radius: 99px;
+        padding: 0.2rem 0.5rem;
+        color: var(--hts-ink-soft);
+        font-size: 0.7rem;
+    }
+    button {
+        margin-left: 0.3rem;
         color: #fca5a5;
     }
 `;
-
 const ErrorText = styled.p`
-    margin-top: 0.75rem;
+    margin: 0.65rem 0;
     color: #fca5a5;
-    font-size: 0.8125rem;
+    font-size: 0.82rem;
 `;
-
-const Description = styled.p`
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
+const SubtleButton = styled.button`
+    border: 1px solid var(--hts-border);
+    border-radius: 0.4rem;
+    background: transparent;
+    padding: 0.45rem 0.6rem;
+    color: var(--hts-ink-soft);
+    font-size: 0.74rem;
+    cursor: pointer;
+`;
+const AddedCount = styled.span`
+    display: inline-grid;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--hts-border-blue);
+    padding: 0 0.3rem;
+    font-size: 0.66rem;
 `;
 
 const manualModIds = (value: string) =>
@@ -65,14 +206,22 @@ export default () => {
     const [configuration, setConfiguration] = useState<WorkshopConfiguration>();
     const [workshopItems, setWorkshopItems] = useState<string[]>([]);
     const [mods, setMods] = useState<string[]>([]);
-    const [query, setQuery] = useState('');
     const [results, setResults] = useState<WorkshopItem[]>([]);
-    const [pagination, setPagination] = useState<WorkshopPagination>();
-    const [searched, setSearched] = useState(false);
+    const [catalogMode, setCatalogMode] = useState<WorkshopBrowseMode | 'installed'>('trending');
+    const [searchVersion, setSearchVersion] = useState(0);
+    const [page, setPage] = useState(1);
+    const [hasNext, setHasNext] = useState(false);
+    const [total, setTotal] = useState(0);
+    const [query, setQuery] = useState('');
+    const searchQuery = useRef('');
+    const [buildTag, setBuildTag] = useState<string | null>(null);
+    const [categoryTags, setCategoryTags] = useState<string[]>([]);
+    const [selectedCandidates, setSelectedCandidates] = useState<Map<string, WorkshopItem>>(new Map());
     const [manualIds, setManualIds] = useState<Record<string, string>>({});
-    const [manualFallback, setManualFallback] = useState<Record<string, boolean>>({});
+    const [manualFallback, setManualFallback] = useState<Set<string>>(new Set());
     const [manualMod, setManualMod] = useState('');
     const [showManualEditor, setShowManualEditor] = useState(false);
+    const [detailItem, setDetailItem] = useState<WorkshopItem | null>(null);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -81,94 +230,159 @@ export default () => {
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
 
-    const load = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const data = await getWorkshopConfiguration(server.uuid);
-            setConfiguration(data);
-            setWorkshopItems(data.workshopItems);
-            setMods(data.mods);
-        } catch (error) {
-            setError(httpErrorToHuman(error));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        load();
-    }, [server.uuid]);
-
+    const tags = useMemo(
+        () => [...(buildTag ? [buildTag] : []), ...categoryTags].slice(0, 8),
+        [buildTag, categoryTags]
+    );
+    const configured = useMemo(() => new Set(workshopItems), [workshopItems]);
     const details = useMemo(() => {
         const map = new Map<string, WorkshopItem>();
-        [...(configuration?.details || []), ...results].forEach((item) => map.set(item.workshopId, item));
+        [...(configuration?.details || []), ...results, ...Array.from(selectedCandidates.values())].forEach((item) =>
+            map.set(item.workshopId, item)
+        );
         return map;
-    }, [configuration?.details, results]);
-
+    }, [configuration?.details, results, selectedCandidates]);
     const changed = hasWorkshopChanges(configuration, workshopItems, mods);
 
-    const runSearch = async (page: number, append: boolean) => {
-        append ? setLoadingMore(true) : setSearching(true);
-        setError('');
-        try {
-            const result = await searchWorkshop(server.uuid, query.trim(), page, 30);
-            setResults((current) => {
-                return append ? appendWorkshopResults(current, result.items) : result.items;
-            });
-            setPagination(result.pagination);
-            setSearched(true);
-        } catch (error) {
-            setError(httpErrorToHuman(error));
-        } finally {
-            append ? setLoadingMore(false) : setSearching(false);
+    const loadCatalog = useCallback(
+        async (mode: WorkshopBrowseMode, nextPage = 1, append = false, searchQuery = '') => {
+            append ? setLoadingMore(true) : setSearching(true);
+            setError('');
+            try {
+                const result = await searchWorkshop(
+                    server.uuid,
+                    mode === 'search' ? searchQuery.trim() : '',
+                    nextPage,
+                    30,
+                    mode,
+                    tags
+                );
+                setResults((current) => (append ? appendWorkshopResults(current, result.items) : result.items));
+                setPage(result.pagination.page);
+                setHasNext(result.pagination.hasNext);
+                setTotal(result.pagination.total);
+                setCatalogMode(mode);
+            } catch (requestError) {
+                setError(httpErrorToHuman(requestError));
+            } finally {
+                setSearching(false);
+                setLoadingMore(false);
+            }
+        },
+        [server.uuid, tags]
+    );
+
+    useEffect(() => {
+        let active = true;
+        const initialize = async () => {
+            setLoading(true);
+            try {
+                const data = await getWorkshopConfiguration(server.uuid);
+                if (!active) return;
+                setConfiguration(data);
+                setWorkshopItems(data.workshopItems);
+                setMods(data.mods);
+            } catch (requestError) {
+                if (active) setError(httpErrorToHuman(requestError));
+            } finally {
+                if (active) setLoading(false);
+            }
+        };
+        void initialize();
+        return () => {
+            active = false;
+        };
+    }, [server.uuid]);
+
+    useEffect(() => {
+        if (!loading && catalogMode !== 'installed') {
+            void loadCatalog(catalogMode, 1, false, catalogMode === 'search' ? searchQuery.current : '');
+        }
+    }, [catalogMode, loading, loadCatalog, searchVersion]);
+
+    const runSearch = (event: FormEvent) => {
+        event.preventDefault();
+        if (query.trim().length >= 2) {
+            setResults([]);
+            setCatalogMode('search');
+            setSearchVersion((value) => value + 1);
         }
     };
 
-    const search = async (event: FormEvent) => {
-        event.preventDefault();
-        if (query.trim().length < 2) return;
-        setPagination(undefined);
-        setSearched(false);
-        await runSearch(1, false);
+    const chooseMode = (mode: WorkshopBrowseMode | 'installed') => {
+        setCatalogMode(mode);
     };
 
-    const add = async (item: WorkshopItem) => {
+    const toggleTag = (tag: string) =>
+        setCategoryTags((current) =>
+            current.includes(tag) ? current.filter((value) => value !== tag) : [...current, tag].slice(0, 7)
+        );
+
+    const selectCandidate = async (item: WorkshopItem) => {
+        if (configured.has(item.workshopId) || resolving) return;
+        if (selectedCandidates.has(item.workshopId)) {
+            setSelectedCandidates((current) => {
+                const next = new Map(current);
+                next.delete(item.workshopId);
+                return next;
+            });
+            return;
+        }
+
+        setResolving(item.workshopId);
+        setError('');
         let resolved = item;
         if (!resolved.modIds.length) {
-            setResolving(item.workshopId);
-            setError('');
             try {
                 resolved = await resolveWorkshopItem(server.uuid, item.workshopId);
                 setResults((current) =>
-                    current.map((entry) => (entry.workshopId === resolved.workshopId ? resolved : entry))
+                    current.map((entry) =>
+                        entry.workshopId === resolved.workshopId ? { ...entry, ...resolved } : entry
+                    )
                 );
-            } catch (error) {
-                setError(httpErrorToHuman(error));
-                setResolving(null);
-                return;
+            } catch (requestError) {
+                const fallbackIds = manualModIds(manualIds[item.workshopId] || '');
+                if (!fallbackIds.length) {
+                    setManualFallback((current) => new Set(current).add(item.workshopId));
+                    setError(`${item.name}: não foi possível descobrir o Mod ID. Informe o valor exato de mod.info.`);
+                    setResolving(null);
+                    return;
+                }
+                resolved = { ...item, modIds: fallbackIds, modIdSource: null };
+                setError('Usando os Mod IDs informados manualmente. Confira se estão corretos antes de salvar.');
             }
-            setResolving(null);
         }
 
         const ids = resolved.modIds.length ? resolved.modIds : manualModIds(manualIds[item.workshopId] || '');
         if (!ids.length) {
-            setManualFallback((current) => ({ ...current, [item.workshopId]: true }));
-            setError(
-                'No Mod ID was found in the installed mod.info or Steam metadata. Use the advanced fallback below.'
-            );
+            setManualFallback((current) => new Set(current).add(item.workshopId));
+            setError(`${item.name}: informe o Mod ID exato antes de adicionar ao servidor.`);
+            setResolving(null);
             return;
         }
-        setError('');
-        if (!resolved.modIds.length) {
-            resolved = { ...resolved, modIds: ids };
-            setResults((current) =>
-                current.map((entry) => (entry.workshopId === resolved.workshopId ? resolved : entry))
-            );
-        }
-        const selection = addWorkshopSelection(workshopItems, mods, resolved);
-        setWorkshopItems(selection.workshopItems);
-        setMods(selection.mods);
+
+        resolved = { ...resolved, modIds: ids };
+        setSelectedCandidates((current) => new Map(current).set(resolved.workshopId, resolved));
+        setManualFallback((current) => {
+            const next = new Set(current);
+            next.delete(item.workshopId);
+            return next;
+        });
+        setResolving(null);
+    };
+
+    const addSelected = () => {
+        let nextItems = workshopItems;
+        let nextMods = mods;
+        selectedCandidates.forEach((item) => {
+            const selection = addWorkshopSelection(nextItems, nextMods, item);
+            nextItems = selection.workshopItems;
+            nextMods = selection.mods;
+        });
+        setWorkshopItems(nextItems);
+        setMods(nextMods);
+        setSelectedCandidates(new Map());
+        setNotice('Seleção adicionada à configuração pendente. Salve para aplicar no servidor.');
     };
 
     const remove = (workshopId: string) => {
@@ -196,221 +410,310 @@ export default () => {
                     workshopItems,
                     mods,
                     revision: configuration.revision,
-                    workshopMods: Object.fromEntries(
-                        workshopItems.map((workshopId) => [workshopId, details.get(workshopId)?.modIds || []])
-                    ),
+                    workshopMods: Object.fromEntries(workshopItems.map((id) => [id, details.get(id)?.modIds || []])),
                 },
                 restart
             );
-            setConfiguration({ ...result, details: Array.from(details.values()), detailsError: null });
+            const nextConfiguration = {
+                ...configuration,
+                ...result,
+                details: Array.from(details.values()),
+                detailsError: null,
+            };
+            setConfiguration(nextConfiguration);
             setWorkshopItems(result.workshopItems);
             setMods(result.mods);
             setNotice(
                 result.restartError ||
-                    (result.restarted ? 'Changes saved and restart requested.' : 'Pending changes saved.')
+                    (result.restarted ? 'Configuração salva; reinício solicitado.' : 'Configuração salva no servidor.')
             );
-        } catch (error) {
-            setError(httpErrorToHuman(error));
+        } catch (requestError) {
+            setError(httpErrorToHuman(requestError));
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) return <Spinner size={'large'} centered />;
+    if (loading) return <Spinner size='large' centered />;
+
+    const visibleItems =
+        catalogMode === 'installed'
+            ? (configuration?.workshopItems || []).map(
+                  (id) =>
+                      details.get(id) || {
+                          workshopId: id,
+                          name: `Workshop item ${id}`,
+                          image: null,
+                          description: '',
+                          modIds: [],
+                          modIdSource: null,
+                          tags: [],
+                          score: null,
+                          votesUp: null,
+                          votesDown: null,
+                          subscriptions: null,
+                          creatorId: null,
+                          updatedAt: null,
+                      }
+              )
+            : results;
+    const status = changed ? 'Alterações pendentes' : 'Configuração sincronizada';
 
     return (
-        <ServerContentBlock title={'Workshop Mods - BETA'}>
-            <div>
-                <Toolbar style={{ justifyContent: 'space-between' }}>
-                    <div>
-                        <strong>Project Zomboid Workshop Manager</strong>
-                        <Muted>{configuration?.path}</Muted>
-                    </div>
-                    <Badge>{changed ? 'Pending changes' : 'Configuration synchronized'}</Badge>
-                </Toolbar>
-                {configuration?.detailsError && <ErrorText>{configuration.detailsError}</ErrorText>}
-                {notice && <Muted style={{ marginTop: '0.75rem', color: '#86efac' }}>{notice}</Muted>}
-                {error && <ErrorText>{error}</ErrorText>}
-
-                <Section>
-                    <h2>Configured Workshop items</h2>
-                    {!workshopItems.length ? (
-                        <Muted style={{ marginTop: '0.5rem' }}>No Workshop items are configured.</Muted>
-                    ) : (
-                        <Grid style={{ marginTop: '0.75rem' }}>
-                            {workshopItems.map((id) => {
-                                const item = details.get(id);
-                                return (
-                                    <Card key={id}>
-                                        {item?.image && <img src={item.image} alt={''} loading={'lazy'} />}
-                                        <h3>{item?.name || `Workshop item ${id}`}</h3>
-                                        <Badge>Workshop ID {id}</Badge>
-                                        {!!item?.modIds.length && <Muted>Mod IDs: {item.modIds.join('; ')}</Muted>}
-                                        {item?.description && <Description>{item.description}</Description>}
-                                        <Can action={'integration.workshop-update'}>
-                                            <Button
-                                                size={'xsmall'}
-                                                color={'red'}
-                                                isSecondary
-                                                onClick={() => remove(id)}
-                                            >
-                                                Remove
-                                            </Button>
-                                        </Can>
-                                    </Card>
-                                );
-                            })}
-                        </Grid>
-                    )}
-                </Section>
-
-                <Section>
-                    <h2>Configured PZ Mod IDs</h2>
-                    <Toolbar style={{ marginTop: '0.75rem' }}>
-                        {mods.map((id) => (
-                            <Chip key={id}>
-                                {id}
-                                <Can action={'integration.workshop-update'}>
-                                    <button
-                                        type={'button'}
-                                        aria-label={`Remove ${id}`}
-                                        onClick={() => setMods(mods.filter((v) => v !== id))}
-                                    >
-                                        x
-                                    </button>
-                                </Can>
-                            </Chip>
-                        ))}
-                    </Toolbar>
-                    <Can action={'integration.workshop-update'}>
-                        <div style={{ marginTop: '0.75rem' }}>
-                            <Button
-                                size={'xsmall'}
-                                color={'grey'}
-                                isSecondary
-                                type={'button'}
-                                onClick={() => setShowManualEditor((value) => !value)}
-                            >
-                                Advanced Mod ID editor
-                            </Button>
-                            {showManualEditor && (
-                                <Toolbar style={{ marginTop: '0.75rem' }}>
-                                    <Input
-                                        style={{ maxWidth: '24rem' }}
-                                        value={manualMod}
-                                        onChange={(event) => setManualMod(event.currentTarget.value)}
-                                        placeholder={'Manual Mod ID'}
-                                    />
-                                    <Button size={'small'} isSecondary type={'button'} onClick={addManualMod}>
-                                        Add Mod ID
-                                    </Button>
-                                </Toolbar>
-                            )}
+        <ServerContentBlock title='Workshop Mods'>
+            <PageGrid>
+                <MainColumn>
+                    <Cover>
+                        <GameMark aria-hidden='true'>♟</GameMark>
+                        <div style={{ minWidth: 0 }}>
+                            <h1>Project Zomboid Workshop Mods</h1>
+                            <p>
+                                {configuration?.path ||
+                                    'Descubra mods e sincronize Workshop IDs e Mod IDs do servidor.'}
+                            </p>
                         </div>
-                    </Can>
-                </Section>
-
-                <Section>
-                    <form onSubmit={search}>
-                        <Toolbar>
-                            <Input
-                                style={{ maxWidth: '32rem' }}
-                                value={query}
-                                onChange={(event) => setQuery(event.currentTarget.value)}
-                                placeholder={'Search Project Zomboid Workshop'}
-                            />
-                            <Button type={'submit'} isLoading={searching} disabled={query.trim().length < 2}>
-                                Search
-                            </Button>
-                        </Toolbar>
-                    </form>
-                    {!!results.length && (
-                        <Grid style={{ marginTop: '1rem' }}>
-                            {results.map((item) => (
-                                <Card key={item.workshopId}>
-                                    {item.image && <img src={item.image} alt={''} loading={'lazy'} />}
-                                    <h3>{item.name}</h3>
-                                    <Badge>Workshop ID {item.workshopId}</Badge>
-                                    <Description>{item.description}</Description>
-                                    {item.modIds.length ? (
-                                        <Muted>
-                                            Mod IDs: {item.modIds.join('; ')}
-                                            {['mod_info', 'remote_mod_info'].includes(item.modIdSource || '')
-                                                ? ' / verified from mod.info'
-                                                : ''}
-                                        </Muted>
-                                    ) : manualFallback[item.workshopId] ? (
-                                        <div>
-                                            <Muted>Advanced fallback: enter the exact ID from mod.info.</Muted>
-                                            <Input
-                                                value={manualIds[item.workshopId] || ''}
-                                                onChange={(event) =>
-                                                    setManualIds((current) => ({
-                                                        ...current,
-                                                        [item.workshopId]: event.currentTarget.value,
-                                                    }))
-                                                }
-                                                placeholder={'Manual PZ Mod ID (advanced)'}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <Muted>Mod IDs will be resolved automatically when added.</Muted>
-                                    )}
-                                    <Can action={'integration.workshop-update'}>
-                                        <Button
-                                            size={'xsmall'}
-                                            onClick={() => add(item)}
-                                            isLoading={resolving === item.workshopId}
-                                            disabled={workshopItems.includes(item.workshopId) || resolving !== null}
-                                        >
-                                            {workshopItems.includes(item.workshopId) ? 'Added' : 'Add'}
-                                        </Button>
-                                    </Can>
-                                </Card>
-                            ))}
-                        </Grid>
-                    )}
-                    {searched && !searching && !results.length && (
-                        <Muted style={{ marginTop: '1rem' }}>No Workshop items matched this search.</Muted>
-                    )}
-                    {pagination && (
-                        <Toolbar style={{ justifyContent: 'center', marginTop: '1rem' }}>
-                            <Muted>
-                                Page {pagination.page} of {pagination.totalPages || 1} / {pagination.total} results
+                        <HeaderStatus>
+                            <span style={{ color: changed ? '#fbbf24' : '#4ade80' }}>●</span>
+                            {status}
+                        </HeaderStatus>
+                    </Cover>
+                    <Surface style={{ marginTop: '.8rem' }}>
+                        <WorkshopFilters
+                            mode={catalogMode}
+                            onMode={chooseMode}
+                            query={query}
+                            onQuery={(value) => {
+                                searchQuery.current = value;
+                                setQuery(value);
+                            }}
+                            onSearch={runSearch}
+                            searching={searching}
+                            build={buildTag}
+                            onBuild={setBuildTag}
+                            selectedTags={categoryTags}
+                            onToggleTag={toggleTag}
+                        />
+                        {configuration?.detailsError && (
+                            <Muted style={{ marginTop: '.7rem' }}>
+                                {configuration.detailsError} A lista configurada continua disponível abaixo.
                             </Muted>
-                            {pagination.hasNext && (
+                        )}
+                        {notice && <Muted style={{ marginTop: '.65rem', color: '#86efac' }}>{notice}</Muted>}
+                        {error && <ErrorText role='alert'>{error}</ErrorText>}
+                        <Heading style={{ marginTop: '1rem' }}>
+                            <div>
+                                <h2>
+                                    {catalogMode === 'installed'
+                                        ? 'Instalados na configuração'
+                                        : catalogMode === 'search'
+                                        ? 'Resultados da busca'
+                                        : catalogMode === 'most_subscribed'
+                                        ? 'Mais inscritos'
+                                        : catalogMode === 'recent'
+                                        ? 'Atualizados recentemente'
+                                        : 'Mods em alta'}
+                                </h2>
+                                <p>
+                                    {catalogMode === 'installed'
+                                        ? 'Workshop IDs atualmente salvos no servidor'
+                                        : `${total.toLocaleString()} resultados do Steam Workshop para Project Zomboid`}
+                                </p>
+                            </div>
+                            {catalogMode !== 'installed' && (
+                                <a
+                                    href='https://steamcommunity.com/app/108600/workshop/'
+                                    target='_blank'
+                                    rel='noreferrer'
+                                >
+                                    Ver no Steam ↗
+                                </a>
+                            )}
+                        </Heading>
+                        {searching && !visibleItems.length ? (
+                            <WorkshopSkeletonGrid />
+                        ) : (
+                            <WorkshopCards
+                                items={visibleItems}
+                                selected={new Set(selectedCandidates.keys())}
+                                configured={configured}
+                                manualIds={manualIds}
+                                manualFallback={manualFallback}
+                                onSelect={(item) => void selectCandidate(item)}
+                                onOpen={setDetailItem}
+                                onManualIdChange={(id, value) =>
+                                    setManualIds((current) => ({ ...current, [id]: value }))
+                                }
+                                emptyMessage={
+                                    catalogMode === 'installed'
+                                        ? 'Ainda não há Workshop IDs salvos neste servidor.'
+                                        : undefined
+                                }
+                            />
+                        )}
+                        {hasNext && catalogMode !== 'installed' && (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                                 <Button
-                                    type={'button'}
+                                    type='button'
                                     isSecondary
                                     isLoading={loadingMore}
                                     disabled={searching || loadingMore}
-                                    onClick={() => runSearch(pagination.page + 1, true)}
+                                    onClick={() => void loadCatalog(catalogMode, page + 1, true)}
                                 >
-                                    Load More
+                                    Carregar mais
                                 </Button>
-                            )}
-                        </Toolbar>
-                    )}
-                </Section>
+                            </div>
+                        )}
+                    </Surface>
+                </MainColumn>
 
-                <Can action={'integration.workshop-update'}>
-                    <Toolbar style={{ justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+                <SidePanel>
+                    <Heading>
+                        <div>
+                            <h2>Itens na configuração pendente</h2>
+                            <p>Alterações aplicadas ao salvar</p>
+                        </div>
+                        <AddedCount>{workshopItems.length}</AddedCount>
+                    </Heading>
+                    {!workshopItems.length ? (
+                        <Muted style={{ marginTop: '.8rem' }}>
+                            Selecione mods do catálogo para preparar a configuração.
+                        </Muted>
+                    ) : (
+                        <SideList>
+                            {workshopItems.map((id) => {
+                                const item = details.get(id);
+                                return (
+                                    <SideItem key={id}>
+                                        {item?.image ? (
+                                            <img src={item.image} alt='' loading='lazy' />
+                                        ) : (
+                                            <div
+                                                aria-hidden='true'
+                                                style={{
+                                                    width: '3.1rem',
+                                                    height: '3.1rem',
+                                                    display: 'grid',
+                                                    placeItems: 'center',
+                                                    background: '#101a2c',
+                                                }}
+                                            >
+                                                ♟
+                                            </div>
+                                        )}
+                                        <div>
+                                            <strong>{item?.name || `Workshop item ${id}`}</strong>
+                                            <small>Workshop ID: {id}</small>
+                                        </div>
+                                        <Can action='integration.workshop-update'>
+                                            <button
+                                                type='button'
+                                                aria-label={`Remover ${id}`}
+                                                disabled={saving}
+                                                onClick={() => remove(id)}
+                                            >
+                                                ×
+                                            </button>
+                                        </Can>
+                                    </SideItem>
+                                );
+                            })}
+                        </SideList>
+                    )}
+                    <div style={{ borderTop: '1px solid var(--hts-border)', paddingTop: '.7rem' }}>
+                        <Heading>
+                            <h2>Mod IDs do servidor</h2>
+                            <AddedCount>{mods.length}</AddedCount>
+                        </Heading>
+                        <InlineChips>
+                            {mods.map((id) => (
+                                <span key={id}>
+                                    {id}
+                                    <Can action='integration.workshop-update'>
+                                        <button
+                                            type='button'
+                                            aria-label={`Remover Mod ID ${id}`}
+                                            onClick={() =>
+                                                setMods((current) => current.filter((value) => value !== id))
+                                            }
+                                        >
+                                            ×
+                                        </button>
+                                    </Can>
+                                </span>
+                            ))}
+                        </InlineChips>
+                        <Can action='integration.workshop-update'>
+                            <SubtleButton type='button' onClick={() => setShowManualEditor((value) => !value)}>
+                                ⚙ Gerenciar IDs manualmente
+                            </SubtleButton>
+                            {showManualEditor && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.4rem', marginTop: '.5rem' }}>
+                                    <Input
+                                        value={manualMod}
+                                        onChange={(event) => setManualMod(event.currentTarget.value)}
+                                        placeholder='Mod ID(s), separados por ;'
+                                    />
+                                    <Button type='button' size='xsmall' isSecondary onClick={addManualMod}>
+                                        Adicionar
+                                    </Button>
+                                </div>
+                            )}
+                        </Can>
+                    </div>
+                </SidePanel>
+            </PageGrid>
+
+            <Can action='integration.workshop-update'>
+                <StickyActions>
+                    <div>
+                        <strong style={{ color: 'var(--hts-ink)', fontSize: '.85rem' }}>
+                            {selectedCandidates.size} mods selecionados
+                        </strong>
+                        <p style={{ color: 'var(--hts-ink-muted)', fontSize: '.7rem' }}>
+                            Selecione no catálogo antes de adicionar à configuração
+                        </p>
+                    </div>
+                    <ActionGroup>
                         <Button
+                            type='button'
+                            color='primary'
+                            disabled={!selectedCandidates.size || saving}
+                            onClick={addSelected}
+                        >
+                            ⊕ Adicionar selecionados
+                        </Button>
+                        <Button
+                            type='button'
                             isSecondary
                             disabled={!changed || saving}
-                            onClick={() => save(false)}
                             isLoading={saving}
+                            onClick={() => void save(false)}
                         >
-                            Save
+                            ▣ Salvar
                         </Button>
-                        <Can action={'control.restart'}>
-                            <Button disabled={!changed || saving} onClick={() => save(true)} isLoading={saving}>
-                                Save &amp; Restart
+                        <Can action='control.restart'>
+                            <Button
+                                type='button'
+                                disabled={!changed || saving}
+                                isLoading={saving}
+                                onClick={() => void save(true)}
+                            >
+                                ▶ Salvar e Reiniciar
                             </Button>
                         </Can>
-                    </Toolbar>
-                </Can>
-            </div>
+                    </ActionGroup>
+                </StickyActions>
+            </Can>
+
+            <WorkshopDetails
+                item={detailItem}
+                onClose={() => setDetailItem(null)}
+                onSelect={(item) => {
+                    setDetailItem(null);
+                    void selectCandidate(item);
+                }}
+                configured={!!detailItem && configured.has(detailItem.workshopId)}
+            />
         </ServerContentBlock>
     );
 };

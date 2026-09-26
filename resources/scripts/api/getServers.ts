@@ -12,6 +12,7 @@ export default ({ query, ...params }: QueryParams): Promise<PaginatedResult<Serv
         http.get('/api/client', {
             params: {
                 'filter[*]': query,
+                include: ['egg'],
                 ...params,
             },
         })

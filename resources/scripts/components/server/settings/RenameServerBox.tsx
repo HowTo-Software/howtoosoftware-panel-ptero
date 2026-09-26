@@ -1,6 +1,7 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import { ServerContext } from '@/state/server';
-import TitledGreyBox from '@/components/elements/TitledGreyBox';
 import { Field as FormikField, Form, Formik, FormikHelpers, useFormikContext } from 'formik';
 import { Actions, useStoreActions } from 'easy-peasy';
 import renameServer from '@/api/server/renameServer';
@@ -14,6 +15,7 @@ import tw from 'twin.macro';
 import Label from '@/components/elements/Label';
 import FormikFieldWrapper from '@/components/elements/FormikFieldWrapper';
 import { Textarea } from '@/components/elements/Input';
+import styles from './settings.module.css';
 
 interface Values {
     name: string;
@@ -24,21 +26,30 @@ const RenameServerBox = () => {
     const { isSubmitting } = useFormikContext<Values>();
 
     return (
-        <TitledGreyBox title={'Change Server Details'} css={tw`relative`}>
+        <section className={`${styles.card} ${styles.editCard}`}>
+            <header className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                    <FontAwesomeIcon icon={faPencilAlt} />
+                </div>
+                <div>
+                    <h2>Alterar Detalhes do Servidor</h2>
+                    <p>Atualize o nome e a descrição do seu servidor.</p>
+                </div>
+            </header>
             <SpinnerOverlay visible={isSubmitting} />
             <Form css={tw`mb-0`}>
-                <Field id={'name'} name={'name'} label={'Server Name'} type={'text'} />
+                <Field id={'name'} name={'name'} label={'Nome do Servidor'} type={'text'} />
                 <div css={tw`mt-6`}>
-                    <Label>Server Description</Label>
+                    <Label>Descrição do Servidor</Label>
                     <FormikFieldWrapper name={'description'}>
                         <FormikField as={Textarea} name={'description'} rows={3} />
                     </FormikFieldWrapper>
                 </div>
                 <div css={tw`mt-6 text-right`}>
-                    <Button type={'submit'}>Save</Button>
+                    <Button type={'submit'}>Salvar Alterações</Button>
                 </div>
             </Form>
-        </TitledGreyBox>
+        </section>
     );
 };
 

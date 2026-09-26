@@ -168,23 +168,42 @@ describe('searchWorkshop', () => {
             },
         });
 
-        const result = await searchWorkshop('server-id', 'common', 2, 30);
+        const result = await searchWorkshop('server-id', 'common', 2, 30, 'search');
 
         expect(http.get).toHaveBeenCalledWith('/api/client/servers/server-id/howtoo/workshop/search', {
-            params: { query: 'common', page: 2, per_page: 30 },
+            params: { query: 'common', mode: 'search', tags: [], page: 2, per_page: 30 },
         });
         expect(result.items[0].workshopId).toBe('2');
         expect(result.pagination).toEqual({ page: 2, perPage: 30, total: 61, totalPages: 3, hasNext: true });
     });
 
-    it('keeps Workshop descriptions visually limited to five lines', () => {
+    it('requests a filtered Workshop catalog without a search phrase', async () => {
+        jest.mocked(http.get).mockResolvedValue({
+            data: {
+                items: [{ workshop_id: '3', name: 'Build 42 mod', tags: ['Build 42'], mod_ids: [] }],
+                pagination: { page: 1, per_page: 30, total: 1, total_pages: 1, has_next: false },
+            },
+        });
+
+        await searchWorkshop('server-id', '', 1, 30, 'trending', ['Build 42', 'Animals']);
+
+        expect(http.get).toHaveBeenCalledWith('/api/client/servers/server-id/howtoo/workshop/search', {
+            params: { query: undefined, mode: 'trending', tags: ['Build 42', 'Animals'], page: 1, per_page: 30 },
+        });
+    });
+
+    it('keeps catalog cards and large result sets visually controlled', () => {
         const source = fs.readFileSync(
             path.join(__dirname, '..', '..', 'components', 'server', 'howtoo', 'ProjectZomboidWorkshopContainer.tsx'),
             'utf8'
         );
+        const catalog = fs.readFileSync(
+            path.join(__dirname, '..', '..', 'components', 'server', 'howtoo', 'WorkshopCatalog.tsx'),
+            'utf8'
+        );
 
-        expect(source).toContain('-webkit-line-clamp: 5');
-        expect(source).toContain('Load More');
+        expect(catalog).toContain('-webkit-line-clamp: 2');
+        expect(source).toContain('Carregar mais');
     });
 });
 

@@ -6,6 +6,8 @@ export interface AssistantMessage {
     content: string;
 }
 
+export type WorkshopBrowseMode = 'search' | 'trending' | 'most_subscribed' | 'recent';
+
 export interface WorkshopItem {
     workshopId: string;
     name: string;
@@ -13,6 +15,12 @@ export interface WorkshopItem {
     description: string;
     modIds: string[];
     modIdSource: 'mod_info' | 'remote_mod_info' | 'steam_metadata' | 'workshop_description' | null;
+    tags: string[];
+    score: number | null;
+    votesUp: number | null;
+    votesDown: number | null;
+    subscriptions: number | null;
+    creatorId: string | null;
     updatedAt: number | null;
 }
 
@@ -68,6 +76,12 @@ const workshopItem = (data: any): WorkshopItem => ({
     description: data.description,
     modIds: data.mod_ids || [],
     modIdSource: data.mod_id_source || null,
+    tags: data.tags || [],
+    score: data.score ?? null,
+    votesUp: data.votes_up ?? null,
+    votesDown: data.votes_down ?? null,
+    subscriptions: data.subscriptions ?? null,
+    creatorId: data.creator_id ?? null,
     updatedAt: data.updated_at,
 });
 
@@ -208,10 +222,12 @@ export const searchWorkshop = async (
     uuid: string,
     query: string,
     page = 1,
-    perPage = 30
+    perPage = 30,
+    mode: WorkshopBrowseMode = 'search',
+    tags: string[] = []
 ): Promise<WorkshopSearchResult> => {
     const { data } = await http.get(`/api/client/servers/${uuid}/howtoo/workshop/search`, {
-        params: { query, page, per_page: perPage },
+        params: { query: query || undefined, mode, tags, page, per_page: perPage },
     });
     return {
         items: (data.items || []).map(workshopItem),

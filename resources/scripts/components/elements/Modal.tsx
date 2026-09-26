@@ -42,11 +42,18 @@ const ModalContainer = styled.div<{ alignTop?: boolean }>`
     margin-bottom: auto;
 
     & > .close-icon {
-        ${tw`absolute right-0 p-2 text-white cursor-pointer opacity-50 transition-all duration-150 ease-linear hover:opacity-100`};
+        ${tw`absolute right-0 p-2 cursor-pointer transition-all duration-150 ease-linear`};
         top: -2.5rem;
+        border-radius: 0.5rem;
+        background: rgba(131, 168, 243, 0.1);
+        color: #aebbe0;
+        opacity: 0.8;
 
         &:hover {
-            ${tw`transform rotate-90`}
+            ${tw`transform rotate-90`};
+            background: rgba(176, 105, 255, 0.16);
+            color: #d3b2ff;
+            opacity: 1;
         }
 
         & > svg {

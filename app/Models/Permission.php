@@ -68,6 +68,7 @@ class Permission extends Model
     public const ACTION_INTEGRATION_AI = 'integration.ai';
     public const ACTION_INTEGRATION_WORKSHOP_READ = 'integration.workshop';
     public const ACTION_INTEGRATION_WORKSHOP_UPDATE = 'integration.workshop-update';
+    public const ACTION_INTEGRATION_WORKSHOP_WIPE = 'integration.workshop-wipe';
     public const ACTION_INTEGRATION_CURSEFORGE_READ = 'integration.curseforge';
     public const ACTION_INTEGRATION_CURSEFORGE_INSTALL = 'integration.curseforge-install';
 
@@ -219,6 +220,7 @@ class Permission extends Model
                 'ai' => 'Allows a user to ask the server assistant for contextual help.',
                 'workshop' => 'Allows a user to view Project Zomboid Workshop configuration and search Steam Workshop.',
                 'workshop-update' => 'Allows a user to change the Project Zomboid Workshop configuration.',
+                'workshop-wipe' => 'Allows a user to wipe the Project Zomboid save data directories while the server is offline.',
                 'curseforge' => 'Allows a user to browse compatible CurseForge mods and view installed mods.',
                 'curseforge-install' => 'Allows a user to install compatible CurseForge mod files on the server.',
             ],
