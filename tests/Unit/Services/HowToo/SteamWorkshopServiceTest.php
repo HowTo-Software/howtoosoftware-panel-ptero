@@ -38,10 +38,12 @@ class SteamWorkshopServiceTest extends TestCase
         $subscribed = $this->invoke('queryParameters', ['secret', 9, '', 1, 30]);
         $recent = $this->invoke('queryParameters', ['secret', 21, '', 1, 30]);
         $search = $this->invoke('queryParameters', ['secret', 12, 'common sense', 1, 30]);
+        $build41 = $this->invoke('queryParameters', ['secret', 3, '', 1, 30, ['Build 41']]);
 
         $this->assertSame(3, $trending['query_type']);
         $this->assertSame(7, $trending['days']);
         $this->assertSame('Build 42', $trending['requiredtags']);
+        $this->assertSame('Build 41', $build41['requiredtags']);
         $this->assertTrue($trending['match_all_tags']);
         $this->assertSame(9, $subscribed['query_type']);
         $this->assertSame(21, $recent['query_type']);

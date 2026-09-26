@@ -207,6 +207,7 @@ export default () => {
     const [workshopItems, setWorkshopItems] = useState<string[]>([]);
     const [mods, setMods] = useState<string[]>([]);
     const [results, setResults] = useState<WorkshopItem[]>([]);
+    const catalogRequestId = useRef(0);
     const [catalogMode, setCatalogMode] = useState<WorkshopBrowseMode | 'installed'>('trending');
     const [searchVersion, setSearchVersion] = useState(0);
     const [page, setPage] = useState(1);
@@ -246,6 +247,13 @@ export default () => {
 
     const loadCatalog = useCallback(
         async (mode: WorkshopBrowseMode, nextPage = 1, append = false, searchQuery = '') => {
+            const requestId = ++catalogRequestId.current;
+            if (!append) {
+                setResults([]);
+                setPage(1);
+                setHasNext(false);
+                setTotal(0);
+            }
             append ? setLoadingMore(true) : setSearching(true);
             setError('');
             try {
@@ -257,20 +265,29 @@ export default () => {
                     mode,
                     tags
                 );
+                if (requestId !== catalogRequestId.current) return;
                 setResults((current) => (append ? appendWorkshopResults(current, result.items) : result.items));
                 setPage(result.pagination.page);
                 setHasNext(result.pagination.hasNext);
                 setTotal(result.pagination.total);
                 setCatalogMode(mode);
             } catch (requestError) {
-                setError(httpErrorToHuman(requestError));
+                if (requestId === catalogRequestId.current) setError(httpErrorToHuman(requestError));
             } finally {
-                setSearching(false);
-                setLoadingMore(false);
+                if (requestId === catalogRequestId.current) {
+                    setSearching(false);
+                    setLoadingMore(false);
+                }
             }
         },
         [server.uuid, tags]
     );
+
+    useEffect(() => {
+        return () => {
+            catalogRequestId.current += 1;
+        };
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -300,23 +317,38 @@ export default () => {
         }
     }, [catalogMode, loading, loadCatalog, searchVersion]);
 
+    const invalidateCatalog = () => {
+        catalogRequestId.current += 1;
+        setResults([]);
+        setPage(1);
+        setHasNext(false);
+        setTotal(0);
+        setSearching(false);
+        setLoadingMore(false);
+        setError('');
+    };
+
     const runSearch = (event: FormEvent) => {
         event.preventDefault();
         if (query.trim().length >= 2) {
-            setResults([]);
+            invalidateCatalog();
             setCatalogMode('search');
             setSearchVersion((value) => value + 1);
         }
     };
 
     const chooseMode = (mode: WorkshopBrowseMode | 'installed') => {
+        if (catalogMode === mode) return;
+        invalidateCatalog();
         setCatalogMode(mode);
     };
 
-    const toggleTag = (tag: string) =>
+    const toggleTag = (tag: string) => {
+        invalidateCatalog();
         setCategoryTags((current) =>
             current.includes(tag) ? current.filter((value) => value !== tag) : [...current, tag].slice(0, 7)
         );
+    };
 
     const selectCandidate = async (item: WorkshopItem) => {
         if (configured.has(item.workshopId) || resolving) return;
@@ -489,7 +521,10 @@ export default () => {
                             onSearch={runSearch}
                             searching={searching}
                             build={buildTag}
-                            onBuild={setBuildTag}
+                            onBuild={(build) => {
+                                invalidateCatalog();
+                                setBuildTag(build);
+                            }}
                             selectedTags={categoryTags}
                             onToggleTag={toggleTag}
                         />
@@ -557,7 +592,14 @@ export default () => {
                                     isSecondary
                                     isLoading={loadingMore}
                                     disabled={searching || loadingMore}
-                                    onClick={() => void loadCatalog(catalogMode, page + 1, true)}
+                                    onClick={() =>
+                                        void loadCatalog(
+                                            catalogMode,
+                                            page + 1,
+                                            true,
+                                            catalogMode === 'search' ? searchQuery.current : ''
+                                        )
+                                    }
                                 >
                                     Carregar mais
                                 </Button>
