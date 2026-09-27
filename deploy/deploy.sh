@@ -35,7 +35,7 @@ env_set() {
 
 BIND="$(env_get PANEL_BIND)";  BIND="${BIND:-192.168.1.210}"
 PORT="$(env_get PANEL_PORT)";  PORT="${PORT:-8088}"
-HEALTH_URL="http://${BIND}:${PORT}/"
+HEALTH_URL="http://${BIND}:${PORT}/auth/login"
 
 wait_until_serving() {
     local deadline=$((SECONDS + WAIT_SECONDS)) code
