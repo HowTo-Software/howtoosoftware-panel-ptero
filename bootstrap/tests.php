@@ -43,3 +43,36 @@ if (!env('SKIP_MIGRATIONS')) {
 } else {
     $output->writeln(PHP_EOL . '<comment>Skipping database migrations...</comment>' . PHP_EOL);
 }
+
+/*
+ * Bootstrapping the kernel above left Laravel's error and exception handlers installed
+ * process-wide. PHPUnit snapshots the handler stack before every test and restores it
+ * afterwards, while Laravel's own teardown unwinds it, so each test gets reported risky
+ * for "removing handlers other than its own". Every test boots its own application, so
+ * nothing past this point needs the ones registered here.
+ */
+$unwindHandlers = static function (): void {
+    while (true) {
+        $previous = set_error_handler(static fn () => false);
+        restore_error_handler();
+
+        if ($previous === null) {
+            break;
+        }
+
+        restore_error_handler();
+    }
+
+    while (true) {
+        $previous = set_exception_handler(static fn () => null);
+        restore_exception_handler();
+
+        if ($previous === null) {
+            break;
+        }
+
+        restore_exception_handler();
+    }
+};
+
+$unwindHandlers();
