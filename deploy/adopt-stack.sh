@@ -62,6 +62,9 @@ echo "$(wc -l < "$OVERRIDES") variables will be written to $STACK/.env.panel (06
 sed 's/=.*//' "$OVERRIDES" | sort | paste -sd' ' -
 
 say "3. volumes that must survive (APP_KEY lives in howtoo_var:/app/var/.env)"
+EXPECTED_VAR_VOLUME="howtoosoftware-panel_howtoo_var"
+MOUNTED_VAR_VOLUME="$(docker inspect "$CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "/app/var"}}{{.Name}}{{end}}{{end}}')"
+[ "$MOUNTED_VAR_VOLUME" = "$EXPECTED_VAR_VOLUME" ] || die "$EXPECTED_VAR_VOLUME is not mounted at /app/var; refusing to adopt without the existing APP_KEY volume."
 docker volume ls --filter 'label=com.docker.compose.project=howtoosoftware-panel' --format '  {{.Name}}'
 
 say "4. plan"
