@@ -7,7 +7,6 @@ use Carbon\CarbonInterface;
 use Pterodactyl\Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Pterodactyl\Events\ActivityLogged;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Pterodactyl\Tests\Assertions\AssertsActivityLogged;
 use Pterodactyl\Tests\Traits\Integration\CreatesTestModels;
 use Pterodactyl\Transformers\Api\Application\BaseTransformer;
@@ -16,10 +15,9 @@ abstract class IntegrationTestCase extends TestCase
 {
     use CreatesTestModels;
     use AssertsActivityLogged;
-    // Without this the $connectionsToTransact below is inert: tests commit, so one that
-    // deletes seeded data breaks every later test in the run.
-    use DatabaseTransactions;
 
+    // Read by DatabaseTransactions, which subclasses opt into. Do not add that trait here:
+    // these tests assert against committed state and fail wholesale under it.
     protected array $connectionsToTransact = ['mysql'];
 
     protected $defaultHeaders = [

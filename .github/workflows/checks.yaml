@@ -81,11 +81,6 @@ jobs:
           DB_PORT: ${{ job.services.database.ports[3306] }}
           DB_USERNAME: root
       - name: Integration
-        # Still advisory: 26 errors and 36 failures remain, drifted from the Laravel 12
-        # upgrade (403 vs 404 authorization, 403 vs 429 rate limiting, validation
-        # changes). Down from 262 errors once IntegrationTestCase actually applied
-        # DatabaseTransactions. Unit above is a hard gate.
-        continue-on-error: true
         run: vendor/bin/phpunit --testsuite Integration
         env:
           DB_PORT: ${{ job.services.database.ports[3306] }}

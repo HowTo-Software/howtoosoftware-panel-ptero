@@ -97,7 +97,11 @@ class ClientControllerTest extends ClientApiIntegrationTestCase
     public function testServersCanBeSearchedByEggAndNodeName()
     {
         [$user, $server] = $this->generateTestAccount();
-        $server->egg->forceFill(['name' => 'Minecraft Java'])->save();
+        // The server's egg is the shared seeded Bungeecord record; renaming it in place
+        // makes getBungeecordEgg() miss for every later test in the run.
+        $egg = $this->cloneEggAndVariables($server->egg);
+        $egg->forceFill(['name' => 'Minecraft Java'])->save();
+        $server->forceFill(['egg_id' => $egg->id])->save();
         $server->node->forceFill(['name' => 'Cards Search Node'])->save();
 
         $this->actingAs($user)->getJson('/api/client?include=egg&filter[*]=minecraft')
