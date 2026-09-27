@@ -1,5 +1,5 @@
 import { translateUiText } from '@/i18n/uiTranslations';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { httpErrorToHuman } from '@/api/http';
 import { CSSTransition } from 'react-transition-group';
 import Spinner from '@/components/elements/Spinner';
@@ -43,6 +43,18 @@ export default () => {
     const selectedFilesLength = ServerContext.useStoreState((state) => state.files.selectedFiles.length);
     const openFiles = useOpenFiles();
     const [filter, setFilter] = useState('');
+    const [explorerWidth, setExplorerWidth] = useState(352);
+    const workspaceRef = useRef<HTMLDivElement>(null);
+    const resizingPointer = useRef<number | null>(null);
+    const hasOpenFiles = openFiles.files.length > 0;
+
+    const resizeExplorer = (clientX: number) => {
+        const bounds = workspaceRef.current?.getBoundingClientRect();
+        if (!bounds) return;
+
+        const maximum = Math.max(272, bounds.width - 360);
+        setExplorerWidth(Math.round(Math.min(maximum, Math.max(272, clientX - bounds.left))));
+    };
 
     useEffect(() => {
         clearFlashes('files');
@@ -99,7 +111,11 @@ export default () => {
                         </Can>
                     </header>
 
-                    <div className={styles.file_workspace}>
+                    <div
+                        ref={workspaceRef}
+                        className={`${styles.file_workspace} ${hasOpenFiles ? styles.file_workspace_with_editor : ''}`}
+                        style={{ '--explorer-width': `${explorerWidth}px` } as React.CSSProperties}
+                    >
                         <section className={styles.explorer_panel} aria-label={translateUiText('File explorer')}>
                             <div className={styles.explorer_header}>
                                 <strong>{translateUiText('File Explorer')}</strong>
@@ -167,15 +183,59 @@ export default () => {
                             <MassActionsBar />
                         </section>
 
-                        <MultiFileEditor
-                            files={openFiles.files}
-                            activeFile={openFiles.activeFile}
-                            setActivePath={openFiles.setActivePath}
-                            updateFile={openFiles.updateFile}
-                            saveFile={openFiles.saveFile}
-                            closeFile={openFiles.closeFile}
-                            retryFile={openFiles.retryFile}
-                        />
+                        {hasOpenFiles && (
+                            <>
+                                <div
+                                    className={styles.workspace_resize_handle}
+                                    role={'separator'}
+                                    tabIndex={0}
+                                    aria-label={translateUiText('Resize file explorer')}
+                                    aria-orientation={'vertical'}
+                                    aria-valuemin={272}
+                                    aria-valuemax={Math.max(272, (workspaceRef.current?.clientWidth ?? 1560) - 360)}
+                                    aria-valuenow={explorerWidth}
+                                    onPointerDown={(event) => {
+                                        resizingPointer.current = event.pointerId;
+                                        event.currentTarget.setPointerCapture(event.pointerId);
+                                        resizeExplorer(event.clientX);
+                                    }}
+                                    onPointerMove={(event) => {
+                                        if (resizingPointer.current === event.pointerId) resizeExplorer(event.clientX);
+                                    }}
+                                    onPointerUp={(event) => {
+                                        if (resizingPointer.current === event.pointerId) resizingPointer.current = null;
+                                    }}
+                                    onPointerCancel={() => {
+                                        resizingPointer.current = null;
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                                            event.preventDefault();
+                                            const bounds = workspaceRef.current?.getBoundingClientRect();
+                                            if (bounds) {
+                                                const nextWidth =
+                                                    explorerWidth + (event.key === 'ArrowRight' ? 24 : -24);
+                                                setExplorerWidth(
+                                                    Math.min(
+                                                        Math.max(272, bounds.width - 360),
+                                                        Math.max(272, nextWidth)
+                                                    )
+                                                );
+                                            }
+                                        }
+                                    }}
+                                />
+                                <MultiFileEditor
+                                    files={openFiles.files}
+                                    activeFile={openFiles.activeFile}
+                                    setActivePath={openFiles.setActivePath}
+                                    updateFile={openFiles.updateFile}
+                                    saveFile={openFiles.saveFile}
+                                    closeFile={openFiles.closeFile}
+                                    retryFile={openFiles.retryFile}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
             </ErrorBoundary>

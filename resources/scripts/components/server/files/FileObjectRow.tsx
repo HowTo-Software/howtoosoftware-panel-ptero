@@ -7,7 +7,6 @@ import { FileObject } from '@/api/server/files/loadDirectory';
 import FileDropdownMenu from '@/components/server/files/FileDropdownMenu';
 import { ServerContext } from '@/state/server';
 import { NavLink, useRouteMatch } from 'react-router-dom';
-import tw from 'twin.macro';
 import isEqual from 'react-fast-compare';
 import SelectFileCheckbox from '@/components/server/files/SelectFileCheckbox';
 import { usePermissions } from '@/plugins/usePermissions';
@@ -62,7 +61,7 @@ const FileObjectRow = ({ file, onOpenFile }: { file: FileObject; onOpenFile?: (f
     >
         <SelectFileCheckbox name={file.name} />
         <Clickable file={file} onOpenFile={onOpenFile}>
-            <div css={tw`flex-none ml-6 mr-4 text-lg pl-3`}>
+            <span className={styles.file_icon} aria-hidden={'true'}>
                 {file.isFile ? (
                     <FontAwesomeIcon
                         icon={file.isSymlink ? faFileImport : file.isArchiveType() ? faFileArchive : faFileAlt}
@@ -71,14 +70,18 @@ const FileObjectRow = ({ file, onOpenFile }: { file: FileObject; onOpenFile?: (f
                 ) : (
                     <FontAwesomeIcon icon={faFolder} style={{ color: '#8bb7ff' }} />
                 )}
-            </div>
-            <div css={tw`flex-1 truncate`}>{file.name}</div>
-            {file.isFile && <div css={tw`w-1/6 text-right mr-4 hidden sm:block`}>{bytesToString(file.size)}</div>}
-            <div css={tw`w-1/5 text-right mr-4 hidden md:block`} title={file.modifiedAt.toString()}>
-                {Math.abs(differenceInHours(file.modifiedAt, new Date())) > 48
-                    ? format(file.modifiedAt, 'MMM do, yyyy h:mma')
-                    : formatDistanceToNow(file.modifiedAt, { addSuffix: true })}
-            </div>
+            </span>
+            <span className={styles.file_info}>
+                <span className={styles.file_name}>{file.name}</span>
+                <span className={styles.file_meta}>
+                    {file.isFile && <span>{bytesToString(file.size)}</span>}
+                    <span title={file.modifiedAt.toString()}>
+                        {Math.abs(differenceInHours(file.modifiedAt, new Date())) > 48
+                            ? format(file.modifiedAt, 'MMM do, yyyy h:mma')
+                            : formatDistanceToNow(file.modifiedAt, { addSuffix: true })}
+                    </span>
+                </span>
+            </span>
         </Clickable>
         <FileDropdownMenu file={file} />
     </div>

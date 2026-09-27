@@ -644,6 +644,7 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
         'File Name': 'Nome do arquivo',
         'File editor': 'Editor de arquivos',
         'File explorer': 'Explorador de arquivos',
+        'Resize file explorer': 'Redimensionar o explorador de arquivos',
         'Filter this folder…': 'Filtrar esta pasta…',
         'Forcibly Stop Process': 'Forçar encerramento do processo',
         'Future tasks will be run when this task fails.':
