@@ -3,6 +3,8 @@ import tw from 'twin.macro';
 import { ServerContext } from '@/state/server';
 import styled from 'styled-components/macro';
 import Input from '@/components/elements/Input';
+import { translateUiText } from '@/i18n/uiTranslations';
+import styles from './style.module.css';
 
 export const FileActionCheckbox = styled(Input)`
     && {
@@ -20,8 +22,9 @@ export default ({ name }: { name: string }) => {
     const removeSelectedFile = ServerContext.useStoreActions((actions) => actions.files.removeSelectedFile);
 
     return (
-        <label css={tw`flex-none px-4 py-2 absolute self-center z-30 cursor-pointer`}>
+        <label className={styles.file_select}>
             <FileActionCheckbox
+                aria-label={`${translateUiText('Select files')}: ${name}`}
                 name={'selectedFiles'}
                 value={name}
                 checked={isChecked}

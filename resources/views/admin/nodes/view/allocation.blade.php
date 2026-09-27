@@ -304,9 +304,10 @@
             formattedItems = formattedItems.slice(0, -2);
             if (selectedItems.length > 5) {
                 var remainingAllocations = selectedItems.length - 5;
+                var countPlaceholder = '{' + '{' + 'count' + '}' + '}';
                 var remainingLabel = remainingAllocations === 1
                     ? window.howTooTranslate('and one other allocation')
-                    : window.howTooTranslate('and {{count}} other allocations', { count: remainingAllocations });
+                    : window.howTooTranslate('and ' + countPlaceholder + ' other allocations', { count: remainingAllocations });
                 formattedItems += ', ' + remainingLabel;
             }
 
