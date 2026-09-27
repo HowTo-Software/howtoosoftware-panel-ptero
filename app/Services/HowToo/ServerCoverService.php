@@ -2,12 +2,10 @@
 
 namespace Pterodactyl\Services\HowToo;
 
-use Throwable;
-use RuntimeException;
+use Illuminate\Support\Str;
 use Pterodactyl\Models\Server;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 final class ServerCoverService
 {
@@ -28,13 +26,13 @@ final class ServerCoverService
         $path = $image->storeAs($directory, $filename, 'local');
 
         if (!is_string($path)) {
-            throw new RuntimeException('The server cover image could not be stored.');
+            throw new \RuntimeException('The server cover image could not be stored.');
         }
 
         $previous = $server->{$field};
         try {
             $server->forceFill([$field => $path])->saveOrFail();
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             Storage::disk('local')->delete($path);
             throw $exception;
         }

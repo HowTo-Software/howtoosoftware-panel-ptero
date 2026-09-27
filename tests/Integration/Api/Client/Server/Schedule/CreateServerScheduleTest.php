@@ -2,9 +2,9 @@
 
 namespace Pterodactyl\Tests\Integration\Api\Client\Server\Schedule;
 
+use Pterodactyl\Models\Task;
 use Illuminate\Http\Response;
 use Pterodactyl\Models\Schedule;
-use Pterodactyl\Models\Task;
 use Pterodactyl\Models\Permission;
 use Pterodactyl\Tests\Integration\Api\Client\ClientApiIntegrationTestCase;
 

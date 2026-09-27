@@ -3,15 +3,15 @@
 namespace Pterodactyl\Services\HowToo;
 
 use Pterodactyl\Models\Server;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Client\PendingRequest;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Repositories\Wings\DaemonFileRepository;
 use Pterodactyl\Repositories\Wings\DaemonServerRepository;
-use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 
 final class CurseForgeService
 {

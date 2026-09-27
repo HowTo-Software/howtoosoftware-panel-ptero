@@ -16,6 +16,8 @@ abstract class IntegrationTestCase extends TestCase
     use CreatesTestModels;
     use AssertsActivityLogged;
 
+    // Read by DatabaseTransactions, which subclasses opt into. Do not add that trait here:
+    // these tests assert against committed state and fail wholesale under it.
     protected array $connectionsToTransact = ['mysql'];
 
     protected $defaultHeaders = [

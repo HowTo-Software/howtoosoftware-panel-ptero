@@ -1,0 +1,151 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: app/Console/Commands/UpgradeCommand.php
+
+		-
+			message: '#^Method Pterodactyl\\Http\\Controllers\\Api\\Client\\Servers\\ScheduleController\:\:createPrimaryTask\(\) should return Pterodactyl\\Models\\Task but returns bool\|Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Api/Client/Servers/ScheduleController.php
+
+		-
+			message: '#^Property Pterodactyl\\Http\\Controllers\\Api\\Client\\Servers\\SubuserController\:\:\$revocationRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Http/Controllers/Api/Client/Servers/SubuserController.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Socialite\\Contracts\\Provider\:\:setScopes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Auth/OAuthController.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Http\\Middleware\\SetSecurityHeaders\:\:\$headers through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Http/Middleware/SetSecurityHeaders.php
+
+		-
+			message: '#^Call to an undefined method Pterodactyl\\Repositories\\Wings\\DaemonRepository\:\:deauthorize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Jobs/RevokeSftpAccessJob.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\ActivityLog\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/ActivityLog.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\ActivityLog\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/ActivityLog.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Backup\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Backup.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Backup\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Backup.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Egg\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Egg.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Egg\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Egg.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Mount\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Mount.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Mount\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Mount.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Node\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Node.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Node\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Node.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Server\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Server.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\Server\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/Server.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\User\:\:\$identifierDataColumn through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Unsafe access to private property Pterodactyl\\Models\\User\:\:\$identifierPrefix through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Offset ''permissions'' on array\{label\: string, path\: string, route\: string, summary\: string, permissions\: array\{0\: string, 1\?\: string\}, integration\: string\}\|array\{label\: string, path\: string, route\: string, summary\: string, permissions\: array\{string, string, string, string, string, string, string\}\}\|array\{label\: string, path\: string, route\: string, summary\: string, permissions\: array\{string\}\|list\{0\: string, 1\: string, 2\: string, 3\?\: string, 4\?\: string\}, always_visible\?\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: app/Services/HowToo/PanelCapabilityRegistry.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between array\{string, string, string, string, string, string, string\}\|array\{string\}\|list\{0\: string, 1\?\: string, 2\?\: string, 3\?\: string, 4\?\: string\} and array\{\} will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/HowToo/PanelCapabilityRegistry.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between 3 and 3 will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 1
+			path: app/Services/HowToo/SystemHealthService.php
+
+		-
+			message: '#^Property Pterodactyl\\Services\\Servers\\DetailsModificationService\:\:\$revocationRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/Servers/DetailsModificationService.php
+
+		-
+			message: '#^Property Pterodactyl\\Services\\Servers\\DetailsModificationService\:\:\$serverRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/Servers/DetailsModificationService.php

@@ -1,0 +1,38 @@
+name: Mirror to origin
+
+# ptero (HowTo-Software/howtoosoftware-panel-ptero) is where PRs merge; origin
+# (gamerplay20p5-dotcom/howtoosoftware-panel) is a read-only mirror of master.
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-origin
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push master to origin
+        env:
+          TOKEN: ${{ secrets.ORIGIN_MIRROR_TOKEN }}
+        run: |
+          if [ -z "${TOKEN}" ]; then
+            echo "::warning::ORIGIN_MIRROR_TOKEN is not set; skipping mirror."
+            exit 0
+          fi
+          git remote add origin-mirror \
+            "https://x-access-token:${TOKEN}@github.com/gamerplay20p5-dotcom/howtoosoftware-panel.git"
+          # Fast-forward only: a rewritten origin/master must be resolved by a human.
+          git push origin-mirror "${GITHUB_SHA}:refs/heads/master"

@@ -2,11 +2,11 @@
 
 namespace Pterodactyl\Http\Requests\Api\Client\Servers\Schedules;
 
-use Pterodactyl\Models\Schedule;
 use Pterodactyl\Models\Task;
 use Pterodactyl\Models\Server;
-use Pterodactyl\Models\Permission;
 use Illuminate\Validation\Rule;
+use Pterodactyl\Models\Schedule;
+use Pterodactyl\Models\Permission;
 
 class StoreScheduleRequest extends ViewScheduleRequest
 {
@@ -58,7 +58,9 @@ class StoreScheduleRequest extends ViewScheduleRequest
             'task' => ['sometimes', 'array:action,payload,time_offset,continue_on_failure', 'min:1'],
             'task.action' => ['required_with:task', Rule::in([Task::ACTION_COMMAND, Task::ACTION_POWER, Task::ACTION_BACKUP])],
             'task.payload' => [
-                'required_unless:task.action,' . Task::ACTION_BACKUP,
+                // required_unless is implicit, so unguarded it demands a payload even when
+                // no task was submitted at all, making a task-less schedule impossible.
+                Rule::when($this->exists('task'), ['required_unless:task.action,' . Task::ACTION_BACKUP]),
                 'string',
                 'nullable',
                 Rule::when($this->input('task.action') === Task::ACTION_POWER, [Rule::in(Task::POWER_ACTIONS)]),

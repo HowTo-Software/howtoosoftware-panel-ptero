@@ -3,8 +3,6 @@
 namespace Pterodactyl\Tests\Unit\Lang;
 
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 class TranslationCoverageTest extends TestCase
 {
@@ -32,7 +30,7 @@ class TranslationCoverageTest extends TestCase
     {
         $root = dirname(__DIR__, 3);
         $catalog = json_decode(file_get_contents($root . '/resources/lang/pt.json'), true, flags: JSON_THROW_ON_ERROR);
-        $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/resources/views'));
+        $views = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/resources/views'));
         $pattern = '/__\(\s*(?:\'((?:\\\\.|[^\'\\\\])*)\'|"((?:\\\\.|[^"\\\\])*)")/s';
 
         foreach ($views as $view) {
@@ -57,7 +55,7 @@ class TranslationCoverageTest extends TestCase
     /** @return array<string, string> */
     private function phpFiles(string $directory): array
     {
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory));
         $result = [];
 
         foreach ($iterator as $file) {

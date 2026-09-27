@@ -2,8 +2,8 @@
 
 namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
-use PHPUnit\Framework\TestCase;
 use Pterodactyl\Models\Node;
+use Pterodactyl\Tests\TestCase;
 use Pterodactyl\Services\HowToo\NodeUtilizationService;
 
 class NodeUtilizationServiceTest extends TestCase
@@ -11,7 +11,7 @@ class NodeUtilizationServiceTest extends TestCase
     private \ReflectionClass $reflection;
     private NodeUtilizationService $service;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
         $this->reflection = new \ReflectionClass(NodeUtilizationService::class);

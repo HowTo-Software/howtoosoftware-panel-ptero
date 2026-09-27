@@ -5,7 +5,7 @@ namespace Pterodactyl\Tests\Unit\Services\HowToo;
 use Pterodactyl\Models\Egg;
 use Pterodactyl\Models\Nest;
 use Pterodactyl\Models\Server;
-use PHPUnit\Framework\TestCase;
+use Pterodactyl\Tests\TestCase;
 use Illuminate\Database\Eloquent\Collection;
 use Pterodactyl\Services\HowToo\ServerGameContext;
 use Pterodactyl\Repositories\Wings\DaemonFileRepository;

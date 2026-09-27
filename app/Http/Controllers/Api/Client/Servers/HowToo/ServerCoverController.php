@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Storage;
 use Pterodactyl\Services\HowToo\ServerCoverService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
+use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\StoreServerIconRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\StoreServerCoverRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\DeleteServerCoverRequest;
-use Pterodactyl\Http\Requests\Api\Client\Servers\Settings\StoreServerIconRequest;
 
 class ServerCoverController extends ClientApiController
 {

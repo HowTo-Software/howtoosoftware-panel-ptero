@@ -2,9 +2,7 @@
 
 namespace Pterodactyl\Tests\Unit\Views;
 
-use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use Pterodactyl\Tests\TestCase;
 
 class TranslationScriptViewTest extends TestCase
 {
@@ -24,7 +22,7 @@ class TranslationScriptViewTest extends TestCase
 
     public function testBladeViewsDoNotContainUnescapedBarePlaceholderEchoes(): void
     {
-        $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views')));
+        $views = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views')));
         $pattern = '/(?<!@)\{\{\s*[A-Za-z_][A-Za-z0-9_]*\s*\}\}/';
 
         foreach ($views as $view) {

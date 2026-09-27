@@ -3,8 +3,8 @@
 namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
 use PHPUnit\Framework\TestCase;
-use Pterodactyl\Services\HowToo\ProjectZomboidModIdResolver;
 use Pterodactyl\Services\HowToo\SteamWorkshopService;
+use Pterodactyl\Services\HowToo\ProjectZomboidModIdResolver;
 
 class SteamWorkshopServiceTest extends TestCase
 {
