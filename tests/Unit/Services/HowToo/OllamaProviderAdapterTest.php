@@ -2,7 +2,7 @@
 
 namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
-use PHPUnit\Framework\TestCase;
+use Pterodactyl\Tests\TestCase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -17,7 +17,7 @@ class OllamaProviderAdapterTest extends TestCase
     private OllamaProviderAdapter $adapter;
     private AiProviderCredential $credential;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
         Http::swap(new Factory());

@@ -71,7 +71,7 @@ class MultiFieldServerFilter implements Filter
                     ->orWhereHas('node', fn (Builder $node) => $node->whereRaw('LOWER(nodes.name) LIKE ?', [$search]))
                     ->orWhereHas('allocations', function (Builder $allocation) use ($search) {
                         $allocation->whereRaw('LOWER(allocations.ip) LIKE ?', [$search])
-                            ->orWhereRaw('LOWER(allocations.alias) LIKE ?', [$search])
+                            ->orWhereRaw('LOWER(allocations.ip_alias) LIKE ?', [$search])
                             ->orWhere('allocations.port', 'LIKE', $search);
                     });
             });

@@ -13,7 +13,7 @@ jobs:
     name: Code style
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           # composer.json pins platform php to 8.3.0 and requires ^8.3.
@@ -21,33 +21,27 @@ jobs:
           extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
           tools: composer:v2
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   static-analysis:
     name: PHPStan
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
           tools: composer:v2
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: cp .env.ci .env
       - run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
 
   tests:
     name: PHPUnit (${{ matrix.database }})
     runs-on: ubuntu-24.04
-    # ADVISORY, not a gate. tests/Unit/Services/HowToo/* extend PHPUnit\Framework\TestCase
-    # rather than Pterodactyl\Tests\TestCase, so once a Laravel-based test tears down and
-    # nulls the container, every later config()/Model call in them fails. 12 pre-existing
-    # errors as of the first run. Flip this to a hard gate once they are rebased onto
-    # Pterodactyl\Tests\TestCase.
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -70,14 +64,14 @@ jobs:
           --health-timeout=5s
           --health-retries=20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
           tools: composer:v2
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - run: cp .env.ci .env
       - name: Unit
         # Both suites need the database: phpunit.xml boots bootstrap/tests.php, which
@@ -87,6 +81,11 @@ jobs:
           DB_PORT: ${{ job.services.database.ports[3306] }}
           DB_USERNAME: root
       - name: Integration
+        # Still advisory: 26 errors and 36 failures remain, drifted from the Laravel 12
+        # upgrade (403 vs 404 authorization, 403 vs 429 rate limiting, validation
+        # changes). Down from 262 errors once IntegrationTestCase actually applied
+        # DatabaseTransactions. Unit above is a hard gate.
+        continue-on-error: true
         run: vendor/bin/phpunit --testsuite Integration
         env:
           DB_PORT: ${{ job.services.database.ports[3306] }}
@@ -96,8 +95,8 @@ jobs:
     name: Frontend
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: yarn
