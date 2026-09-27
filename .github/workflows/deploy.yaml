@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Existing image tag to deploy (skips build, e.g. sha-ab12cd3). Leave empty to build HEAD.'
+        description: 'Existing image digest to deploy (skips build, e.g. sha256:...). Leave empty to build HEAD.'
         required: false
         default: ''
 
@@ -99,7 +99,7 @@ jobs:
 
       - name: Deploy
         env:
-          PANEL_IMAGE: ${{ inputs.image_tag != '' && format('ghcr.io/howto-software/howtoosoftware-panel-ptero:{0}', inputs.image_tag) || needs.build.outputs.image }}
+          PANEL_IMAGE: ${{ inputs.image_tag != '' && format('ghcr.io/howto-software/howtoosoftware-panel-ptero@{0}', inputs.image_tag) || needs.build.outputs.image }}
           GIT_SHA: ${{ github.sha }}
         run: |
           chmod +x deploy/deploy.sh
