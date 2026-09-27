@@ -4,21 +4,21 @@ namespace Pterodactyl\Http\Controllers\Api\Client\Servers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Pterodactyl\Models\Task;
 use Illuminate\Http\Response;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\Schedule;
-use Pterodactyl\Models\Task;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Database\ConnectionInterface;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Helpers\Utilities;
+use Illuminate\Database\ConnectionInterface;
 use Pterodactyl\Exceptions\DisplayException;
-use Pterodactyl\Repositories\Eloquent\ScheduleRepository;
 use Pterodactyl\Repositories\Eloquent\TaskRepository;
-use Pterodactyl\Exceptions\Service\ServiceLimitExceededException;
+use Pterodactyl\Repositories\Eloquent\ScheduleRepository;
 use Pterodactyl\Services\Schedules\ProcessScheduleService;
 use Pterodactyl\Transformers\Api\Client\ScheduleTransformer;
 use Pterodactyl\Http\Controllers\Api\Client\ClientApiController;
+use Pterodactyl\Exceptions\Service\ServiceLimitExceededException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Schedules\ViewScheduleRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Schedules\StoreScheduleRequest;
@@ -36,8 +36,7 @@ class ScheduleController extends ClientApiController
         private TaskRepository $taskRepository,
         private ConnectionInterface $connection,
         private ProcessScheduleService $service,
-    )
-    {
+    ) {
         parent::__construct();
     }
 

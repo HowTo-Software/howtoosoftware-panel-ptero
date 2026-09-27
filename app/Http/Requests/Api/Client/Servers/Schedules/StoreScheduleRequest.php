@@ -2,11 +2,11 @@
 
 namespace Pterodactyl\Http\Requests\Api\Client\Servers\Schedules;
 
-use Pterodactyl\Models\Schedule;
 use Pterodactyl\Models\Task;
 use Pterodactyl\Models\Server;
-use Pterodactyl\Models\Permission;
 use Illuminate\Validation\Rule;
+use Pterodactyl\Models\Schedule;
+use Pterodactyl\Models\Permission;
 
 class StoreScheduleRequest extends ViewScheduleRequest
 {

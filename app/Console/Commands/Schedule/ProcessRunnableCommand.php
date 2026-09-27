@@ -2,8 +2,8 @@
 
 namespace Pterodactyl\Console\Commands\Schedule;
 
-use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Pterodactyl\Models\Schedule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;

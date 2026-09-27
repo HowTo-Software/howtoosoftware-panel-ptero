@@ -3,15 +3,15 @@
 namespace Pterodactyl\Http\Controllers\Auth;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Pterodactyl\Models\User;
+use Pterodactyl\Facades\Activity;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Event;
 use Laravel\Socialite\Facades\Socialite;
 use Pterodactyl\Events\Auth\DirectLogin;
 use Pterodactyl\Exceptions\DisplayException;
-use Pterodactyl\Facades\Activity;
-use Pterodactyl\Models\User;
 
 /**
  * Single sign-on against Authentik, which federates Active Directory.

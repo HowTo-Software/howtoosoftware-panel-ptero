@@ -2,8 +2,8 @@
 
 namespace Pterodactyl\Tests\Unit\Services\HowToo;
 
-use PHPUnit\Framework\TestCase;
 use Pterodactyl\Models\Node;
+use PHPUnit\Framework\TestCase;
 use Pterodactyl\Services\HowToo\NodeUtilizationService;
 
 class NodeUtilizationServiceTest extends TestCase
