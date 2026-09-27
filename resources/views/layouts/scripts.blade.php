@@ -1,4 +1,8 @@
 {{-- Translation strings shared by React pages and the classic administration screens. --}}
+@php
+    $allocationCountPlaceholder = '{' . '{count}' . '}';
+    $allocationCountTranslationKey = 'and ' . $allocationCountPlaceholder . ' other allocations';
+@endphp
 <script>
     window.HowTooTranslations = {
         'Select a Nest': @json(__('Select a Nest')),
@@ -30,13 +34,16 @@
         'The EULA for this server has been accepted, restarting server now.': @json(__('The EULA for this server has been accepted, restarting server now.')),
         'An error occurred while attempting to set the EULA as accepted: ': @json(__('An error occurred while attempting to set the EULA as accepted: ')),
         'Whoops!': @json(__('Whoops!')),
-        'and one other allocation': @json(__('and one other allocation')),
-        'and {{count}} other allocations': @json(__('and {{count}} other allocations'))
+        'and one other allocation': @json(__('and one other allocation'))
     };
+    var allocationCountKey = 'and ' + @json($allocationCountPlaceholder) + ' other allocations';
+    window.HowTooTranslations[allocationCountKey] = @json(__($allocationCountTranslationKey));
+
     window.howTooTranslate = function (key, variables) {
         var translated = window.HowTooTranslations[key] || key;
         Object.keys(variables || {}).forEach(function (name) {
-            translated = translated.split('{{' + name + '}}').join(String(variables[name]));
+            var placeholder = '{' + '{' + name + '}' + '}';
+            translated = translated.split(placeholder).join(String(variables[name]));
         });
         return translated;
     };
