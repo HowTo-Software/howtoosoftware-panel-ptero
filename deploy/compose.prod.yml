@@ -1,0 +1,50 @@
+# Production stack for 192.168.1.210 (2htswebserver).
+#
+# Deployed from ~/hts-panel as htsadmin - no sudo, no /home/malaio.
+# Interpolated values come from ~/hts-panel/.env; the panel's own secrets come from
+# ~/hts-panel/.env.panel (0600, never in git). Both are created by deploy/adopt-stack.sh.
+#
+# The project name and volume names must not change: they resolve to the existing
+# howtoosoftware-panel_howtoo_var volume, which holds /app/var/.env (APP_KEY,
+# HASHIDS_SALT). A renamed volume would generate a new APP_KEY and invalidate every
+# encrypted column in the database.
+name: howtoosoftware-panel
+
+services:
+  panel:
+    image: ${PANEL_IMAGE:?PANEL_IMAGE is not set - run deploy/deploy.sh, not compose directly}
+    restart: unless-stopped
+    depends_on:
+      - cache
+    env_file:
+      - .env.panel
+    ports:
+      # Bound to the LAN address only; caddy-proxy fronts it as panel.howto.software.
+      - "${PANEL_BIND:-192.168.1.210}:${PANEL_PORT:-8088}:80"
+    volumes:
+      - howtoo_var:/app/var
+      - howtoo_logs:/app/storage/logs
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  howtoo_var:
+  howtoo_logs:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

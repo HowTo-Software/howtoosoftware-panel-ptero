@@ -1,0 +1,56 @@
+# Keep this in sync with the Dockerfile: both stages do `COPY . ./`, so anything
+# listed here is absent from the build context and from the shipped image.
+
+# Real credentials. The Dockerfile copies .env.example to .env during the build,
+# so that one file must stay in the context.
+.env*
+!.env.example
+
+# History is not needed at runtime; config/app.php is stamped with APP_VERSION instead.
+.git
+.gitattributes
+.gitignore
+
+# Installed inside the image.
+vendor
+node_modules
+.yarn
+
+# Dev-server output only. public/assets is NOT excluded: it holds tracked SVGs, and
+# `yarn clean` does `cd public/assets`, which fails the build if the directory is gone.
+public/build
+public/hot
+
+# Not shipped: composer install --no-dev never autoloads them.
+tests
+phpunit.xml
+jest.config.js
+.php-cs-fixer.cache
+.phpunit.result.cache
+coverage.xml
+
+# A config cache built on a developer's machine would override the runtime config.
+bootstrap/cache/*.php
+*.log
+
+# Local tooling and docs.
+.github/ISSUE_TEMPLATE
+.vscode
+.idea
+.direnv
+.vagrant
+nbproject
+docs
+prototype-dotnet
+*.md
+!README.md
+!LICENSE.md
+docker-compose*.yml
+compose*.yml
+deploy
+Dockerfile
+flake.nix
+shell.nix
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php

@@ -1,0 +1,98 @@
+name: Checks
+
+# Called by ci.yaml (pull requests) and by deploy.yaml (before any image is built),
+# so a merge to master cannot reach .210 without passing exactly what the PR passed.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  style:
+    name: Code style
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          # composer.json pins platform php to 8.3.0 and requires ^8.3.
+          php-version: '8.3'
+          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  static-analysis:
+    name: PHPStan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: cp .env.ci .env
+      - run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
+  tests:
+    name: PHPUnit (${{ matrix.database }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # mariadb:12 mirrors production (192.168.1.212 runs 12.3.3-MariaDB).
+        database:
+          - mariadb:12
+          - mysql:8
+    services:
+      database:
+        image: ${{ matrix.database }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized || mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: cp .env.ci .env
+      - name: Unit
+        run: vendor/bin/phpunit --bootstrap vendor/autoload.php tests/Unit
+        env:
+          DB_HOST: UNIT_NO_DB
+      - name: Integration
+        run: vendor/bin/phpunit tests/Integration
+        env:
+          DB_PORT: ${{ job.services.database.ports[3306] }}
+          DB_USERNAME: root
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn tsc
+      - run: yarn lint
+      - run: yarn build:production

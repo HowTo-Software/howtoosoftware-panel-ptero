@@ -32,6 +32,10 @@ RUN rm /usr/local/etc/php-fpm.conf \
     && sed -i s/ssl_session_cache/#ssl_session_cache/g /etc/nginx/nginx.conf \
     && mkdir -p /var/run/php /var/run/nginx
 
+# .dockerignore strips .git, so the footer falls back to config('app.version').
+ARG APP_VERSION=canary
+RUN sed -i "s|'version' => 'canary',|'version' => '${APP_VERSION}',|" config/app.php
+
 COPY .github/docker/default.conf /etc/nginx/http.d/default.conf
 COPY .github/docker/www.conf /usr/local/etc/php-fpm.conf
 COPY .github/docker/supervisord.conf /etc/supervisord.conf
