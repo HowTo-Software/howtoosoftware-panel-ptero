@@ -101,10 +101,8 @@ jobs:
       contents: read
       packages: read
     steps:
+      # A full checkout on purpose - see the note in checks.yaml's toolchain job.
       - uses: actions/checkout@v7
-        with:
-          sparse-checkout: deploy
-          sparse-checkout-cone-mode: false
 
       - name: Log in to GHCR
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin

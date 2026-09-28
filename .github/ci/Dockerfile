@@ -7,7 +7,9 @@ FROM php:8.3-cli-bookworm
 
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+# /opt too: the node image keeps yarn there and only symlinks it into /usr/local/bin.
 COPY --from=node:24-bookworm /usr/local/ /usr/local/
+COPY --from=node:24-bookworm /opt/ /opt/
 
 # default-mysql-client is not optional: phpunit boots bootstrap/tests.php, which runs
 # migrate:fresh, and Laravel's MySqlSchemaState shells out to `mysql` to load
