@@ -3,10 +3,10 @@ name: Checks
 # Called by ci.yaml (pull requests) and by deploy.yaml (before any image is built),
 # so a merge to master cannot reach .210 without passing exactly what the PR passed.
 #
-# Everything runs on the self-hosted runner (2htswebserver). That host has no PHP and
-# its sudo needs a password, so setup-php cannot work there - the PHP jobs run inside
-# the toolchain image built by the `toolchain` job. Only one runner is registered, so
-# these jobs execute one at a time and share a single workspace directory.
+# The PHP jobs run on the self-hosted runner (2htswebserver). That host has no PHP and
+# its sudo needs a password, so setup-php cannot work there - those jobs run inside the
+# toolchain image built by the `toolchain` job. Only one runner is registered, so they
+# execute one at a time and share a single workspace directory.
 on:
   workflow_call:
 
@@ -151,15 +151,14 @@ jobs:
 
   frontend:
     name: Frontend
-    runs-on: [self-hosted, linux, X64, hts-panel]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      # The host has no node, so setup-node drops one in the runner tool cache and yarn
-      # comes from npm. ~/.cache/yarn survives between runs, so actions/cache is moot.
+          cache: yarn
       - run: npm install --global yarn
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
