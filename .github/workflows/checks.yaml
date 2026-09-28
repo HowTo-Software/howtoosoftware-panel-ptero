@@ -47,7 +47,11 @@ jobs:
             echo "${image} is already published"
           else
             docker build --tag "${image}" .github/ci
-            docker push "${image}"
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
+              echo "Using the locally built ${image} for this fork pull request"
+            else
+              docker push "${image}"
+            fi
           fi
 
       - if: always()
