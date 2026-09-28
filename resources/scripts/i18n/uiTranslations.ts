@@ -700,6 +700,7 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
             'Tempo de espera após a execução da tarefa anterior. Este intervalo não se aplica à primeira tarefa do agendamento.',
         'The node of this server is currently under maintenance.': 'O nó deste servidor está em manutenção.',
         'This server is suspended and cannot be accessed.': 'Este servidor está suspenso e não pode ser acessado.',
+        'Resource data temporarily unavailable': 'Dados de recursos temporariamente indisponíveis',
         'Time offset (in seconds)': 'Deslocamento de horário (em segundos)',
         'Two-Step Authentication Enabled': 'Autenticação em duas etapas ativada',
         'Two-Step Verification': 'Verificação em duas etapas',

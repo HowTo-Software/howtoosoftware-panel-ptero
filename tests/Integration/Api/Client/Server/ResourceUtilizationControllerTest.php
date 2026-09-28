@@ -2,6 +2,7 @@
 
 namespace Pterodactyl\Tests\Integration\Api\Client\Server;
 
+use Pterodactyl\Models\Server;
 use Pterodactyl\Models\Permission;
 use Pterodactyl\Repositories\Wings\DaemonServerRepository;
 use Pterodactyl\Tests\Integration\Api\Client\ClientApiIntegrationTestCase;
@@ -39,5 +40,20 @@ class ResourceUtilizationControllerTest extends ClientApiIntegrationTestCase
                 ],
             ],
         ]);
+    }
+
+    public function testUninstalledServerReturnsStateConflictBeforeRequestingWings(): void
+    {
+        [$user, $server] = $this->generateTestAccount([Permission::ACTION_WEBSOCKET_CONNECT]);
+        $server->update(['status' => Server::STATUS_INSTALLING]);
+
+        $repository = \Mockery::mock(DaemonServerRepository::class);
+        $repository->shouldNotReceive('setServer');
+        $this->app->instance(DaemonServerRepository::class, $repository);
+
+        $this->actingAs($user)
+            ->getJson("/api/client/servers/$server->uuid/resources")
+            ->assertConflict()
+            ->assertJsonPath('errors.0.detail', 'This server has not yet completed its installation process, please try again later.');
     }
 }

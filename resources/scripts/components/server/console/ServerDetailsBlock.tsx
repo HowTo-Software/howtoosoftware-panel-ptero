@@ -17,8 +17,8 @@ import StatBlock from '@/components/server/console/StatBlock';
 import useWebsocketEvent from '@/plugins/useWebsocketEvent';
 import classNames from 'classnames';
 import { capitalize } from '@/lib/strings';
-import getServerResourceUsage from '@/api/server/getServerResourceUsage';
 import { parseResourceStats, ResourceStatKey, ResourceStats } from '@/components/server/console/resourceStats';
+import useServerResourcePolling from '@/hooks/useServerResourcePolling';
 
 type Stats = ResourceStats;
 
@@ -44,7 +44,9 @@ const Limit = ({ limit, children }: { limit: string | null; children: React.Reac
 
 const ServerDetailsBlock = ({ className }: { className?: string }) => {
     const [stats, setStats] = useState<Stats>({ memory: 0, cpu: 0, disk: 0, uptime: 0, tx: 0, rx: 0 });
+    const [resourceUnavailable, setResourceUnavailable] = useState(false);
     const lastSocketStatsAt = useRef<Partial<Record<ResourceStatKey, number>>>({});
+    const hasLoggedRequestError = useRef(false);
 
     const status = ServerContext.useStoreState((state) => state.status.value);
     const connected = ServerContext.useStoreState((state) => state.socket.connected);
@@ -68,44 +70,48 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
     });
 
     useEffect(() => {
-        let active = true;
-        let hasLoggedRequestError = false;
         lastSocketStatsAt.current = {};
-
-        const refreshStats = () => {
-            getServerResourceUsage(serverUuid)
-                .then((usage) => {
-                    if (!active) return;
-                    hasLoggedRequestError = false;
-                    const patch = parseResourceStats(usage);
-                    const receivedAt = Date.now();
-
-                    setStats((current) => {
-                        const next = { ...current };
-                        (Object.keys(patch) as ResourceStatKey[]).forEach((key) => {
-                            if (receivedAt - (lastSocketStatsAt.current[key] || 0) >= 20000) {
-                                next[key] = patch[key]!;
-                            }
-                        });
-
-                        return next;
-                    });
-                })
-                .catch((error) => {
-                    if (!active || hasLoggedRequestError) return;
-                    hasLoggedRequestError = true;
-                    console.error('Unable to load server resource usage from the Panel API.', error);
-                });
-        };
-
-        refreshStats();
-        const interval = setInterval(refreshStats, 15000);
-
-        return () => {
-            active = false;
-            clearInterval(interval);
-        };
     }, [serverUuid]);
+
+    useServerResourcePolling(
+        serverUuid,
+        !connected,
+        15000,
+        (usage) => {
+            hasLoggedRequestError.current = false;
+            setResourceUnavailable(false);
+            const patch = parseResourceStats(usage);
+            const receivedAt = Date.now();
+
+            setStats((current) => {
+                const next = { ...current };
+                (Object.keys(patch) as ResourceStatKey[]).forEach((key) => {
+                    if (receivedAt - (lastSocketStatsAt.current[key] || 0) >= 20000) {
+                        next[key] = patch[key]!;
+                    }
+                });
+
+                return next;
+            });
+        },
+        (error) => {
+            const statusCode = (error as { response?: { status?: number } })?.response?.status;
+            if (statusCode === 409 || statusCode === 503) setResourceUnavailable(true);
+            if (!hasLoggedRequestError.current) {
+                hasLoggedRequestError.current = true;
+                const response = (
+                    error as {
+                        response?: { status?: number; data?: { errors?: Array<{ detail?: unknown }> } };
+                    }
+                )?.response;
+                const detail = response?.data?.errors?.[0]?.detail;
+                console.error('Unable to load server resource usage from the Panel API.', {
+                    status: response?.status,
+                    detail: typeof detail === 'string' ? detail : undefined,
+                });
+            }
+        }
+    );
 
     useEffect(() => {
         if (!connected || !instance) {
@@ -124,11 +130,17 @@ const ServerDetailsBlock = ({ className }: { className?: string }) => {
         keys.forEach((key) => {
             lastSocketStatsAt.current[key] = receivedAt;
         });
+        setResourceUnavailable(false);
         setStats((current) => ({ ...current, ...patch }));
     });
 
     return (
         <div className={classNames('min-w-0', className)}>
+            {resourceUnavailable && (
+                <p className={'mb-2 text-xs text-amber-300'} role={'status'}>
+                    {translateUiText('Resource data temporarily unavailable')}
+                </p>
+            )}
             <StatBlock
                 icon={faWifi}
                 title={translateUiText('Address')}

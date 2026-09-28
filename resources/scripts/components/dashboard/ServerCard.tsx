@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Server } from '@/api/server/getServer';
-import getServerResourceUsage, { ServerPowerState } from '@/api/server/getServerResourceUsage';
+import { ServerPowerState } from '@/api/server/getServerResourceUsage';
+import useServerResourcePolling from '@/hooks/useServerResourcePolling';
 import { ip } from '@/lib/formatters';
 import { resolveGameVisuals } from '@/components/dashboard/gameVisual';
 import styles from '@/components/dashboard/serverCards.module.css';
@@ -43,36 +44,24 @@ export default ({ server }: Props) => {
     const provisioningStatus = getProvisioningStatus(server);
     const visuals = resolveGameVisuals(server);
 
-    useEffect(() => {
-        if (provisioningStatus) {
+    useServerResourcePolling(
+        server.uuid,
+        !provisioningStatus,
+        30000,
+        (stats) => {
+            setPowerState(stats.status);
+            setConnectionError(false);
             setChecking(false);
-            return;
+        },
+        () => {
+            setConnectionError(true);
+            setChecking(false);
         }
+    );
 
-        let mounted = true;
-        const updateStatus = () => {
-            getServerResourceUsage(server.uuid)
-                .then((stats) => {
-                    if (!mounted) return;
-                    setPowerState(stats.status);
-                    setConnectionError(false);
-                    setChecking(false);
-                })
-                .catch(() => {
-                    if (!mounted) return;
-                    setConnectionError(true);
-                    setChecking(false);
-                });
-        };
-
-        updateStatus();
-        const timer = setInterval(updateStatus, 30000);
-
-        return () => {
-            mounted = false;
-            clearInterval(timer);
-        };
-    }, [server.uuid, provisioningStatus]);
+    useEffect(() => {
+        if (provisioningStatus) setChecking(false);
+    }, [provisioningStatus]);
 
     useEffect(() => {
         setIconMissing(false);
