@@ -2,46 +2,113 @@ name: Checks
 
 # Called by ci.yaml (pull requests) and by deploy.yaml (before any image is built),
 # so a merge to master cannot reach .210 without passing exactly what the PR passed.
+#
+# The PHP jobs run on the self-hosted runner (2htswebserver). That host has no PHP and
+# its sudo needs a password, so setup-php cannot work there - those jobs run inside the
+# toolchain image built by the `toolchain` job. Only one runner is registered, so they
+# execute one at a time and share a single workspace directory.
 on:
   workflow_call:
 
 permissions:
   contents: read
 
+env:
+  # Lowercase on purpose: registries reject uppercase paths, and github.repository
+  # is HowTo-Software/howtoosoftware-panel-ptero.
+  CI_IMAGE_REPO: ghcr.io/howto-software/howtoosoftware-panel-ci
+
 jobs:
-  style:
-    name: Code style
-    runs-on: ubuntu-24.04
+  toolchain:
+    name: CI image
+    runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.build.outputs.image }}
     steps:
       - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
         with:
-          # composer.json pins platform php to 8.3.0 and requires ^8.3.
-          php-version: '8.3'
-          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
-          tools: composer:v2
-          coverage: none
+          sparse-checkout: .github/ci
+          sparse-checkout-cone-mode: false
+
+      - name: Log in to GHCR
+        run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+
+      - id: build
+        name: Publish the toolchain image if its definition changed
+        run: |
+          tag="$(sha256sum .github/ci/Dockerfile | cut -c1-12)"
+          image="${CI_IMAGE_REPO}:${tag}"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          if docker buildx imagetools inspect "${image}" >/dev/null 2>&1; then
+            echo "${image} is already published"
+          else
+            docker build --tag "${image}" .github/ci
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
+              echo "Using the locally built ${image} for this fork pull request"
+            else
+              docker push "${image}"
+            fi
+          fi
+
+      - if: always()
+        run: docker logout ghcr.io
+
+  style:
+    name: Code style
+    needs: toolchain
+    runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
       - uses: ramsey/composer-install@v4
       - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - name: Hand the workspace back to the runner user
+        # Container steps run as root; the next job on this runner does not.
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" "$GITHUB_WORKSPACE"
 
   static-analysis:
     name: PHPStan
-    runs-on: ubuntu-24.04
+    needs: toolchain
+    runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
-          tools: composer:v2
-          coverage: none
       - uses: ramsey/composer-install@v4
       - run: cp .env.ci .env
       - run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+      - name: Hand the workspace back to the runner user
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" "$GITHUB_WORKSPACE"
 
   tests:
     name: PHPUnit (${{ matrix.database }})
-    runs-on: ubuntu-24.04
+    needs: toolchain
+    runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +116,11 @@ jobs:
         database:
           - mariadb:12
           - mysql:8
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     services:
       database:
         image: ${{ matrix.database }}
@@ -56,45 +128,42 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
           MYSQL_DATABASE: testing
-        ports:
-          - 3306
         options: >-
           --health-cmd="healthcheck.sh --connect --innodb_initialized || mysqladmin ping -h 127.0.0.1"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
+    env:
+      # The job container shares a network with the service, so the database is reached
+      # by service name on its real port - not through a mapped port on the host.
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USERNAME: root
     steps:
       - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: bcmath, curl, gd, mbstring, openssl, pdo, pdo_mysql, posix, tokenizer, xml, zip
-          tools: composer:v2
-          coverage: none
       - uses: ramsey/composer-install@v4
       - run: cp .env.ci .env
       - name: Unit
         # Both suites need the database: phpunit.xml boots bootstrap/tests.php, which
         # runs migrate:fresh + db:seed before a single test executes.
         run: vendor/bin/phpunit --testsuite Unit
-        env:
-          DB_PORT: ${{ job.services.database.ports[3306] }}
-          DB_USERNAME: root
       - name: Integration
         run: vendor/bin/phpunit --testsuite Integration
-        env:
-          DB_PORT: ${{ job.services.database.ports[3306] }}
-          DB_USERNAME: root
+      - name: Hand the workspace back to the runner user
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" "$GITHUB_WORKSPACE"
 
   frontend:
     name: Frontend
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: yarn
+      - run: npm install --global yarn
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
       - run: yarn lint

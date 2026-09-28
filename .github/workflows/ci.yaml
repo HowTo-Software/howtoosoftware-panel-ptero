@@ -15,4 +15,9 @@ permissions:
 
 jobs:
   checks:
+    permissions:
+      contents: read
+      # checks.yaml publishes its PHP toolchain image to GHCR. A called workflow can
+      # never hold more than the calling job, so it has to be granted here too.
+      packages: write
     uses: ./.github/workflows/checks.yaml

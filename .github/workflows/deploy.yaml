@@ -25,13 +25,19 @@ env:
 jobs:
   checks:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.image_tag == '' }}
+    permissions:
+      contents: read
+      # checks.yaml publishes its PHP toolchain image to GHCR. A called workflow can
+      # never hold more than the calling job, so it has to be granted here too.
+      packages: write
     uses: ./.github/workflows/checks.yaml
 
   build:
     name: Build and push
     needs: checks
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.image_tag == '' }}
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -76,12 +82,18 @@ jobs:
         name: Pin the deployable reference to a digest
         run: echo "image=${IMAGE}@${{ steps.push.outputs.digest }}" >> "$GITHUB_OUTPUT"
 
+      - name: Trim the local build cache
+        # This builder now lives on the panel host; unbounded cache would fill its disk.
+        if: always()
+        run: docker buildx prune --force --filter until=168h
+
   deploy:
     name: Deploy to 2htswebserver
     needs: build
     # `always()` so a workflow_dispatch that skipped build still runs.
     if: ${{ always() && !cancelled() && (needs.build.result == 'success' || inputs.image_tag != '') }}
     runs-on: [self-hosted, linux, X64, hts-panel]
+    timeout-minutes: 30
     environment:
       name: production
       url: https://panel.howto.software
