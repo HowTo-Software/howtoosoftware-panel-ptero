@@ -11,7 +11,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 # default-mysql-client is not optional: phpunit boots bootstrap/tests.php, which runs
 # migrate:fresh, and Laravel's MySqlSchemaState shells out to `mysql` to load
 # database/schema/*.sql.
-RUN install-php-extensions bcmath gd pdo_mysql zip \
+RUN install-php-extensions bcmath gd mbstring pdo_mysql zip \
     && apt-get update \
     && apt-get install -y --no-install-recommends git unzip default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
