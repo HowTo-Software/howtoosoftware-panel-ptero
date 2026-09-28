@@ -29,10 +29,10 @@ jobs:
     outputs:
       image: ${{ steps.build.outputs.image }}
     steps:
+      # Deliberately a full checkout. actions/checkout writes core.sparseCheckout=true
+      # into .git/config and never removes it, so a sparse checkout permanently
+      # sparsifies the workspace every job on this runner shares.
       - uses: actions/checkout@v7
-        with:
-          sparse-checkout: .github/ci
-          sparse-checkout-cone-mode: false
 
       - name: Log in to GHCR
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
@@ -155,16 +155,23 @@ jobs:
 
   frontend:
     name: Frontend
-    runs-on: ubuntu-24.04
+    needs: toolchain
+    runs-on: [self-hosted, linux, X64, hts-panel]
     timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.toolchain.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: yarn
-      - run: npm install --global yarn
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
       - run: yarn lint
       - run: yarn build:production
+      - name: Hand the workspace back to the runner user
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' /__w)" "$GITHUB_WORKSPACE"
