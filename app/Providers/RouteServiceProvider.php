@@ -83,6 +83,13 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->ip());
         });
 
+        // Single sign-on gets its own bucket. A round trip costs two requests
+        // (redirect out, callback back) and neither accepts credentials, so
+        // spending the password-login budget on them only strands the user.
+        RateLimiter::for('oauth', function (Request $request) {
+            return Limit::perMinute(20)->by($request->ip());
+        });
+
         // Configure the throttles for both the application and client APIs below.
         // This is configurable per-instance in "config/http.php". By default this
         // limiter will be tied to the specific request user, and falls back to the

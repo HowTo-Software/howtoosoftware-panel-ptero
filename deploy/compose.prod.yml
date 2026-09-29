@@ -21,6 +21,14 @@ services:
     ports:
       # Bound to the LAN address only; caddy-proxy fronts it as panel.howto.software.
       - "${PANEL_BIND:-192.168.1.210}:${PANEL_PORT:-8088}:80"
+    extra_hosts:
+      # The SSO token/userinfo exchange is a server-to-server POST to Authentik.
+      # Over public DNS it egresses to Cloudflare, whose WAF answers Guzzle's
+      # user-agent with a 403 HTML block page, so every SSO login fails. Authentik
+      # is fronted by the same caddy-proxy on this host, which serves a valid
+      # Let's Encrypt certificate, so resolve it locally instead. Browser-facing
+      # redirects are unaffected - they never resolve inside this container.
+      - "auth.howto.software:${AUTHENTIK_LOCAL_IP:-192.168.1.210}"
     volumes:
       - howtoo_var:/app/var
       - howtoo_logs:/app/storage/logs

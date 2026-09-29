@@ -20,8 +20,10 @@ Route::get('/password/reset/{token}', [Auth\LoginController::class, 'index'])->n
 
 // Single sign-on against Authentik. These routes live under the `/auth` guest
 // middleware group because they establish a session rather than requiring one.
-// Throttled like every other auth endpoint.
-Route::middleware(['throttle:authentication'])->group(function () {
+// Deliberately a separate throttle bucket from the password endpoints: one SSO
+// attempt costs two requests, so a failing identity provider would otherwise
+// lock the user out of the password login they need to fall back to.
+Route::middleware(['throttle:oauth'])->group(function () {
     Route::get('/oauth/redirect/authentik', [Auth\OAuthController::class, 'redirect'])
         ->name('auth.oauth.redirect');
     Route::get('/oauth/callback/authentik', [Auth\OAuthController::class, 'callback'])
