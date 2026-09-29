@@ -17,14 +17,28 @@ export class ServerResourcePoller {
     private failures = 0;
     private timer: ReturnType<typeof setTimeout> | undefined;
     private controller: AbortController | undefined;
+    private readonly serverUuid: string;
+    private readonly interval: number;
+    private readonly onSuccess: (stats: ServerStats) => void;
+    private readonly onError: (error: unknown) => void;
+    private readonly visibility: VisibilityTarget;
 
+    // Assigned by hand: babel-loader strips TypeScript parameter properties without
+    // emitting the assignments, so they are silently undefined in the browser while
+    // ts-jest compiles them correctly and the tests still pass.
     constructor(
-        private readonly serverUuid: string,
-        private readonly interval: number,
-        private readonly onSuccess: (stats: ServerStats) => void,
-        private readonly onError: (error: unknown) => void,
-        private readonly visibility: VisibilityTarget = document
-    ) {}
+        serverUuid: string,
+        interval: number,
+        onSuccess: (stats: ServerStats) => void,
+        onError: (error: unknown) => void,
+        visibility: VisibilityTarget = document
+    ) {
+        this.serverUuid = serverUuid;
+        this.interval = interval;
+        this.onSuccess = onSuccess;
+        this.onError = onError;
+        this.visibility = visibility;
+    }
 
     start(): void {
         if (this.started) return;

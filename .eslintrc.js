@@ -47,6 +47,9 @@ module.exports = {
         '@typescript-eslint/no-use-before-define': 'warn',
         '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
         '@typescript-eslint/ban-ts-comment': ['error', { 'ts-expect-error': 'allow-with-description' }],
+        // babel-loader strips these without emitting the assignments, so the fields are
+        // undefined in the browser while ts-jest compiles them and the tests still pass.
+        '@typescript-eslint/parameter-properties': 'error',
         'react/no-unknown-property': ['error', { ignore: ['css'] }],
     },
 };
