@@ -17,7 +17,11 @@ class FakeWebSocket {
         this.onclose?.({ code } as CloseEvent);
     });
 
-    constructor(public readonly url: string) {}
+    readonly url: string;
+
+    constructor(url: string) {
+        this.url = url;
+    }
 
     open(): void {
         this.readyState = FakeWebSocket.OPEN;
