@@ -1,5 +1,5 @@
 import { translateUiText } from '@/i18n/uiTranslations';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Websocket } from '@/plugins/Websocket';
 import { ServerContext } from '@/state/server';
 import getWebsocketToken from '@/api/server/getWebsocketToken';
@@ -11,7 +11,7 @@ import tw from 'twin.macro';
 const reconnectErrors = ['jwt: exp claim is invalid', 'jwt: created too far in past (denylist)'];
 
 export default () => {
-    let updatingToken = false;
+    const updatingToken = useRef(false);
     const [error, setError] = useState<'connecting' | string>('');
     const { connected, instance } = ServerContext.useStoreState((state) => state.socket);
     const uuid = ServerContext.useStoreState((state) => state.server.data?.uuid);
@@ -19,22 +19,32 @@ export default () => {
     const { setInstance, setConnectionState } = ServerContext.useStoreActions((actions) => actions.socket);
 
     const updateToken = (uuid: string, socket: Websocket) => {
-        if (updatingToken) return;
+        if (updatingToken.current) return;
 
-        updatingToken = true;
+        updatingToken.current = true;
         getWebsocketToken(uuid)
             .then((data) => socket.setToken(data.token, true))
-            .catch((error) => console.error(error))
+            .catch((error) => {
+                const status = (error as { response?: { status?: number } })?.response?.status;
+                console.error('Unable to refresh server websocket credentials.', { status });
+            })
             .then(() => {
-                updatingToken = false;
+                updatingToken.current = false;
             });
     };
 
     const connect = (uuid: string) => {
         const socket = new Websocket();
 
+        socket.on('SOCKET_OPEN', () => console.debug('Server websocket connection opened.'));
         socket.on('auth success', () => setConnectionState(true));
-        socket.on('SOCKET_CLOSE', () => setConnectionState(false));
+        socket.on('SOCKET_CLOSE', (event?: CloseEvent) => {
+            setConnectionState(false);
+            console.info('Server websocket connection closed.', { code: event?.code });
+        });
+        socket.on('SOCKET_RECONNECT', ({ attempt, delay }: { attempt: number; delay: number }) => {
+            console.info('Server websocket reconnect scheduled.', { attempt, delay });
+        });
         socket.on('SOCKET_CONNECT_ERROR', () => {
             setError(
                 translateUiText(
@@ -89,7 +99,10 @@ export default () => {
                 // Once that is done, set the instance.
                 setInstance(socket);
             })
-            .catch((error) => console.error(error));
+            .catch((error) => {
+                const status = (error as { response?: { status?: number } })?.response?.status;
+                console.error('Unable to obtain server websocket credentials.', { status });
+            });
     };
 
     useEffect(() => {
