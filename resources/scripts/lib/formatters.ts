@@ -27,8 +27,8 @@ function bytesToString(bytes: number, decimals = 2): string {
  * Formats an IPv4 or IPv6 address.
  */
 function ip(value: string): string {
-    // noinspection RegExpSimplifiable
-    return /([a-f0-9:]+:+)+[a-f0-9]+/.test(value) ? `[${value}]` : value;
+    // Linear-time equivalent of /([a-f0-9:]+:+)+[a-f0-9]+/, which was vulnerable to catastrophic backtracking.
+    return /[a-f0-9:]:[a-f0-9]/.test(value) ? `[${value}]` : value;
 }
 
 export { ip, mbToBytes, bytesToString };

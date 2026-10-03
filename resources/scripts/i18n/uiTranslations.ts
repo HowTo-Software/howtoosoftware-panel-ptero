@@ -1073,19 +1073,24 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
     },
 };
 
+const htmlEntities: Record<string, string> = {
+    nbsp: '\u00a0',
+    mdash: '\u2014',
+    ndash: '\u2013',
+    infin: '\u221e',
+    reg: '\u00ae',
+    copy: '\u00a9',
+    apos: "'",
+    quot: '"',
+    amp: '&',
+    lt: '<',
+    gt: '>',
+};
+
+// Entities are decoded in a single pass so that an escaped ampersand (e.g. "&amp;lt;") is not unescaped twice.
 const normalizeSourceText = (value: string): string =>
     value
-        .replace(/&nbsp;/g, '\u00a0')
-        .replace(/&mdash;/g, '\u2014')
-        .replace(/&ndash;/g, '\u2013')
-        .replace(/&infin;/g, '\u221e')
-        .replace(/&reg;/g, '\u00ae')
-        .replace(/&copy;/g, '\u00a9')
-        .replace(/&apos;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
+        .replace(/&(nbsp|mdash|ndash|infin|reg|copy|apos|quot|amp|lt|gt);/g, (_, name: string) => htmlEntities[name])
         .replace(/\s+/g, ' ')
         .trim();
 
