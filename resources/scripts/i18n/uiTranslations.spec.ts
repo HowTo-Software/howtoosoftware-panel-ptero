@@ -37,6 +37,13 @@ describe('panel interface translations', () => {
         expect(translateUiText('Project Zomboid')).toBe('Project Zomboid');
     });
 
+    it('decodes HTML entities exactly once', () => {
+        Object.defineProperty(navigator, 'languages', { configurable: true, value: ['pt-BR'] });
+
+        expect(translateUiText('&amp;lt;script&amp;gt;')).toBe('&lt;script&gt;');
+        expect(translateUiText('a &lt;b&gt; &amp; &quot;c&quot;&nbsp;&mdash; d')).toBe('a <b> & "c" \u2014 d');
+    });
+
     it('substitutes dynamic values literally without altering replacement markers', () => {
         Object.defineProperty(navigator, 'languages', { configurable: true, value: ['pt-BR'] });
 

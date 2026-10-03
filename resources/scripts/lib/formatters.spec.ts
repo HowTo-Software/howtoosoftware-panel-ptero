@@ -57,5 +57,14 @@ describe('@/lib/formatters.ts', function () {
             expect(ip('foobar')).toBe('foobar');
             expect(ip('127.0.0.1:25565')).toBe('[127.0.0.1:25565]');
         });
+
+        it('should not backtrack catastrophically on adversarial input', function () {
+            const input = `${'a:'.repeat(50_000)}!`;
+            const start = Date.now();
+
+            expect(ip(input)).toBe(`[${input}]`);
+            expect(ip(':'.repeat(50_000))).toBe(':'.repeat(50_000));
+            expect(Date.now() - start).toBeLessThan(1000);
+        });
     });
 });

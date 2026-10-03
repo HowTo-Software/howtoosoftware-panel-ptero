@@ -74,7 +74,7 @@
         "@babel/runtime": "^7.29.7",
         "@fontsource-variable/ibm-plex-sans": "^5.2.8",
         "@testing-library/dom": "^8.14.0",
-        "@testing-library/jest-dom": "^5.16.4",
+        "@testing-library/jest-dom": "~6.9.1",
         "@testing-library/react": "12.1.5",
         "@testing-library/user-event": "^14.2.1",
         "@types/codemirror": "^0.0.98",
@@ -141,8 +141,10 @@
         "**/nanoid": "^3.3.18",
         "**/picomatch": "^2.3.2",
         "**/postcss": "^8.5.26",
+        "**/sockjs/uuid": "^11.1.1",
         "react-router-dom/react-router/path-to-regexp": "1.9.0",
-        "tinyglobby/picomatch": "^4.0.7"
+        "tinyglobby/picomatch": "^4.0.7",
+        "twin.macro/dset": "^3.1.4"
     },
     "scripts": {
         "clean": "cd public/assets && find . \\( -name \"*.js\" -o -name \"*.map\" \\) -type f -delete",
